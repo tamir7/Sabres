@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Sabres</string>
+    <string name="button_action">Action</string>
+    <string name="button_print">Print</string>
+</resources>
