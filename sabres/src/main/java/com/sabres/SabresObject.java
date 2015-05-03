@@ -19,6 +19,8 @@ package com.sabres;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import com.jakewharton.fliptables.FlipTable;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -26,7 +28,7 @@ import java.util.concurrent.Callable;
 import bolts.Continuation;
 import bolts.Task;
 
-public class SabresObject {
+abstract public class SabresObject {
     static final String ID_KEY = "_id";
     private final ContentValues values = new ContentValues();
     private final Schema schema = new Schema();
@@ -220,6 +222,7 @@ public class SabresObject {
     }
 
     void populate(Cursor c, Schema schema) {
+        id = CursorHelper.getLong(c, ID_KEY);
         this.schema.putAll(schema);
         for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
             switch (entry.getValue()) {
@@ -252,5 +255,17 @@ public class SabresObject {
                     break;
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        String[] headers = schema.toHeaders();
+        String[][] data = new String[1][values.size() + 1];
+        int i = 0;
+        for (Map.Entry<String, Object> entry: values.valueSet()) {
+            data[i++] = new String[] {String.valueOf(id), entry.getValue().toString()};
+        }
+
+        return FlipTable.of(headers, data);
     }
 }

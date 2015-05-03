@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import com.example.sabres.R;
 import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
+import com.sabres.SabresQuery;
 
 import bolts.Continuation;
 import bolts.Task;
@@ -48,6 +49,22 @@ public class SabresFragment extends Fragment {
 
     @OnClick(R.id.button_print)
     public void onClickPrintButton() {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+
+        q.getInBackground(1).continueWith(new Continuation<Movie, Void>() {
+            @Override
+            public Void then(Task task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(getClass().getSimpleName(), "getInBackground failed", task.getError());
+                } else {
+                    Log.e(getClass().getSimpleName(), String.format("%s\n%s",
+                            Movie.class.getSimpleName(), task.getResult()));
+            }
+
+            return null;
+        }
+    }, Task.UI_THREAD_EXECUTOR);
+
         Sabres.printTables();
     }
 }

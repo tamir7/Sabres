@@ -32,15 +32,10 @@ public class SabresQuery<T extends SabresObject> {
         name = clazz.getSimpleName();
     }
 
-    @SuppressWarnings("unchecked")
-    public SabresQuery(String className) {
-        try {
-            this.clazz = (Class<T>) Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(String.format("Class %s not found", className),e);
-        }
-        name = className;
+    public static <T extends SabresObject> SabresQuery<T> getQuery(Class<T> clazz) {
+        return new SabresQuery<>(clazz);
     }
+
 
     public Task<T> getInBackground(final long objectId) {
         return Task.callInBackground(new Callable<T>() {
@@ -63,6 +58,7 @@ public class SabresQuery<T extends SabresObject> {
 
     public T get(long objectId) throws SabresException {
         Sabres sabres = Sabres.self();
+        sabres.open();
         Schema schema = SchemaTable.select(sabres, name);
         Cursor c = sabres.select(name, Where.equalTo(SabresObject.ID_KEY, objectId));
         try {
@@ -71,18 +67,24 @@ public class SabresQuery<T extends SabresObject> {
                         String.format("table %s has no object with key %s", name, objectId));
             }
 
+            c.moveToFirst();
+
+            T instance;
             try {
-                T instance = clazz.newInstance();
-                instance.populate(c, schema);
-                return instance;
+                instance = clazz.newInstance();
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Failed to instantiate class %s",
                         clazz.getSimpleName()), e);
             }
+
+            instance.populate(c, schema);
+            return instance;
+
         } finally {
             if (c != null) {
                 c.close();
             }
+            sabres.close();
         }
     }
 }
