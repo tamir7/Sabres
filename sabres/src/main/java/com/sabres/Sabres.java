@@ -212,4 +212,10 @@ public final class Sabres {
             }
         }, Task.UI_THREAD_EXECUTOR);
     }
+
+    static boolean tableExists(Sabres sabres, String table) {
+        return DatabaseUtils.longForQuery(sabres.database,
+                String.format("SELECT count(*) FROM sqlite_master WHERE type='table' AND  name='%s'",
+                        table), null) == 1;
+    }
 }

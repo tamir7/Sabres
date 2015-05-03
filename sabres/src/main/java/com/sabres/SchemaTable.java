@@ -32,7 +32,6 @@ final class SchemaTable {
     static void create(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(SCHEMA_TABLE_NAME).
                 ifNotExists().
-                withColumn(new Column(SabresObject.ID_KEY, SqlType.Integer).primaryKey().notNull()).
                 withColumn(new Column(TABLE_KEY, SqlType.Text).notNull()).
                 withColumn(new Column(COLUMN_KEY, SqlType.Text).notNull()).
                 withColumn(new Column(TYPE_KEY, SqlType.Text).notNull());
@@ -50,15 +49,18 @@ final class SchemaTable {
         }
     }
 
-    static Schema select(Sabres sabres, String name) {
-        Cursor c = sabres.select(SCHEMA_TABLE_NAME, Where.equalTo(TABLE_KEY, name));
+    static Schema select(Sabres sabres, String name) throws SabresException {
         Schema schema = new Schema();
-        for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-            schema.put(CursorHelper.getString(c, COLUMN_KEY),
-                    JavaType.valueOf(CursorHelper.getString(c, TYPE_KEY)));
+        if (Sabres.tableExists(sabres, SCHEMA_TABLE_NAME)) {
+            Cursor c = sabres.select(SCHEMA_TABLE_NAME, Where.equalTo(TABLE_KEY, name));
+            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                schema.put(CursorHelper.getString(c, COLUMN_KEY),
+                        JavaType.valueOf(CursorHelper.getString(c, TYPE_KEY)));
+            }
+
+            c.close();
         }
 
-        c.close();
         return schema;
     }
 

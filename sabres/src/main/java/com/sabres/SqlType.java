@@ -20,7 +20,7 @@ enum  SqlType {
     Integer("INTEGER"),
     Real("REAL"),
     Text("TEXT"),
-    Blob("BLOB");
+    None("NONE");
 
     private final String text;
 

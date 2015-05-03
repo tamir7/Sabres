@@ -31,7 +31,9 @@ import bolts.Continuation;
 import bolts.Task;
 
 abstract public class SabresObject {
-    static final String ID_KEY = "_id";
+    static final String OBJECT_ID_KEY = "objectId";
+    private static final String CREATED_AT_KEY = "createdAt";
+    private static final String UPDATED_AT_KEY = "updatedAt";
     private final ContentValues values = new ContentValues();
     private final Schema schema = new Schema();
     private final String name;
@@ -178,9 +180,12 @@ abstract public class SabresObject {
             SchemaTable.create(sabres);
             Schema currentSchema = SchemaTable.select(sabres, name);
             if (currentSchema.isEmpty()) {
+                put(CREATED_AT_KEY, new Date());
+                put(UPDATED_AT_KEY, new Date());
                 SchemaTable.insert(sabres, name, schema);
                 createTable(sabres, schema);
             } else {
+                put(UPDATED_AT_KEY, new Date());
                 Schema newSchema = currentSchema.update(schema);
                 if (!newSchema.isEmpty()) {
                     SchemaTable.insert(sabres, name, newSchema);
@@ -203,7 +208,7 @@ abstract public class SabresObject {
 
     private void createTable(Sabres sabres, Schema schema) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
-        createCommand.withColumn(new Column(ID_KEY, SqlType.Integer).primaryKey().notNull());
+        createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
         for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
             createCommand.withColumn(new Column(entry.getKey(), entry.getValue().toSqlType()));
         }
@@ -224,11 +229,11 @@ abstract public class SabresObject {
 
     // TODO: Keep dirty flags and update only stuff that's actually needed to be updated.
     private void update(Sabres sabres) {
-        sabres.update(name, values, Where.equalTo(ID_KEY, id));
+        sabres.update(name, values, Where.equalTo(OBJECT_ID_KEY, id));
     }
 
     void populate(Cursor c, Schema schema) {
-        id = CursorHelper.getLong(c, ID_KEY);
+        id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         this.schema.putAll(schema);
         for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
             switch (entry.getValue()) {

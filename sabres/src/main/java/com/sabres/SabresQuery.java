@@ -36,7 +36,6 @@ public class SabresQuery<T extends SabresObject> {
         return new SabresQuery<>(clazz);
     }
 
-
     public Task<T> getInBackground(final long objectId) {
         return Task.callInBackground(new Callable<T>() {
             @Override
@@ -59,26 +58,30 @@ public class SabresQuery<T extends SabresObject> {
     public T get(long objectId) throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
-        Schema schema = SchemaTable.select(sabres, name);
-        Cursor c = sabres.select(name, Where.equalTo(SabresObject.ID_KEY, objectId));
-        try {
-            if (c == null || c.getCount() == 0) {
-                throw new SabresException(SabresException.OBJECT_NOT_FOUND,
-                        String.format("table %s has no object with key %s", name, objectId));
-            }
-
-            c.moveToFirst();
-
-            T instance;
+        if (!Sabres.tableExists(sabres, name)) {
+            throw new SabresException(SabresException.OBJECT_NOT_FOUND,
+                    String.format("table %s does not exist", name));
+        }
+            Schema schema = SchemaTable.select(sabres, name);
+            Cursor c = sabres.select(name, Where.equalTo(SabresObject.OBJECT_ID_KEY, objectId));
             try {
-                instance = clazz.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException(String.format("Failed to instantiate class %s",
-                        clazz.getSimpleName()), e);
-            }
+                if (c == null || c.getCount() == 0) {
+                    throw new SabresException(SabresException.OBJECT_NOT_FOUND,
+                            String.format("table %s has no object with key %s", name, objectId));
+                }
 
-            instance.populate(c, schema);
-            return instance;
+                c.moveToFirst();
+
+                T instance;
+                try {
+                    instance = clazz.newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException(String.format("Failed to instantiate class %s",
+                            clazz.getSimpleName()), e);
+                }
+
+                instance.populate(c, schema);
+                return instance;
 
         } finally {
             if (c != null) {
