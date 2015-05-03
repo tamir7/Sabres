@@ -21,7 +21,9 @@ import android.database.Cursor;
 
 import com.jakewharton.fliptables.FlipTable;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -261,10 +263,14 @@ abstract public class SabresObject {
     public String toString() {
         String[] headers = schema.toHeaders();
         String[][] data = new String[1][values.size() + 1];
-        int i = 0;
+
+        List<String> arrayData = new ArrayList<>(values.size() + 1);
+        arrayData.add(String.valueOf(id));
         for (Map.Entry<String, Object> entry: values.valueSet()) {
-            data[i++] = new String[] {String.valueOf(id), entry.getValue().toString()};
+            arrayData.add(entry.getValue().toString());
         }
+
+        arrayData.toArray(data[0]);
 
         return FlipTable.of(headers, data);
     }
