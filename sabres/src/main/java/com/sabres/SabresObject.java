@@ -268,6 +268,27 @@ abstract public class SabresObject {
         }
     }
 
+    private String stringify(String key) {
+        switch (schema.getType(key)) {
+            case Integer:
+            case Double:
+            case Float:
+            case String:
+            case Byte:
+            case Short:
+            case Long:
+                return values.get(key).toString();
+            case Boolean:
+                // TODO: Not sure how this is saved yet.
+                return values.get(key).toString();
+            case Date:
+                return new Date(values.getAsLong(key)).toString();
+        }
+
+        throw new IllegalStateException(String.format("No rule to stringify %s object",
+                schema.getType(key)));
+    }
+
     @Override
     public String toString() {
         String[] headers = schema.toHeaders();
@@ -276,7 +297,7 @@ abstract public class SabresObject {
         List<String> arrayData = new ArrayList<>(schema.size() + 1);
         arrayData.add(String.valueOf(id));
         for (String key: schema.getTypes().keySet()) {
-            arrayData.add(values.get(key).toString());
+            arrayData.add(stringify(key));
         }
 
         data[0] = arrayData.toArray(data[0]);

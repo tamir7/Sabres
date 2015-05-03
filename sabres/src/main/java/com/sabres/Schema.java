@@ -70,7 +70,7 @@ final class Schema {
     String[] toHeaders() {
         String[] headers = new String[types.size() + 1];
         int i = 1;
-        headers[0] = "objectId";
+        headers[0] = "objectId(String)";
         for (Map.Entry<String, JavaType> entry: types.entrySet()) {
             headers[i++] = String.format("%s(%s)", entry.getKey(), entry.getValue());
         }
