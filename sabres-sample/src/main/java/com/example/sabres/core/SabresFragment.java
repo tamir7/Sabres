@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 
 import com.example.sabres.R;
 import com.example.sabres.model.Movie;
-import com.sabres.Sabres;
 import com.sabres.SabresQuery;
 
 import bolts.Continuation;
@@ -47,6 +46,35 @@ public class SabresFragment extends Fragment {
         });
     }
 
+    @OnClick(R.id.button_action2)
+    public void onClickAction2Button() {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+        q.getInBackground(1).continueWithTask(new Continuation<Movie, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Movie> task) throws Exception {
+                Log.e("lol", "starting then");
+                if (task.isFaulted()) {
+                    Log.e("lol", "Faulted");
+                    throw task.getError();
+                } else {
+                    Log.e("lol", "not faulted");
+                    Movie movie = task.getResult();
+                    movie.setImdbRating(8.9);
+                    Log.e(getClass().getSimpleName(), String.format("Local Movie\n%s", movie.toString()));
+                    return  movie.saveInBackground();
+                }
+            }
+        }).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(getClass().getSimpleName(), "saveInBackground failed", task.getError());
+                }
+                return null;
+            }
+        });
+    }
+
     @OnClick(R.id.button_print)
     public void onClickPrintButton() {
         SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
@@ -59,12 +87,10 @@ public class SabresFragment extends Fragment {
                 } else {
                     Log.e(getClass().getSimpleName(), String.format("%s\n%s",
                             Movie.class.getSimpleName(), task.getResult()));
+                }
+
+                return null;
             }
-
-            return null;
-        }
-    }, Task.UI_THREAD_EXECUTOR);
-
-        Sabres.printTables();
+        }, Task.UI_THREAD_EXECUTOR);
     }
 }

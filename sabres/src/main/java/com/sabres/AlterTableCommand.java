@@ -16,38 +16,17 @@
 
 package com.sabres;
 
-import java.util.ArrayList;
-import java.util.List;
-
 final class AlterTableCommand {
-    private final List<Column> columns = new ArrayList<>();
     private final String name;
+    private final Column column;
 
-    AlterTableCommand(String name) {
+    AlterTableCommand(String name, Column column) {
         this.name = name;
-    }
-
-    AlterTableCommand addColumn(Column column) {
-        columns.add(column);
-        return this;
+        this.column = column;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder(String.format("AlTER TABLE %s ADD (", name));
-
-        final int count = columns.size();
-        int i = 0;
-        while (count > i) {
-            sb.append(columns.get(i).toString());
-
-            if (++i == count) {
-                sb.append(");");
-            } else {
-                sb.append(", ");
-            }
-        }
-
-        return sb.toString();
+        return  String.format("AlTER TABLE %s ADD %s;", name, column.toString());
     }
 }

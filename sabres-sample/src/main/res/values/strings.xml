@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Sabres</string>
     <string name="button_action">Action</string>
+    <string name="button_action2">Action2</string>
     <string name="button_print">Print</string>
 </resources>

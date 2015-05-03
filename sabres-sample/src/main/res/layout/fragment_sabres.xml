@@ -17,6 +17,13 @@
         android:layout_height="wrap_content"/>
 
     <Button
+        android:id="@+id/button_action2"
+        android:text="@string/button_action2"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
         android:id="@+id/button_print"
         android:text="@string/button_print"
         android:layout_gravity="center"

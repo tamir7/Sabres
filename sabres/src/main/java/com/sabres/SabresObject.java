@@ -66,7 +66,13 @@ abstract public class SabresObject {
             values.put(key, (Short)value);
         } else if (value instanceof Byte) {
             schema.put(key, JavaType.Byte);
-            values.put(key, (Byte)value);
+            values.put(key, (Byte) value);
+        } else if (value instanceof Float) {
+            schema.put(key, JavaType.Float);
+            values.put(key, (Float) value);
+        } else if (value instanceof Double){
+            schema.put(key, JavaType.Double);
+            values.put(key, (Double) value);
         } else {
             throw new IllegalArgumentException(String.format("Class %s is not supported",
                     value.getClass().getSimpleName()));
@@ -206,12 +212,10 @@ abstract public class SabresObject {
     }
 
     private void alterTable(Sabres sabres, Schema schema) throws SabresException {
-        AlterTableCommand alterCommand = new AlterTableCommand(name);
         for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
-            alterCommand.addColumn(new Column(entry.getKey(), entry.getValue().toSqlType()));
+            sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
+                    entry.getValue().toSqlType())).toString());
         }
-
-        sabres.execSQL(alterCommand.toString());
     }
 
     private long insert(Sabres sabres) throws SabresException {
@@ -262,15 +266,15 @@ abstract public class SabresObject {
     @Override
     public String toString() {
         String[] headers = schema.toHeaders();
-        String[][] data = new String[1][values.size() + 1];
+        String[][] data = new String[1][schema.size() + 1];
 
-        List<String> arrayData = new ArrayList<>(values.size() + 1);
+        List<String> arrayData = new ArrayList<>(schema.size() + 1);
         arrayData.add(String.valueOf(id));
-        for (Map.Entry<String, Object> entry: values.valueSet()) {
-            arrayData.add(entry.getValue().toString());
+        for (String key: schema.getTypes().keySet()) {
+            arrayData.add(values.get(key).toString());
         }
 
-        arrayData.toArray(data[0]);
+        data[0] = arrayData.toArray(data[0]);
 
         return FlipTable.of(headers, data);
     }

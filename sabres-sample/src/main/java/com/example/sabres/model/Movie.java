@@ -20,12 +20,21 @@ import com.sabres.SabresObject;
 
 public class Movie extends SabresObject {
     private static final String TITLE_KEY = "title";
+    private static final String IMDB_RATING_KEY = "imdb_rating";
 
     public String getTitle() {
         return getString(TITLE_KEY);
     }
 
+    public Double getImdbRating() {
+        return getDouble(IMDB_RATING_KEY);
+    }
+
     public void setTitle(String title) {
         put(TITLE_KEY, title);
+    }
+
+    public void setImdbRating(double imdbRating) {
+        put(IMDB_RATING_KEY, imdbRating);
     }
 }

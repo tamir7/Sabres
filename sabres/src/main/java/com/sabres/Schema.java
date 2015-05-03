@@ -44,6 +44,10 @@ final class Schema {
         return types.isEmpty();
     }
 
+    int size() {
+        return types.size();
+    }
+
     // TODO: that's a stupid name for the function. It does not infer that a new object is created.
     Schema update(Schema schema) throws SabresException {
         Schema newSchema = new Schema();
