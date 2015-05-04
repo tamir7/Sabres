@@ -35,6 +35,7 @@ abstract public class SabresObject {
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
     private final ContentValues values = new ContentValues();
+    private final ContentValues dirtyValues = new ContentValues();
     private final Schema schema = new Schema();
     private final String name;
     private long id = 0;
@@ -47,30 +48,39 @@ abstract public class SabresObject {
         if (value instanceof String) {
             schema.put(key, JavaType.String);
             values.put(key, (String)value);
+            dirtyValues.put(key, (String)value);
         } else if (value instanceof Integer) {
             schema.put(key, JavaType.Integer);
             values.put(key, (Integer)value);
+            dirtyValues.put(key, (Integer)value);
         } else if (value instanceof Date) {
             schema.put(key, JavaType.Date);
             values.put(key, ((Date)value).getTime());
+            dirtyValues.put(key, ((Date)value).getTime());
         } else if (value instanceof Boolean) {
             schema.put(key, JavaType.Boolean);
             values.put(key, (Boolean)value);
+            dirtyValues.put(key, (Boolean)value);
         } else if (value instanceof Long) {
             schema.put(key, JavaType.Long);
             values.put(key, (Long)value);
+            dirtyValues.put(key, (Long)value);
         } else if (value instanceof Short) {
             schema.put(key, JavaType.Short);
             values.put(key, (Short)value);
+            dirtyValues.put(key, (Short)value);
         } else if (value instanceof Byte) {
             schema.put(key, JavaType.Byte);
             values.put(key, (Byte) value);
+            dirtyValues.put(key, (Byte) value);
         } else if (value instanceof Float) {
             schema.put(key, JavaType.Float);
             values.put(key, (Float) value);
+            dirtyValues.put(key, (Float) value);
         } else if (value instanceof Double){
             schema.put(key, JavaType.Double);
             values.put(key, (Double) value);
+            dirtyValues.put(key, (Double) value);
         } else {
             throw new IllegalArgumentException(String.format("Class %s is not supported",
                     value.getClass().getSimpleName()));
@@ -220,12 +230,14 @@ abstract public class SabresObject {
     }
 
     private long insert(Sabres sabres) throws SabresException {
-        return sabres.insert(name, values);
+        long id = sabres.insert(name, dirtyValues);
+        dirtyValues.clear();
+        return id;
     }
 
-    // TODO: Keep dirty flags and update only stuff that's actually needed to be updated.
     private void update(Sabres sabres) {
-        sabres.update(name, values, Where.equalTo(OBJECT_ID_KEY, id));
+        sabres.update(name, dirtyValues, Where.equalTo(OBJECT_ID_KEY, id));
+        dirtyValues.clear();
     }
 
     void populate(Cursor c, Schema schema) {
