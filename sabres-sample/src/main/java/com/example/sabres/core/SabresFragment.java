@@ -2,21 +2,22 @@ package com.example.sabres.core;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sabres.R;
-import com.example.sabres.model.Movie;
-import com.sabres.SabresQuery;
+import com.example.sabres.controller.AbstractSabresController;
+import com.example.sabres.controller.BoltsSabresController;
+import com.example.sabres.controller.CallbacksSabresController;
 
-import bolts.Continuation;
-import bolts.Task;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SabresFragment extends Fragment {
+    private boolean useBoltsController = true;
+    private final AbstractSabresController controller =
+            useBoltsController ? new BoltsSabresController() : new CallbacksSabresController();
 
     public SabresFragment() {}
 
@@ -28,69 +29,33 @@ public class SabresFragment extends Fragment {
         return v;
     }
 
-    @OnClick(R.id.button_action)
-    public void onClickActionButton() {
-        Movie movie = new Movie();
-        movie.setTitle("Fight Club");
-        movie.saveInBackground().continueWith(new Continuation<Void, Void>() {
-            @Override
-            public Void then(Task<Void> task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(getClass().getSimpleName(), "Failed to saveInBackground",
-                            task.getError());
-                } else {
-                    Log.e(getClass().getSimpleName(), "saveInBackground success");
-                }
-                return null;
-            }
-        });
+    @OnClick(R.id.button_print_tables)
+    public void onClickPrintTables() {
+        controller.printTables();
     }
 
-    @OnClick(R.id.button_action2)
-    public void onClickAction2Button() {
-        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
-        q.getInBackground(1).continueWithTask(new Continuation<Movie, Task<Void>>() {
-            @Override
-            public Task<Void> then(Task<Movie> task) throws Exception {
-                Log.e("lol", "starting then");
-                if (task.isFaulted()) {
-                    Log.e("lol", "Faulted");
-                    throw task.getError();
-                } else {
-                    Log.e("lol", "not faulted");
-                    Movie movie = task.getResult();
-                    movie.setImdbRating(8.9);
-                    Log.e(getClass().getSimpleName(), String.format("Local Movie\n%s", movie.toString()));
-                    return  movie.saveInBackground();
-                }
-            }
-        }).continueWith(new Continuation<Void, Void>() {
-            @Override
-            public Void then(Task<Void> task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(getClass().getSimpleName(), "saveInBackground failed", task.getError());
-                }
-                return null;
-            }
-        });
+    @OnClick(R.id.button_print_schema)
+    public void onClickPrintSchema() {
+        controller.printSchema();
     }
 
     @OnClick(R.id.button_print)
-    public void onClickPrintButton() {
-        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+    public void onClickPrintMovies() {
+        controller.printMovies();
+    }
 
-        q.getInBackground(1).continueWith(new Continuation<Movie, Void>() {
-            @Override
-            public Void then(Task task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(getClass().getSimpleName(), "getInBackground failed", task.getError());
-                } else {
-                    Log.e(getClass().getSimpleName(), String.format("%s\n%s",
-                            Movie.class.getSimpleName(), task.getResult()));
-                }
+    @OnClick(R.id.button_create_fight_club_movie)
+    public void onClickCreateFightClubMovie() {
+        controller.createFightClubMovie();
+    }
 
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
+    @OnClick(R.id.button_modify_fight_club_movie)
+    public void onClickModifyFightClubMovie() {
+        controller.modifyFightClubMovie();
+    }
+
+    @OnClick(R.id.button_delete_fight_club_movie)
+    public void onClickDeleteFightClubMovie() {
+        controller.deleteFightClubMovie();
     }
 }

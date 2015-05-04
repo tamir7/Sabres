@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">Sabres</string>
-    <string name="button_action">Action</string>
-    <string name="button_action2">Action2</string>
-    <string name="button_print">Print</string>
+    <string name="button_print_tables">Print Tables</string>
+    <string name="button_print_schema">Print Schema</string>
+    <string name="button_print_movies">Print Movies</string>
+    <string name="label_generic_commands">Generic commands</string>
+    <string name="label_fight_club_object">Fight Club Movie Object</string>
+    <string name="button_create_fight_club_movie">Create</string>
+    <string name="button_modify_fight_club_movie">Modify</string>
+    <string name="button_delete_fight_club_movie">Delete</string>
 </resources>
