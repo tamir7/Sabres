@@ -16,7 +16,9 @@
 
 package com.example.sabres.controller;
 
+import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
+import com.sabres.SabresObject;
 
 public abstract class AbstractSabresController {
     public void printTables() {
@@ -27,11 +29,10 @@ public abstract class AbstractSabresController {
         Sabres.printSchemaTable();
     }
 
-    public void printTable() {
-
+    public void printMovies() {
+        SabresObject.printAll(Movie.class);
     }
 
-    public abstract void printMovies();
     public abstract void createFightClubMovie();
     public abstract void modifyFightClubMovie();
     public abstract void deleteFightClubMovie();

@@ -16,15 +16,48 @@
 
 package com.example.sabres.controller;
 
-public class BoltsSabresController extends AbstractSabresController {
-    @Override
-    public void printMovies() {
+import android.util.Log;
 
-    }
+import com.example.sabres.model.Movie;
+
+import java.util.List;
+
+import bolts.Continuation;
+import bolts.Task;
+
+public class BoltsSabresController extends AbstractSabresController {
+    private static final String TAG = BoltsSabresController.class.getSimpleName();
 
     @Override
     public void createFightClubMovie() {
+        Movie.findWithTitleInBackground("Fight Club").continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<List<Movie>> task) throws Exception {
+                if (task.isFaulted()) {
+                        return task.makeVoid();
+                }
 
+                if (task.getResult().isEmpty()) {
+                    Movie movie = new Movie();
+                    movie.setTitle("Fight Club");
+                    movie.setImdbRating(8.9);
+                    return movie.saveInBackground();
+                }
+
+                // already exists
+                return Task.forResult(null);
+            }
+        }).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, "Failed to create Fight Club Movie object", task.getError());
+                } else {
+                    Log.i(TAG, "Fight Club Movie object successfully created");
+                }
+                return null;
+            }
+        });
     }
 
     @Override

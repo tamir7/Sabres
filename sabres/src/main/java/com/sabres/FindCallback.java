@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package com.example.sabres.controller;
+package com.sabres;
 
-public class CallbacksSabresController extends AbstractSabresController {
+import java.util.List;
 
-    @Override
-    public void createFightClubMovie() {
-
-    }
-
-    @Override
-    public void modifyFightClubMovie() {
-
-    }
-
-    @Override
-    public void deleteFightClubMovie() {
-
-    }
+public interface FindCallback<T extends SabresObject> {
+    void done(List<T> objects, SabresException e);
 }

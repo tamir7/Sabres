@@ -39,7 +39,7 @@ public class SabresFragment extends Fragment {
         controller.printSchema();
     }
 
-    @OnClick(R.id.button_print)
+    @OnClick(R.id.button_print_movies)
     public void onClickPrintMovies() {
         controller.printMovies();
     }

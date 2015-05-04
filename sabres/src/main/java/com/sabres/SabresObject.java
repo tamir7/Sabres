@@ -18,12 +18,11 @@ package com.sabres;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.util.Log;
 
 import com.jakewharton.fliptables.FlipTable;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -31,6 +30,7 @@ import bolts.Continuation;
 import bolts.Task;
 
 abstract public class SabresObject {
+    private static final String TAG = SabresObject.class.getSimpleName();
     static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
@@ -297,19 +297,77 @@ abstract public class SabresObject {
                 schema.getType(key)));
     }
 
+    String[] getArrayOfValues() {
+        String[] array = new String[schema.size() + 1];
+        array[0] = String.valueOf(id);
+        int i = 1;
+        for(String key: schema.getTypes().keySet()) {
+            array[i++] = stringify(key);
+        }
+
+        return array;
+    }
+
     @Override
     public String toString() {
         String[] headers = schema.toHeaders();
         String[][] data = new String[1][schema.size() + 1];
-
-        List<String> arrayData = new ArrayList<>(schema.size() + 1);
-        arrayData.add(String.valueOf(id));
-        for (String key: schema.getTypes().keySet()) {
-            arrayData.add(stringify(key));
-        }
-
-        data[0] = arrayData.toArray(data[0]);
-
+        data[0] = getArrayOfValues();
         return FlipTable.of(headers, data);
+    }
+
+    private static <T extends SabresObject> T createObjectInstance(Class<T> clazz) {
+        try {
+            return clazz.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Failed to instantiate class %s",
+                    clazz.getSimpleName()), e);
+        }
+    }
+
+    public static <T extends SabresObject> void printAll(final Class<T> clazz) {
+        Task.callInBackground(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Sabres sabres = Sabres.self();
+                sabres.open();
+                Cursor c = null;
+                try {
+                    if (Sabres.tableExists(sabres, clazz.getSimpleName())) {
+                        c = sabres.select(clazz.getSimpleName(), null);
+                        Schema schema = SchemaTable.select(sabres, clazz.getSimpleName());
+                        String[] headers = schema.toHeaders();
+                        String[][] data = new String[c.getCount()][headers.length];
+                        int i = 0;
+                        for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                            T object = SabresObject.createObjectInstance(clazz);
+                            object.populate(c, schema);
+                            data[i++] = object.getArrayOfValues();
+                        }
+
+                        return FlipTable.of(headers, data);
+
+                    } else {
+                        return String.format("Class %s does not exist", clazz.getSimpleName());
+                    }
+                } finally {
+                    if (c != null) {
+                        c.close();
+                    }
+                    sabres.close();
+                }
+            }
+        }).continueWith(new Continuation<String, Void>() {
+            @Override
+            public Void then(Task<String> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, String.format("Failed to print table %s", clazz.getSimpleName()),
+                            task.getError());
+                } else {
+                    Log.i(TAG, String.format("%s:\n%s", clazz.getSimpleName(), task.getResult()));
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 }

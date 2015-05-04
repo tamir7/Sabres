@@ -16,7 +16,13 @@
 
 package com.example.sabres.model;
 
+import com.sabres.FindCallback;
 import com.sabres.SabresObject;
+import com.sabres.SabresQuery;
+
+import java.util.List;
+
+import bolts.Task;
 
 public class Movie extends SabresObject {
     private static final String TITLE_KEY = "title";
@@ -36,5 +42,17 @@ public class Movie extends SabresObject {
 
     public void setImdbRating(double imdbRating) {
         put(IMDB_RATING_KEY, imdbRating);
+    }
+
+    public static Task<List<Movie>> findWithTitleInBackground(String title) {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+        q.whereEqualTo(TITLE_KEY, title);
+        return q.findInBackground();
+    }
+
+    public static void findWithTitleInBackground(String title, final FindCallback<Movie> callback) {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+        q.whereEqualTo(TITLE_KEY, title);
+        q.findInBackground(callback);
     }
 }
