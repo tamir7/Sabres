@@ -49,4 +49,9 @@ public class SabresException extends Exception {
 
         return new SabresException(OTHER_CAUSE, e.getMessage(), e);
     }
+
+    @Override
+    public String getMessage() {
+        return String.format("%s: %s", getErrorCode(), super.getMessage());
+    }
 }
