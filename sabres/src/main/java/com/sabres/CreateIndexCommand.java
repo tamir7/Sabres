@@ -22,7 +22,6 @@ final class CreateIndexCommand {
     private final String key;
 
     private boolean ifNotExists = false;
-    private boolean unique = false;
 
     CreateIndexCommand(String name, String key) {
         this.name = name;
@@ -34,18 +33,9 @@ final class CreateIndexCommand {
         return this;
     }
 
-    CreateIndexCommand unique() {
-        unique = true;
-        return this;
-    }
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("CREATE ");
-
-        if (unique) {
-            sb.append("UNIQUE ");
-        }
 
         sb.append("INDEX ");
 

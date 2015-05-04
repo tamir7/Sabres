@@ -27,7 +27,7 @@ final class Where {
 
         private final String value;
 
-        private Operator(String value) {
+        Operator(String value) {
             this.value = value;
         }
 

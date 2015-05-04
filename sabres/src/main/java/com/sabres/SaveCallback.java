@@ -17,5 +17,5 @@
 package com.sabres;
 
 public interface SaveCallback {
-    public void done(SabresException e);
+    void done(SabresException e);
 }

@@ -17,5 +17,5 @@
 package com.sabres;
 
 public interface GetCallback<T extends SabresObject> {
-    public void done(T object, SabresException e);
+     void done(T object, SabresException e);
 }

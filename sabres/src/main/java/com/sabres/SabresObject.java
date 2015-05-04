@@ -43,10 +43,6 @@ abstract public class SabresObject {
         name = getClass().getSimpleName();
     }
 
-    public SabresObject(String name) {
-        this.name = name;
-    }
-
     public void put(String key, Object value) {
         if (value instanceof String) {
             schema.put(key, JavaType.String);

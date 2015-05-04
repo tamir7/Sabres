@@ -20,7 +20,6 @@ final class Column {
     private final String name;
     private final SqlType type;
     private boolean primaryKey = false;
-    private boolean unique = false;
     private boolean notNull = false;
 
     Column(String name, SqlType type) {
@@ -30,11 +29,6 @@ final class Column {
 
     Column primaryKey() {
         primaryKey = true;
-        return this;
-    }
-
-    Column unique() {
-        unique = true;
         return this;
     }
 
@@ -49,8 +43,6 @@ final class Column {
 
         if (primaryKey) {
             sb.append(" PRIMARY KEY");
-        } else if (unique)  {
-            sb.append(" UNIQUE");
         }
 
         if (notNull) {
