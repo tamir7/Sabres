@@ -290,8 +290,7 @@ abstract public class SabresObject {
             case Long:
                 return values.get(key).toString();
             case Boolean:
-                // TODO: Not sure how this is saved yet.
-                return values.get(key).toString();
+                return values.getAsInteger(key) == 0 ? String.valueOf(false) : String.valueOf(true);
             case Date:
                 return new Date(values.getAsLong(key)).toString();
         }

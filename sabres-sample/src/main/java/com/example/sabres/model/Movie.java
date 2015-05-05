@@ -26,14 +26,59 @@ import bolts.Task;
 
 public class Movie extends SabresObject {
     private static final String TITLE_KEY = "title";
-    private static final String IMDB_RATING_KEY = "imdb_rating";
+    private static final String RATING_KEY = "rating";
+    private static final String YEAR_KEY = "year";
+    private static final String META_SCORE_KEY = "metaScore";
+    private static final String BUDGET_KEY = "budget";
+    private static final String GROSS_KEY = "gross";
+    private static final String HAS_BRAD_PITT_KEY = "hasBradPitt";
 
     public String getTitle() {
         return getString(TITLE_KEY);
     }
 
-    public Double getImdbRating() {
-        return getDouble(IMDB_RATING_KEY);
+    public Double getIMDBRating() {
+        return getDouble(RATING_KEY);
+    }
+
+    public Short getYear() {
+        return getShort(YEAR_KEY);
+    }
+
+    public void setYear(Short year) {
+        put(YEAR_KEY, year);
+    }
+
+    public Byte getMetaScore() {
+        return getByte(META_SCORE_KEY);
+    }
+
+    public Integer getBudget() {
+        return getInt(BUDGET_KEY);
+    }
+
+    public void setMetaScore(Byte metaScore) {
+        put(META_SCORE_KEY, metaScore);
+    }
+
+    public void setBudget(Integer budget) {
+        put(BUDGET_KEY, budget);
+    }
+
+    public void setGross(Long gross) {
+        put(GROSS_KEY, gross);
+    }
+
+    public Long getGross() {
+        return getLong(GROSS_KEY);
+    }
+
+    public Boolean hasBradPitt() {
+        return getBoolean(HAS_BRAD_PITT_KEY);
+    }
+
+    public void setHasBradPitt(Boolean hasBradPitt) {
+        put(HAS_BRAD_PITT_KEY, hasBradPitt);
     }
 
     public void setTitle(String title) {
@@ -41,7 +86,7 @@ public class Movie extends SabresObject {
     }
 
     public void setImdbRating(double imdbRating) {
-        put(IMDB_RATING_KEY, imdbRating);
+        put(RATING_KEY, imdbRating);
     }
 
     public static Task<List<Movie>> findWithTitleInBackground(String title) {

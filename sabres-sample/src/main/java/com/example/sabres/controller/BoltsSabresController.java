@@ -62,6 +62,32 @@ public class BoltsSabresController extends AbstractSabresController {
 
     @Override
     public void modifyFightClubMovie() {
+        Movie.findWithTitleInBackground("Fight Club").continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<List<Movie>> task) throws Exception {
+                if (task.isFaulted()) {
+                    return task.makeVoid();
+                } else {
+                    Movie movie = task.getResult().get(0);
+                    movie.setYear(Short.valueOf("1999"));
+                    movie.setMetaScore(Byte.valueOf("66"));
+                    movie.setBudget(63000000);
+                    movie.setGross(Long.valueOf("37023395"));
+                    movie.setHasBradPitt(true);
+                    return movie.saveInBackground();
+                }
+            }
+        }).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, "Failed to modify Fight Club movie", task.getError());
+                } else {
+                    Log.i(TAG, "Modified Fight Club movie successfully");
+                }
+                return null;
+            }
+        });
 
     }
 
