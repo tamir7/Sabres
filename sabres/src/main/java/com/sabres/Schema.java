@@ -48,8 +48,7 @@ final class Schema {
         return types.size();
     }
 
-    // TODO: that's a stupid name for the function. It does not infer that a new object is created.
-    Schema update(Schema schema) throws SabresException {
+    Schema createDiffSchema(Schema schema) throws SabresException {
         Schema newSchema = new Schema();
         for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
             if (types.containsKey(entry.getKey())) {

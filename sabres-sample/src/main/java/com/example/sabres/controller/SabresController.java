@@ -24,6 +24,10 @@ public class SabresController {
         Sabres.printTables();
     }
 
+    public void printIndices() {
+        Sabres.printIndices();
+    }
+
     public void printSchema() {
         Sabres.printSchemaTable();
     }

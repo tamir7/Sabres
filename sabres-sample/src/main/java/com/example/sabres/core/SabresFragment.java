@@ -35,6 +35,11 @@ public class SabresFragment extends Fragment {
         sabresController.printTables();
     }
 
+    @OnClick(R.id.button_print_indices)
+    public void onClickPrintIndices() {
+        sabresController.printIndices();
+    }
+
     @OnClick(R.id.button_print_schema)
     public void onClickPrintSchema() {
         sabresController.printSchema();

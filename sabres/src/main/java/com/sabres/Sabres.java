@@ -146,20 +146,49 @@ public final class Sabres {
     private static String getTables() throws SabresException {
         Utils.checkNotMain();
         self.open();
-        String[] headers = new String[]{"table", "count"};
-        Cursor c = self.select("sqlite_master",
-                Where.equalTo("type", "table").and(Where.notEqualTo("name", "android_metadata").
-                and(Where.notEqualTo("name", SchemaTable.getTableName()))));
-        String[][] data = new String[c.getCount()][2];
-        int i = 0;
-        for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-            final String table = CursorHelper.getString(c, "name");
-            data[i++] = new String[]
-                    {table, String.valueOf(DatabaseUtils.queryNumEntries(self.database, table))};
+        Cursor c = null;
+        try {
+            String[] headers = new String[]{"table", "count"};
+            c = self.select("sqlite_master",
+                    Where.equalTo("type", "table").and(Where.notEqualTo("name", "android_metadata").
+                            and(Where.notEqualTo("name", SchemaTable.getTableName()))));
+            String[][] data = new String[c.getCount()][2];
+            int i = 0;
+            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                final String table = CursorHelper.getString(c, "name");
+                data[i++] = new String[]
+                        {table, String.valueOf(DatabaseUtils.queryNumEntries(self.database, table))};
+            }
+            return FlipTable.of(headers, data);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+            self.close();
         }
-        c.close();
-        self.close();
-        return FlipTable.of(headers, data);
+    }
+
+    private static String getIndices() throws SabresException {
+        Utils.checkNotMain();
+        self.open();
+        Cursor c = null;
+        try {
+            String[] headers = new String[]{"table", "index"};
+            c = self.select("sqlite_master", Where.equalTo("type", "index").
+                    and(Where.notEqualTo("tbl_name", SchemaTable.getTableName())));
+            String[][] data = new String[c.getCount()][2];
+            int i = 0;
+            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                data[i++] = new String[] {CursorHelper.getString(c, "tbl_name"),
+                        CursorHelper.getString(c, "name")};
+            }
+            return FlipTable.of(headers, data);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+            self.close();
+        }
     }
 
     public static void printTables() {
@@ -175,6 +204,25 @@ public final class Sabres {
                     Log.e(getClass().getSimpleName(), "getTables failed", task.getError());
                 } else {
                     Log.i(getClass().getSimpleName(), String.format("tables:\n%s", task.getResult()));
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    public static void printIndices() {
+        Task.callInBackground(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return getIndices();
+            }
+        }).continueWith(new Continuation<String, Void>() {
+            @Override
+            public Void then(Task<String> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(getClass().getSimpleName(), "getIndices failed", task.getError());
+                } else {
+                    Log.i(getClass().getSimpleName(), String.format("indices:\n%s", task.getResult()));
                 }
                 return null;
             }

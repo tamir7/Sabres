@@ -43,7 +43,7 @@ final class CreateIndexCommand {
             sb.append("IF NOT EXISTS ");
         }
 
-        sb.append(String.format("%s%s ON %s(%s);", INDEX_NAME_PREFIX, name, name, key));
+        sb.append(String.format("%s%s ON %s(%s);", INDEX_NAME_PREFIX, key, name, key));
         return sb.toString();
     }
 }

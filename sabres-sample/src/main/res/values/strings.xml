@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Sabres</string>
     <string name="button_print_tables">Print Tables</string>
+    <string name="button_print_indices">Print Indices</string>
     <string name="button_print_schema">Print Schema</string>
     <string name="button_print_movies">Print Movies</string>
     <string name="label_generic_commands">Generic commands</string>

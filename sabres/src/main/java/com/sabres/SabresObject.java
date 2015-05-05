@@ -152,7 +152,6 @@ abstract public class SabresObject {
         });
     }
 
-    // TODO: Build indices automatically.
     public void save() throws SabresException {
         final Sabres sabres = Sabres.self();
         sabres.open();
@@ -171,17 +170,27 @@ abstract public class SabresObject {
         }
     }
 
+    private void createIndices(Sabres sabres, Schema schema) throws SabresException {
+        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
+            CreateIndexCommand createIndexCommand =
+                    new CreateIndexCommand(name, entry.getKey()).ifNotExists();
+            sabres.execSQL(createIndexCommand.toString());
+        }
+    }
+
     private void updateSchema(Sabres sabres) throws SabresException {
         SchemaTable.create(sabres);
         Schema currentSchema = SchemaTable.select(sabres, name);
         if (currentSchema.isEmpty()) {
             SchemaTable.insert(sabres, name, schema);
             createTable(sabres, schema);
+            createIndices(sabres, schema);
         } else {
-            Schema newSchema = currentSchema.update(schema);
+            Schema newSchema = currentSchema.createDiffSchema(schema);
             if (!newSchema.isEmpty()) {
                 SchemaTable.insert(sabres, name, newSchema);
                 alterTable(sabres, newSchema);
+                createIndices(sabres, newSchema);
             }
         }
     }
