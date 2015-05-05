@@ -85,8 +85,8 @@ public class Movie extends SabresObject {
         put(TITLE_KEY, title);
     }
 
-    public void setImdbRating(double imdbRating) {
-        put(RATING_KEY, imdbRating);
+    public void setRating(double rating) {
+        put(RATING_KEY, rating);
     }
 
     public static Task<List<Movie>> findWithTitleInBackground(String title) {

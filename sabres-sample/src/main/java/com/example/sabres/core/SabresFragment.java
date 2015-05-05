@@ -7,17 +7,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sabres.R;
-import com.example.sabres.controller.AbstractSabresController;
-import com.example.sabres.controller.BoltsSabresController;
-import com.example.sabres.controller.CallbacksSabresController;
+import com.example.sabres.controller.FightClubController;
+import com.example.sabres.controller.SabresController;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SabresFragment extends Fragment {
-    private boolean useBoltsController = true;
-    private final AbstractSabresController controller =
-            useBoltsController ? new BoltsSabresController() : new CallbacksSabresController();
+    private final SabresController sabresController = new SabresController();
+    private final FightClubController fightClubController = new FightClubController();
 
     public SabresFragment() {}
 
@@ -31,31 +29,31 @@ public class SabresFragment extends Fragment {
 
     @OnClick(R.id.button_print_tables)
     public void onClickPrintTables() {
-        controller.printTables();
+        sabresController.printTables();
     }
 
     @OnClick(R.id.button_print_schema)
     public void onClickPrintSchema() {
-        controller.printSchema();
+        sabresController.printSchema();
     }
 
     @OnClick(R.id.button_print_movies)
     public void onClickPrintMovies() {
-        controller.printMovies();
+        sabresController.printMovies();
     }
 
     @OnClick(R.id.button_create_fight_club_movie)
     public void onClickCreateFightClubMovie() {
-        controller.createFightClubMovie();
+        fightClubController.createMovie();
     }
 
     @OnClick(R.id.button_modify_fight_club_movie)
     public void onClickModifyFightClubMovie() {
-        controller.modifyFightClubMovie();
+        fightClubController.modifyMovie();
     }
 
     @OnClick(R.id.button_delete_fight_club_movie)
     public void onClickDeleteFightClubMovie() {
-        controller.deleteFightClubMovie();
+        fightClubController.deleteMovie();
     }
 }

@@ -16,24 +16,17 @@
 
 package com.example.sabres.controller;
 
-import com.example.sabres.model.Movie;
-import com.sabres.Sabres;
-import com.sabres.SabresObject;
+public class ReservoirDogsController {
 
-public abstract class AbstractSabresController {
-    public void printTables() {
-        Sabres.printTables();
+    public void createMovie() {
+
     }
 
-    public void printSchema() {
-        Sabres.printSchemaTable();
+    public void modifyMovie() {
+
     }
 
-    public void printMovies() {
-        SabresObject.printAll(Movie.class);
-    }
+    public void deleteMovie() {
 
-    public abstract void createFightClubMovie();
-    public abstract void modifyFightClubMovie();
-    public abstract void deleteFightClubMovie();
+    }
 }

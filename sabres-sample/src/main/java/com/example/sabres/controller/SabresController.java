@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.example.sabres.controller;
 
-public class CallbacksSabresController extends AbstractSabresController {
+import com.example.sabres.model.Movie;
+import com.sabres.Sabres;
+import com.sabres.SabresObject;
 
-    @Override
-    public void createFightClubMovie() {
-
+public class SabresController {
+    public void printTables() {
+        Sabres.printTables();
     }
 
-    @Override
-    public void modifyFightClubMovie() {
-
+    public void printSchema() {
+        Sabres.printSchemaTable();
     }
 
-    @Override
-    public void deleteFightClubMovie() {
-
+    public void printMovies() {
+        SabresObject.printAll(Movie.class);
     }
 }

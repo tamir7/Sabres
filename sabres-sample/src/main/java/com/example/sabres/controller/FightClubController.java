@@ -25,12 +25,19 @@ import java.util.List;
 import bolts.Continuation;
 import bolts.Task;
 
-public class BoltsSabresController extends AbstractSabresController {
-    private static final String TAG = BoltsSabresController.class.getSimpleName();
+public class FightClubController {
+    private static final String NAME = "Fight Club";
+    private static final Double RATING = 8.9;
+    private static final Byte META_SCORE = 66;
+    private static final Short YEAR = 1999;
+    private static final Integer BUDGET = 63000000;
+    private static final Long GROSS = 37023395l;
+    private static final Boolean HAS_BRAD_PITT = true;
 
-    @Override
-    public void createFightClubMovie() {
-        Movie.findWithTitleInBackground("Fight Club").continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
+    private static final String TAG = FightClubController.class.getSimpleName();
+
+    public void createMovie() {
+        Movie.findWithTitleInBackground(NAME).continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
             @Override
             public Task<Void> then(Task<List<Movie>> task) throws Exception {
                 if (task.isFaulted()) {
@@ -39,8 +46,8 @@ public class BoltsSabresController extends AbstractSabresController {
 
                 if (task.getResult().isEmpty()) {
                     Movie movie = new Movie();
-                    movie.setTitle("Fight Club");
-                    movie.setImdbRating(8.9);
+                    movie.setTitle(NAME);
+                    movie.setRating(RATING);
                     return movie.saveInBackground();
                 }
 
@@ -60,20 +67,19 @@ public class BoltsSabresController extends AbstractSabresController {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
-    @Override
-    public void modifyFightClubMovie() {
-        Movie.findWithTitleInBackground("Fight Club").continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
+    public void modifyMovie() {
+        Movie.findWithTitleInBackground(NAME).continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
             @Override
             public Task<Void> then(Task<List<Movie>> task) throws Exception {
                 if (task.isFaulted()) {
                     return task.makeVoid();
                 } else {
                     Movie movie = task.getResult().get(0);
-                    movie.setYear(Short.valueOf("1999"));
-                    movie.setMetaScore(Byte.valueOf("66"));
-                    movie.setBudget(63000000);
-                    movie.setGross(Long.valueOf("37023395"));
-                    movie.setHasBradPitt(true);
+                    movie.setYear(YEAR);
+                    movie.setMetaScore(META_SCORE);
+                    movie.setBudget(BUDGET);
+                    movie.setGross(GROSS);
+                    movie.setHasBradPitt(HAS_BRAD_PITT);
                     return movie.saveInBackground();
                 }
             }
@@ -90,9 +96,8 @@ public class BoltsSabresController extends AbstractSabresController {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
-    @Override
-    public void deleteFightClubMovie() {
-        Movie.findWithTitleInBackground("Fight Club").continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
+    public void deleteMovie() {
+        Movie.findWithTitleInBackground(NAME).continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
             @Override
             public Task<Void> then(Task<List<Movie>> task) throws Exception {
                 if (task.isFaulted()) {
