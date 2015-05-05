@@ -22,7 +22,10 @@ import android.util.Log;
 
 import com.jakewharton.fliptables.FlipTable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -276,7 +279,7 @@ abstract public class SabresObject {
         }
     }
 
-    private String stringify(String key) {
+   private String stringify(String key) {
         switch (schema.getType(key)) {
             case Integer:
             case Double:
@@ -297,23 +300,30 @@ abstract public class SabresObject {
                 schema.getType(key)));
     }
 
-    String[] getArrayOfValues() {
-        String[] array = new String[schema.size() + 1];
-        array[0] = String.valueOf(id);
-        int i = 1;
-        for(String key: schema.getTypes().keySet()) {
-            array[i++] = stringify(key);
+    private static String toString(Schema schema, List<SabresObject> objects) {
+        String[] headers = new String[schema.size() + 1];
+        String[][] data = new String[objects.size()][schema.size() + 1];
+        int i = 0;
+        int j = 1;
+        headers[0] = "objectId(String)";
+        for (SabresObject o: objects) {
+            data[i++][0] = String.valueOf(o.getObjectId());
         }
 
-        return array;
+        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
+            headers[j] = String.format("%s(%s)", entry.getKey(), entry.getValue().toString());
+            i = 0;
+            for (SabresObject o: objects) {
+                data[i++][j] = o.stringify(entry.getKey());
+            }
+            j++;
+        }
+        return FlipTable.of(headers, data);
     }
 
     @Override
     public String toString() {
-        String[] headers = schema.toHeaders();
-        String[][] data = new String[1][schema.size() + 1];
-        data[0] = getArrayOfValues();
-        return FlipTable.of(headers, data);
+        return SabresObject.toString(schema, Collections.singletonList(this));
     }
 
     private static <T extends SabresObject> T createObjectInstance(Class<T> clazz) {
@@ -336,17 +346,14 @@ abstract public class SabresObject {
                     if (Sabres.tableExists(sabres, clazz.getSimpleName())) {
                         c = sabres.select(clazz.getSimpleName(), null);
                         Schema schema = SchemaTable.select(sabres, clazz.getSimpleName());
-                        String[] headers = schema.toHeaders();
-                        String[][] data = new String[c.getCount()][headers.length];
-                        int i = 0;
+                        List<SabresObject> objects = new ArrayList<>();
                         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                             T object = SabresObject.createObjectInstance(clazz);
                             object.populate(c, schema);
-                            data[i++] = object.getArrayOfValues();
+                            objects.add(object);
                         }
 
-                        return FlipTable.of(headers, data);
-
+                        return SabresObject.toString(schema, objects);
                     } else {
                         return String.format("Class %s does not exist", clazz.getSimpleName());
                     }
