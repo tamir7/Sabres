@@ -70,7 +70,7 @@ public final class Sabres {
             return database.insertOrThrow(table, null, values);
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR,
-                    String.format("Failed to insert into table %s, vallues: %s", table,
+                    String.format("Failed to insert into table %s, values: %s", table,
                             values.toString()), e);
         }
     }

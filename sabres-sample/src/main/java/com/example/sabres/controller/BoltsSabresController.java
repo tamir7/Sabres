@@ -57,7 +57,7 @@ public class BoltsSabresController extends AbstractSabresController {
                 }
                 return null;
             }
-        });
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     @Override
@@ -87,12 +87,31 @@ public class BoltsSabresController extends AbstractSabresController {
                 }
                 return null;
             }
-        });
-
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     @Override
     public void deleteFightClubMovie() {
-
+        Movie.findWithTitleInBackground("Fight Club").continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<List<Movie>> task) throws Exception {
+                if (task.isFaulted()) {
+                    return task.makeVoid();
+                } else {
+                    Movie movie = task.getResult().get(0);
+                    return movie.deleteInBackground();
+                }
+            }
+        }).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, "Failed to delete Fight Club movie", task.getError());
+                } else {
+                    Log.i(TAG, "Deleted Fight Club movie successfully");
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 }

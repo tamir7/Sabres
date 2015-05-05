@@ -34,6 +34,7 @@ import bolts.Task;
 
 abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
+    private static final String UNDEFINED = "(undefined)";
     static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
@@ -247,57 +248,63 @@ abstract public class SabresObject {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         this.schema.putAll(schema);
         for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
-            switch (entry.getValue()) {
-                case Integer:
-                    values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
-                    break;
-                case Double:
-                    values.put(entry.getKey(), CursorHelper.getDouble(c, entry.getKey()));
-                    break;
-                case Float:
-                    values.put(entry.getKey(), CursorHelper.getFloat(c, entry.getKey()));
-                    break;
-                case String:
-                    values.put(entry.getKey(), CursorHelper.getString(c, entry.getKey()));
-                    break;
-                case Byte:
-                    values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
-                    break;
-                case Short:
-                    values.put(entry.getKey(), CursorHelper.getShort(c, entry.getKey()));
-                    break;
-                case Long:
-                    values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
-                    break;
-                case Boolean:
-                    values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
-                    break;
-                case Date:
-                    values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
-                    break;
+            if (!c.isNull(c.getColumnIndex(entry.getKey()))) {
+                switch (entry.getValue()) {
+                    case Integer:
+                        values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
+                        break;
+                    case Double:
+                        values.put(entry.getKey(), CursorHelper.getDouble(c, entry.getKey()));
+                        break;
+                    case Float:
+                        values.put(entry.getKey(), CursorHelper.getFloat(c, entry.getKey()));
+                        break;
+                    case String:
+                        values.put(entry.getKey(), CursorHelper.getString(c, entry.getKey()));
+                        break;
+                    case Byte:
+                        values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
+                        break;
+                    case Short:
+                        values.put(entry.getKey(), CursorHelper.getShort(c, entry.getKey()));
+                        break;
+                    case Long:
+                        values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
+                        break;
+                    case Boolean:
+                        values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
+                        break;
+                    case Date:
+                        values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
+                        break;
+                }
             }
         }
     }
 
    private String stringify(String key) {
-        switch (schema.getType(key)) {
-            case Integer:
-            case Double:
-            case Float:
-            case String:
-            case Byte:
-            case Short:
-            case Long:
-                return values.get(key).toString();
-            case Boolean:
-                return values.getAsInteger(key) == 0 ? String.valueOf(false) : String.valueOf(true);
-            case Date:
-                return new Date(values.getAsLong(key)).toString();
-        }
+       if (!values.containsKey(key)) {
+           return UNDEFINED;
+       }
 
-        throw new IllegalStateException(String.format("No rule to stringify %s object",
-                schema.getType(key)));
-    }
+       switch (schema.getType(key)) {
+           case Integer:
+           case Double:
+           case Float:
+           case String:
+           case Byte:
+           case Short:
+           case Long:
+               return values.get(key).toString();
+           case Boolean:
+               return values.getAsInteger(key) == 0 ? String.valueOf(false) : String.valueOf(true);
+           case Date:
+               return new Date(values.getAsLong(key)).toString();
+       }
+
+       throw new IllegalStateException(String.format("No rule to stringify %s object",
+               schema.getType(key)));
+   }
 
     private static String toString(Schema schema, List<SabresObject> objects) {
         String[] headers = new String[schema.size() + 1];
@@ -375,5 +382,32 @@ abstract public class SabresObject {
                 return null;
             }
         }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    public void delete() throws SabresException {
+        Sabres sabres = Sabres.self();
+        sabres.open();
+        sabres.delete(name, Where.equalTo(OBJECT_ID_KEY, id));
+        sabres.close();
+    }
+
+    public Task<Void> deleteInBackground() {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                delete();
+                return null;
+            }
+        });
+    }
+
+    public void deleteInBackground(final DeleteCallback callback) {
+        deleteInBackground().continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        });
     }
 }
