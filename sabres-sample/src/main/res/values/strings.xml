@@ -5,7 +5,8 @@
     <string name="button_print_movies">Print Movies</string>
     <string name="label_generic_commands">Generic commands</string>
     <string name="label_fight_club_object">Fight Club Movie Object</string>
-    <string name="button_create_fight_club_movie">Create</string>
-    <string name="button_modify_fight_club_movie">Modify</string>
-    <string name="button_delete_fight_club_movie">Delete</string>
+    <string name="label_reservoir_dogs_object">Reservoir Dogs Movie Object</string>
+    <string name="button_create">Create</string>
+    <string name="button_modify">Modify</string>
+    <string name="button_delete">Delete</string>
 </resources>

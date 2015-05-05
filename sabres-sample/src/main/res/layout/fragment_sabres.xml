@@ -53,21 +53,54 @@
 
         <Button
             android:id="@+id/button_create_fight_club_movie"
-            android:text="@string/button_create_fight_club_movie"
+            android:text="@string/button_create"
             android:layout_gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <Button
             android:id="@+id/button_modify_fight_club_movie"
-            android:text="@string/button_modify_fight_club_movie"
+            android:text="@string/button_modify"
             android:layout_gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <Button
             android:id="@+id/button_delete_fight_club_movie"
-            android:text="@string/button_delete_fight_club_movie"
+            android:text="@string/button_delete"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/label_reservoir_dogs_object"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+        <Button
+            android:id="@+id/button_create_reservoir_dogs_movie"
+            android:text="@string/button_create"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/button_modify_reservoir_dogs_movie"
+            android:text="@string/button_modify"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/button_delete_reservoir_dogs_movie"
+            android:text="@string/button_delete"
             android:layout_gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>

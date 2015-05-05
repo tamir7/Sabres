@@ -25,6 +25,7 @@ import java.util.List;
 import bolts.Continuation;
 import bolts.Task;
 
+// Uses Bolts Tasks API
 public class FightClubController {
     private static final String NAME = "Fight Club";
     private static final Double RATING = 8.9;

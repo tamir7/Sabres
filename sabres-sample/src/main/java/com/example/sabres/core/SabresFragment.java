@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import com.example.sabres.R;
 import com.example.sabres.controller.FightClubController;
+import com.example.sabres.controller.ReservoirDogsController;
 import com.example.sabres.controller.SabresController;
 
 import butterknife.ButterKnife;
@@ -16,6 +17,8 @@ import butterknife.OnClick;
 public class SabresFragment extends Fragment {
     private final SabresController sabresController = new SabresController();
     private final FightClubController fightClubController = new FightClubController();
+    private final ReservoirDogsController reservoirDogsController = new ReservoirDogsController();
+
 
     public SabresFragment() {}
 
@@ -55,5 +58,20 @@ public class SabresFragment extends Fragment {
     @OnClick(R.id.button_delete_fight_club_movie)
     public void onClickDeleteFightClubMovie() {
         fightClubController.deleteMovie();
+    }
+
+    @OnClick(R.id.button_create_reservoir_dogs_movie)
+    public void onClickCreateReservoirDogsMovie() {
+        reservoirDogsController.createMovie();
+    }
+
+    @OnClick(R.id.button_modify_reservoir_dogs_movie)
+    public void onClickModifyReservoirDogsMovie() {
+        reservoirDogsController.modifyMovie();
+    }
+
+    @OnClick(R.id.button_delete_reservoir_dogs_movie)
+    public void onClickDeleteReservoirDogsMovie() {
+        reservoirDogsController.deleteMovie();
     }
 }
