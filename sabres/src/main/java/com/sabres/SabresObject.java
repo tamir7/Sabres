@@ -159,33 +159,44 @@ abstract public class SabresObject {
         sabres.beginTransaction();
 
         try {
-            SchemaTable.create(sabres);
-            Schema currentSchema = SchemaTable.select(sabres, name);
-            if (currentSchema.isEmpty()) {
-                put(CREATED_AT_KEY, new Date());
-                put(UPDATED_AT_KEY, new Date());
-                SchemaTable.insert(sabres, name, schema);
-                createTable(sabres, schema);
-            } else {
-                put(UPDATED_AT_KEY, new Date());
-                Schema newSchema = currentSchema.update(schema);
-                if (!newSchema.isEmpty()) {
-                    SchemaTable.insert(sabres, name, newSchema);
-                    alterTable(sabres, newSchema);
-                }
-            }
-
             if (id == 0) {
-                id = insert(sabres);
+                createObject(sabres);
             } else {
-                update(sabres);
+                updateObject(sabres);
             }
-
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();
             sabres.close();
         }
+    }
+
+    private void updateSchema(Sabres sabres) throws SabresException {
+        SchemaTable.create(sabres);
+        Schema currentSchema = SchemaTable.select(sabres, name);
+        if (currentSchema.isEmpty()) {
+            SchemaTable.insert(sabres, name, schema);
+            createTable(sabres, schema);
+        } else {
+            Schema newSchema = currentSchema.update(schema);
+            if (!newSchema.isEmpty()) {
+                SchemaTable.insert(sabres, name, newSchema);
+                alterTable(sabres, newSchema);
+            }
+        }
+    }
+
+    private void createObject(Sabres sabres) throws SabresException {
+        put(CREATED_AT_KEY, new Date());
+        put(UPDATED_AT_KEY, new Date());
+        updateSchema(sabres);
+        id = insert(sabres);
+    }
+
+    private void updateObject(Sabres sabres) throws SabresException {
+        put(UPDATED_AT_KEY, new Date());
+        updateSchema(sabres);
+        update(sabres);
     }
 
     private void createTable(Sabres sabres, Schema schema) throws SabresException {
