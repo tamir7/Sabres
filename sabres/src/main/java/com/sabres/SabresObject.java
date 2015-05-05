@@ -91,34 +91,6 @@ abstract public class SabresObject {
         }
     }
 
-    public Object get(String key) {
-        JavaType type = schema.getType(key);
-        if (type != null) {
-            switch (type) {
-                case Integer:
-                    return getInt(key);
-                case Double:
-                    return getDouble(key);
-                case Float:
-                    return getFloat(key);
-                case String:
-                    return getString(key);
-                case Byte:
-                    return getByte(key);
-                case Short:
-                    return getShort(key);
-                case Long:
-                    return getLong(key);
-                case Boolean:
-                    return getBoolean(key);
-                case Date:
-                    return getDate(key);
-            }
-        }
-
-        return null;
-    }
-
     public long getObjectId() {
         return id;
     }
