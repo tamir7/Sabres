@@ -50,39 +50,39 @@ abstract public class SabresObject {
 
     public void put(String key, Object value) {
         if (value instanceof String) {
-            schema.put(key, JavaType.String);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.String));
             values.put(key, (String)value);
             dirtyValues.put(key, (String)value);
         } else if (value instanceof Integer) {
-            schema.put(key, JavaType.Integer);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Integer));
             values.put(key, (Integer)value);
             dirtyValues.put(key, (Integer)value);
         } else if (value instanceof Date) {
-            schema.put(key, JavaType.Date);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Date));
             values.put(key, ((Date)value).getTime());
             dirtyValues.put(key, ((Date)value).getTime());
         } else if (value instanceof Boolean) {
-            schema.put(key, JavaType.Boolean);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Boolean));
             values.put(key, (Boolean)value);
             dirtyValues.put(key, (Boolean)value);
         } else if (value instanceof Long) {
-            schema.put(key, JavaType.Long);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Long));
             values.put(key, (Long)value);
             dirtyValues.put(key, (Long)value);
         } else if (value instanceof Short) {
-            schema.put(key, JavaType.Short);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Short));
             values.put(key, (Short)value);
             dirtyValues.put(key, (Short)value);
         } else if (value instanceof Byte) {
-            schema.put(key, JavaType.Byte);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Byte));
             values.put(key, (Byte) value);
             dirtyValues.put(key, (Byte) value);
         } else if (value instanceof Float) {
-            schema.put(key, JavaType.Float);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Float));
             values.put(key, (Float) value);
             dirtyValues.put(key, (Float) value);
         } else if (value instanceof Double){
-            schema.put(key, JavaType.Double);
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Double));
             values.put(key, (Double) value);
             dirtyValues.put(key, (Double) value);
         } else {
@@ -170,12 +170,6 @@ abstract public class SabresObject {
         }
     }
 
-    static void createIndices(Sabres sabres, String name, List<String> keys)
-            throws SabresException {
-        CreateIndexCommand createIndexCommand =  new CreateIndexCommand(name, keys).ifNotExists();
-        sabres.execSQL(createIndexCommand.toString());
-    }
-
     private void updateSchema(Sabres sabres) throws SabresException {
         SchemaTable.create(sabres);
         Schema currentSchema = SchemaTable.select(sabres, name);
@@ -207,7 +201,7 @@ abstract public class SabresObject {
     private void createTable(Sabres sabres, Schema schema) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
-        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
             createCommand.withColumn(new Column(entry.getKey(), entry.getValue().toSqlType()));
         }
 
@@ -215,7 +209,7 @@ abstract public class SabresObject {
     }
 
     private void alterTable(Sabres sabres, Schema schema) throws SabresException {
-        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
                     entry.getValue().toSqlType())).toString());
         }
@@ -235,9 +229,9 @@ abstract public class SabresObject {
     void populate(Cursor c, Schema schema) {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         this.schema.putAll(schema);
-        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
             if (!c.isNull(c.getColumnIndex(entry.getKey()))) {
-                switch (entry.getValue()) {
+                switch (entry.getValue().getType()) {
                     case Integer:
                         values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
                         break;
@@ -304,7 +298,7 @@ abstract public class SabresObject {
             data[i++][0] = String.valueOf(o.getObjectId());
         }
 
-        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
             headers[j] = String.format("%s(%s)", entry.getKey(), entry.getValue().toString());
             i = 0;
             for (SabresObject o: objects) {

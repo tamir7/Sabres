@@ -20,43 +20,43 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class Schema {
-    private final Map<String, JavaType> types = new HashMap<>();
+    private final Map<String, ObjectDescriptor> objectDescriptors = new HashMap<>();
 
     Schema() {}
 
-    void put(String key, JavaType type) {
-        types.put(key, type);
+    void put(String key, ObjectDescriptor type) {
+        objectDescriptors.put(key, type);
     }
 
     void putAll(Schema schema) {
-        types.putAll(schema.getTypes());
+        objectDescriptors.putAll(schema.getObjectDescriptors());
     }
 
-    Map<String, JavaType> getTypes() {
-        return types;
+    Map<String, ObjectDescriptor> getObjectDescriptors() {
+        return objectDescriptors;
     }
 
-    JavaType getType(String key) {
-        return types.get(key);
+    ObjectDescriptor.Type getType(String key) {
+        return objectDescriptors.get(key).getType();
     }
 
     boolean isEmpty() {
-        return types.isEmpty();
+        return objectDescriptors.isEmpty();
     }
 
     int size() {
-        return types.size();
+        return objectDescriptors.size();
     }
 
     Schema createDiffSchema(Schema schema) throws SabresException {
         Schema newSchema = new Schema();
-        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
-            if (types.containsKey(entry.getKey())) {
-                if (!types.get(entry.getKey()).equals(entry.getValue())) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
+            if (objectDescriptors.containsKey(entry.getKey())) {
+                if (!objectDescriptors.get(entry.getKey()).equals(entry.getValue())) {
                     throw new SabresException(SabresException.INCORRECT_TYPE,
                             String.format("cannot set key %s to type %s. Already set to type %s",
                                     entry.getKey(), entry.getValue().toString(),
-                                    types.get(entry.getKey()).toString()));
+                                    objectDescriptors.get(entry.getKey()).toString()));
 
                 }
             } else {

@@ -118,6 +118,12 @@ public class SabresQuery<T extends SabresObject> {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
+    static void createIndices(Sabres sabres, String name, List<String> keys)
+            throws SabresException {
+        CreateIndexCommand createIndexCommand =  new CreateIndexCommand(name, keys).ifNotExists();
+        sabres.execSQL(createIndexCommand.toString());
+    }
+
     public List<T> find() throws SabresException {
         Sabres sabres = Sabres.self();
         List<T> objects = new ArrayList<>();
@@ -125,7 +131,7 @@ public class SabresQuery<T extends SabresObject> {
         Cursor c = null;
         try {
             if (Sabres.tableExists(sabres, name)) {
-                SabresObject.createIndices(sabres, name, where.getKeyIndices());
+                createIndices(sabres, name, where.getKeyIndices());
                 Schema schema = SchemaTable.select(sabres, name);
                 c = sabres.select(name, where);
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
