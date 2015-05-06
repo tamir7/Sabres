@@ -16,6 +16,9 @@
 
 package com.sabres;
 
+import java.util.ArrayList;
+import java.util.List;
+
 final class Where {
     private enum Operator {
         Equal("="),
@@ -38,8 +41,10 @@ final class Where {
     }
 
     private String where;
+    private final List<String> keyIndices = new ArrayList<>();
 
     private Where(String key, Object value, Operator operator) {
+        keyIndices.add(key);
         where = key + operator.toString() + String.format("'%s'", String.valueOf(value));
     }
 
@@ -68,13 +73,13 @@ final class Where {
     }
 
     public Where and(Where andWhere) {
+        keyIndices.addAll(andWhere.getKeyIndices());
         where = String.format("( %s AND %s )", where, andWhere.toString());
         return this;
     }
 
-    public Where or(Where orWhere) {
-        where = String.format("( %s OR %s )", where, orWhere.toString());
-        return this;
+    List<String> getKeyIndices() {
+        return keyIndices;
     }
 
     @Override

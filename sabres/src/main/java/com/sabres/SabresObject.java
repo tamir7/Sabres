@@ -170,12 +170,10 @@ abstract public class SabresObject {
         }
     }
 
-    private void createIndices(Sabres sabres, Schema schema) throws SabresException {
-        for (Map.Entry<String, JavaType> entry: schema.getTypes().entrySet()) {
-            CreateIndexCommand createIndexCommand =
-                    new CreateIndexCommand(name, entry.getKey()).ifNotExists();
-            sabres.execSQL(createIndexCommand.toString());
-        }
+    static void createIndices(Sabres sabres, String name, List<String> keys)
+            throws SabresException {
+        CreateIndexCommand createIndexCommand =  new CreateIndexCommand(name, keys).ifNotExists();
+        sabres.execSQL(createIndexCommand.toString());
     }
 
     private void updateSchema(Sabres sabres) throws SabresException {
@@ -184,13 +182,11 @@ abstract public class SabresObject {
         if (currentSchema.isEmpty()) {
             SchemaTable.insert(sabres, name, schema);
             createTable(sabres, schema);
-            createIndices(sabres, schema);
         } else {
             Schema newSchema = currentSchema.createDiffSchema(schema);
             if (!newSchema.isEmpty()) {
                 SchemaTable.insert(sabres, name, newSchema);
                 alterTable(sabres, newSchema);
-                createIndices(sabres, newSchema);
             }
         }
     }

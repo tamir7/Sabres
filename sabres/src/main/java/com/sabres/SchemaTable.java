@@ -19,6 +19,7 @@ package com.sabres;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import java.util.Collections;
 import java.util.Map;
 
 final class SchemaTable {
@@ -36,8 +37,8 @@ final class SchemaTable {
                 withColumn(new Column(COLUMN_KEY, SqlType.Text).notNull()).
                 withColumn(new Column(TYPE_KEY, SqlType.Text).notNull());
 
-        CreateIndexCommand indexCommand =
-                new CreateIndexCommand(SCHEMA_TABLE_NAME, TABLE_KEY).ifNotExists();
+        CreateIndexCommand indexCommand = new CreateIndexCommand(SCHEMA_TABLE_NAME,
+                Collections.singletonList(TABLE_KEY)).ifNotExists();
 
         sabres.beginTransaction();
         try {

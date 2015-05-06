@@ -16,16 +16,18 @@
 
 package com.sabres;
 
+import java.util.List;
+
 final class CreateIndexCommand {
     private static final String INDEX_NAME_PREFIX = "index_on_";
     private final String name;
-    private final String key;
+    private final List<String> keys;
 
     private boolean ifNotExists = false;
 
-    CreateIndexCommand(String name, String key) {
+    CreateIndexCommand(String name, List<String> keys) {
         this.name = name;
-        this.key = key;
+        this.keys = keys;
     }
 
     CreateIndexCommand ifNotExists() {
@@ -43,7 +45,25 @@ final class CreateIndexCommand {
             sb.append("IF NOT EXISTS ");
         }
 
-        sb.append(String.format("%s%s ON %s(%s);", INDEX_NAME_PREFIX, key, name, key));
+        final StringBuilder columns = new StringBuilder();
+        final StringBuilder indexName = new StringBuilder(INDEX_NAME_PREFIX);
+
+        boolean first = true;
+
+        for (String key: keys) {
+            if (!first) {
+                indexName.append("_");
+                columns.append(", ");
+            } else {
+                first = false;
+            }
+
+            indexName.append(key);
+            columns.append(key);
+        }
+
+        sb.append(String.format("%s ON %s(%s);", indexName.toString(), name, columns.toString()));
+
         return sb.toString();
     }
 }

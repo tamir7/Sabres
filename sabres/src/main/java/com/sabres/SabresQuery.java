@@ -125,6 +125,7 @@ public class SabresQuery<T extends SabresObject> {
         Cursor c = null;
         try {
             if (Sabres.tableExists(sabres, name)) {
+                SabresObject.createIndices(sabres, name, where.getKeyIndices());
                 Schema schema = SchemaTable.select(sabres, name);
                 c = sabres.select(name, where);
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
