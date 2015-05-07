@@ -11,7 +11,7 @@
     <string name="label_quentin_director_object">Quentin Director Object</string>
     <string name="label_queries">Queries</string>
     <string name="button_create">Create</string>
-    <string name="button_get_fight_club_without_include">Get Fight Club Without include</string>
+    <string name="button_fetch_fight_club_director">Fetch Fight Club Director</string>
     <string name="button_set_director">Set Director</string>
     <string name="button_modify">Modify</string>
     <string name="button_delete">Delete</string>

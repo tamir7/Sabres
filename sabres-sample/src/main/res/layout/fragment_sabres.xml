@@ -194,8 +194,8 @@
 
 
         <Button
-            android:id="@+id/button_query_movie_without_include"
-            android:text="@string/button_get_fight_club_without_include"
+            android:id="@+id/button_fetch_fight_club_director"
+            android:text="@string/button_fetch_fight_club_director"
             android:layout_gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>

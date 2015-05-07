@@ -109,7 +109,7 @@ public class SabresFragment extends Fragment {
         quentinController.setToMovie();
     }
 
-    @OnClick(R.id.button_query_movie_without_include)
+    @OnClick(R.id.button_fetch_fight_club_director)
     public void onClickQueryFightClubWithoutInclude() {
         queryController.queryFightClub(false);
     }

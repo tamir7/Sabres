@@ -130,7 +130,8 @@ public final class Sabres {
     private void createDatabase() throws SabresException {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                database = context.openOrCreateDatabase(DATABASE_NAME, SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING, null);
+                database = context.openOrCreateDatabase(DATABASE_NAME,
+                        SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING, null);
             } else {
                 database = context.openOrCreateDatabase(DATABASE_NAME, 0, null);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {

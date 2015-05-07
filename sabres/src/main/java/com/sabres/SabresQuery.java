@@ -163,24 +163,12 @@ public class SabresQuery<T extends SabresObject> {
     public T get(long objectId) throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
-        Cursor c = null;
         try {
             checkTableExists(sabres);
-            Schema schema = SchemaTable.select(sabres, name);
-            c = sabres.select(name, Where.equalTo(SabresObject.OBJECT_ID_KEY, objectId));
-            if (!c.moveToFirst()) {
-                throw new SabresException(SabresException.OBJECT_NOT_FOUND,
-                        String.format("table %s has no object with key %s", name, objectId));
-            }
-
-            T instance = createObjectInstance();
-            instance.populate(c, schema);
+            T instance = SabresObject.createWithoutData(name, objectId);
+            instance.fetch(sabres);
             return instance;
         } finally {
-            if (c != null) {
-                c.close();
-            }
-
             sabres.close();
         }
     }

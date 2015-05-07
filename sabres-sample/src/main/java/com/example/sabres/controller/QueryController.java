@@ -23,6 +23,7 @@ import com.example.sabres.model.Movie;
 
 import java.util.List;
 
+import bolts.Capture;
 import bolts.Continuation;
 import bolts.Task;
 
@@ -30,20 +31,27 @@ public class QueryController {
     private static final String TAG = QueryController.class.getSimpleName();
 
     public void queryFightClub(boolean includeDirector) {
-        Movie.findWithTitleInBackground(FightClubController.TITLE).continueWith(new Continuation<List<Movie>, Void>() {
+        final Capture<Director> directorCapture = new Capture<>();
+        Movie.findWithTitleInBackground(FightClubController.TITLE).continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
             @Override
-            public Void then(Task<List<Movie>> task) throws Exception {
+            public Task<Void> then(Task<List<Movie>> task) throws Exception {
                 if (task.isFaulted()) {
-                    Log.e(TAG, "findWithTitleInBackground failed", task.getError());
+                    return task.makeVoid();
                 } else if (task.getResult().isEmpty()) {
-                    Log.e(TAG, "Fight Club movie does not exist");
+                    return Task.forError(new IllegalStateException("Fight Club movie does not exist"));
                 } else {
                     Director director = task.getResult().get(0).getDirector();
-                    try {
-                        Log.i(TAG, String.format("Director name is %s", director.getName()));
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to get Director name", e);
-                    }
+                    directorCapture.set(director);
+                    return director.fetchInBackground();
+                }
+            }
+        }).continueWith(new Continuation<Void, Object>() {
+            @Override
+            public Object then(Task<Void> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, "failed to get director from Fight Club Object");
+                } else {
+                    Log.i(TAG, String.format("Director of Fight Club movie is %s", directorCapture.get().getName()));
                 }
 
                 return null;

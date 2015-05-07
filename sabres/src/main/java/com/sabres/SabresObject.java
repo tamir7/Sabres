@@ -53,10 +53,14 @@ abstract public class SabresObject {
         name = getClass().getSimpleName();
     }
 
-    private static <T extends SabresObject> T createWithoutData(Class<T> clazz, long id) {
+    private static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz, long id) {
         T object = createObjectInstance(clazz);
         object.id = id;
         return object;
+    }
+
+    static <T extends SabresObject> T createWithoutData(String className, long id) {
+        return createWithoutData(subClasses.get(className), id);
     }
 
     public static void registerSubclass(Class<? extends SabresObject> subClass) {
@@ -329,7 +333,54 @@ abstract public class SabresObject {
         dirtyChildren.clear();
     }
 
-    <T extends SabresObject> void populate(Cursor c, Schema schema) {
+    void fetch(Sabres sabres) throws SabresException {
+        Cursor c = null;
+        try {
+            schema.putAll(SchemaTable.select(sabres, name));
+            c = sabres.select(name, Where.equalTo(OBJECT_ID_KEY, id));
+            if (!c.moveToFirst()) {
+                throw new SabresException(SabresException.OBJECT_NOT_FOUND,
+                        String.format("table %s has no object with key %s", name, id));
+            }
+            populate(c, schema);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+    }
+
+    public void fetch() throws SabresException {
+        Sabres sabres = Sabres.self();
+        sabres.open();
+        try {
+            fetch(sabres);
+        } finally {
+            sabres.close();
+        }
+    }
+
+    public Task<Void> fetchInBackground() {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                fetch();
+                return null;
+            }
+        });
+    }
+
+    public void fetchInBackground(final FetchCallback callback)  {
+        fetchInBackground().continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        });
+    }
+
+    void populate(Cursor c, Schema schema) {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         this.schema.putAll(schema);
         for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
@@ -419,9 +470,10 @@ abstract public class SabresObject {
         return SabresObject.toString(schema, Collections.singletonList(this));
     }
 
-    private static <T extends SabresObject> T createObjectInstance(Class<T> clazz) {
+    private static <T extends SabresObject> T createObjectInstance(Class<? extends SabresObject> clazz) {
         try {
-            return clazz.newInstance();
+            //noinspection unchecked
+            return (T) clazz.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(String.format("Failed to instantiate class %s",
                     clazz.getSimpleName()), e);
