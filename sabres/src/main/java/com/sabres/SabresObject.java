@@ -25,6 +25,7 @@ import com.jakewharton.fliptables.FlipTable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -41,6 +42,9 @@ abstract public class SabresObject {
     private final ContentValues values = new ContentValues();
     private final ContentValues dirtyValues = new ContentValues();
     private final Schema schema = new Schema();
+    private final Map<String, SabresObject> children = new HashMap<>();
+    private final Map<String, SabresObject> dirtyChildren = new HashMap<>();
+    private boolean dataAvailable = false;
     private final String name;
     private long id = 0;
 
@@ -49,87 +53,155 @@ abstract public class SabresObject {
     }
 
     public void put(String key, Object value) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
+
+        if (value == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
+
         if (value instanceof String) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.String));
-            values.put(key, (String)value);
             dirtyValues.put(key, (String)value);
         } else if (value instanceof Integer) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Integer));
-            values.put(key, (Integer)value);
             dirtyValues.put(key, (Integer)value);
         } else if (value instanceof Date) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Date));
-            values.put(key, ((Date)value).getTime());
             dirtyValues.put(key, ((Date)value).getTime());
         } else if (value instanceof Boolean) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Boolean));
-            values.put(key, (Boolean)value);
             dirtyValues.put(key, (Boolean)value);
         } else if (value instanceof Long) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Long));
-            values.put(key, (Long)value);
             dirtyValues.put(key, (Long)value);
         } else if (value instanceof Short) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Short));
-            values.put(key, (Short)value);
             dirtyValues.put(key, (Short)value);
         } else if (value instanceof Byte) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Byte));
-            values.put(key, (Byte) value);
             dirtyValues.put(key, (Byte) value);
         } else if (value instanceof Float) {
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Float));
-            values.put(key, (Float) value);
             dirtyValues.put(key, (Float) value);
         } else if (value instanceof Double){
             schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Double));
-            values.put(key, (Double) value);
             dirtyValues.put(key, (Double) value);
+        } else if (value instanceof SabresObject) {
+            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Pointer,
+                    value.getClass().getSimpleName()));
+            dirtyChildren.put(key, (SabresObject) value);
         } else {
             throw new IllegalArgumentException(String.format("Class %s is not supported",
                     value.getClass().getSimpleName()));
         }
     }
 
+    private boolean isDirty() {
+        return dirtyValues.size() != 0 || !dirtyChildren.isEmpty();
+    }
+
     public long getObjectId() {
         return id;
     }
 
+    private void checkDataAvailable() {
+        if (!dataAvailable) {
+            throw new IllegalStateException("No data associated with object," +
+                    "call fetch to populate data from database");
+        }
+    }
+
     public String getString(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsString(key);
+        }
+
+        checkDataAvailable();
         return values.getAsString(key);
     }
 
+
     public Boolean getBoolean(String key)  {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsBoolean(key);
+        }
+
+        checkDataAvailable();
         return values.getAsBoolean(key);
     }
 
     public Integer getInt(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsInteger(key);
+        }
+
+        checkDataAvailable();
         return values.getAsInteger(key);
     }
 
     public Byte getByte(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsByte(key);
+        }
+
+        checkDataAvailable();
         return values.getAsByte(key);
     }
 
     public Short getShort(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsShort(key);
+        }
+
+        checkDataAvailable();
         return values.getAsShort(key);
     }
 
     public Long getLong(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsLong(key);
+        }
+
+        checkDataAvailable();
         return values.getAsLong(key);
     }
 
     public Float getFloat(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsFloat(key);
+        }
+
+        checkDataAvailable();
         return values.getAsFloat(key);
     }
 
     public Double getDouble(String key) {
+        if (dirtyValues.containsKey(key)) {
+            return dirtyValues.getAsDouble(key);
+        }
+
+        checkDataAvailable();
         return values.getAsDouble(key);
     }
 
     public Date getDate(String key) {
-        Long time = values.getAsLong(key);
-        return time != null ? new Date(time) : null;
+        if (dirtyValues.containsKey(key)) {
+            return new Date(dirtyValues.getAsLong(key));
+        }
+
+        checkDataAvailable();
+        return values.containsKey(key) ? new Date(values.getAsLong(key)) : null;
+    }
+
+    public SabresObject getSabresObject(String key) {
+        if (dirtyChildren.containsKey(key)) {
+            return dirtyChildren.get(key);
+        }
+
+        checkDataAvailable();
+        return children.get(key);
     }
 
     public Task<Void> saveInBackground() {
@@ -152,17 +224,22 @@ abstract public class SabresObject {
         });
     }
 
+    private void saveInTransaction(Sabres sabres) throws SabresException {
+        if (id == 0) {
+            createObject(sabres);
+        } else {
+            updateObject(sabres);
+        }
+        dataAvailable = true;
+    }
+
     public void save() throws SabresException {
         final Sabres sabres = Sabres.self();
         sabres.open();
         sabres.beginTransaction();
 
         try {
-            if (id == 0) {
-                createObject(sabres);
-            } else {
-                updateObject(sabres);
-            }
+            saveInTransaction(sabres);
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();
@@ -215,15 +292,30 @@ abstract public class SabresObject {
         }
     }
 
+    private void updateChildren(Sabres sabres) throws SabresException {
+        for (Map.Entry<String, SabresObject> entry: dirtyChildren.entrySet()) {
+            entry.getValue().saveInTransaction(sabres);
+            dirtyValues.put(entry.getKey(), entry.getValue().getObjectId());
+        }
+    }
+
     private long insert(Sabres sabres) throws SabresException {
+        updateChildren(sabres);
         long id = sabres.insert(name, dirtyValues);
+        values.putAll(dirtyValues);
+        children.putAll(dirtyChildren);
         dirtyValues.clear();
+        dirtyChildren.clear();
         return id;
     }
 
-    private void update(Sabres sabres) {
+    private void update(Sabres sabres) throws SabresException {
+        updateChildren(sabres);
         sabres.update(name, dirtyValues, Where.equalTo(OBJECT_ID_KEY, id));
+        values.putAll(dirtyValues);
+        children.putAll(dirtyChildren);
         dirtyValues.clear();
+        dirtyChildren.clear();
     }
 
     void populate(Cursor c, Schema schema) {
@@ -233,6 +325,8 @@ abstract public class SabresObject {
             if (!c.isNull(c.getColumnIndex(entry.getKey()))) {
                 switch (entry.getValue().getType()) {
                     case Integer:
+                    case Boolean:
+                    case Byte:
                         values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
                         break;
                     case Double:
@@ -244,24 +338,19 @@ abstract public class SabresObject {
                     case String:
                         values.put(entry.getKey(), CursorHelper.getString(c, entry.getKey()));
                         break;
-                    case Byte:
-                        values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
-                        break;
                     case Short:
                         values.put(entry.getKey(), CursorHelper.getShort(c, entry.getKey()));
                         break;
                     case Long:
-                        values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
-                        break;
-                    case Boolean:
-                        values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
-                        break;
                     case Date:
+                    case Pointer:
                         values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
                         break;
                 }
             }
         }
+
+        dataAvailable = true;
     }
 
    private String stringify(String key) {
@@ -277,6 +366,7 @@ abstract public class SabresObject {
            case Byte:
            case Short:
            case Long:
+           case Pointer:
                return values.get(key).toString();
            case Boolean:
                return values.getAsInteger(key) == 0 ? String.valueOf(false) : String.valueOf(true);

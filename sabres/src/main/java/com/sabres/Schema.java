@@ -52,7 +52,7 @@ final class Schema {
         Schema newSchema = new Schema();
         for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
             if (objectDescriptors.containsKey(entry.getKey())) {
-                if (!objectDescriptors.get(entry.getKey()).equals(entry.getValue())) {
+                if (!objectDescriptors.get(entry.getKey()).getType().equals(entry.getValue().getType())) {
                     throw new SabresException(SabresException.INCORRECT_TYPE,
                             String.format("cannot set key %s to type %s. Already set to type %s",
                                     entry.getKey(), entry.getValue().toString(),

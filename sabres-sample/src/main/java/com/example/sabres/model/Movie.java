@@ -32,6 +32,7 @@ public class Movie extends SabresObject {
     private static final String BUDGET_KEY = "budget";
     private static final String GROSS_KEY = "gross";
     private static final String HAS_BRAD_PITT_KEY = "hasBradPitt";
+    private static final String DIRECTOR_KEY = "director";
 
     public String getTitle() {
         return getString(TITLE_KEY);
@@ -83,6 +84,14 @@ public class Movie extends SabresObject {
 
     public void setTitle(String title) {
         put(TITLE_KEY, title);
+    }
+
+    public void setDirector(Director director) {
+        put(DIRECTOR_KEY, director);
+    }
+
+    public Director getDirector() {
+        return (Director)getSabresObject(DIRECTOR_KEY);
     }
 
     public void setRating(double rating) {

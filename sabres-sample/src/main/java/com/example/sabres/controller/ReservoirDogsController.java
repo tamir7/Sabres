@@ -29,7 +29,7 @@ import java.util.List;
 // Uses callbacks API
 public class ReservoirDogsController {
     private static final String TAG = ReservoirDogsController.class.getSimpleName();
-    private static final String NAME = "Reservoir Dogs";
+    static final String TITLE = "Reservoir Dogs";
     private static final Double RATING = 8.4;
     private static final Byte META_SCORE = 78;
     private static final Short YEAR = 1992;
@@ -38,7 +38,7 @@ public class ReservoirDogsController {
     private static final Boolean HAS_BRAD_PITT = false;
 
     public void createMovie() {
-        Movie.findWithTitleInBackground(NAME, new FindCallback<Movie>() {
+        Movie.findWithTitleInBackground(TITLE, new FindCallback<Movie>() {
             @Override
             public void done(List<Movie> objects, SabresException e) {
                 if (e != null) {
@@ -47,7 +47,7 @@ public class ReservoirDogsController {
                     Log.w(TAG, "Reservoir Dogs Movie object already exists");
                 } else {
                     Movie movie = new Movie();
-                    movie.setTitle(NAME);
+                    movie.setTitle(TITLE);
                     movie.setRating(RATING);
                     movie.saveInBackground(new SaveCallback() {
                         @Override
@@ -65,7 +65,7 @@ public class ReservoirDogsController {
     }
 
     public void modifyMovie() {
-        Movie.findWithTitleInBackground(NAME, new FindCallback<Movie>() {
+        Movie.findWithTitleInBackground(TITLE, new FindCallback<Movie>() {
             @Override
             public void done(List<Movie> objects, SabresException e) {
                 if (e != null) {
@@ -95,7 +95,7 @@ public class ReservoirDogsController {
     }
 
     public void deleteMovie() {
-        Movie.findWithTitleInBackground(NAME, new FindCallback<Movie>() {
+        Movie.findWithTitleInBackground(TITLE, new FindCallback<Movie>() {
             @Override
             public void done(List<Movie> objects, SabresException e) {
                 if (e != null) {

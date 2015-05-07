@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import com.example.sabres.R;
 import com.example.sabres.controller.FightClubController;
+import com.example.sabres.controller.QuentinController;
 import com.example.sabres.controller.ReservoirDogsController;
 import com.example.sabres.controller.SabresController;
 
@@ -18,6 +19,7 @@ public class SabresFragment extends Fragment {
     private final SabresController sabresController = new SabresController();
     private final FightClubController fightClubController = new FightClubController();
     private final ReservoirDogsController reservoirDogsController = new ReservoirDogsController();
+    private final QuentinController quentinController = new QuentinController();
 
 
     public SabresFragment() {}
@@ -50,6 +52,11 @@ public class SabresFragment extends Fragment {
         sabresController.printMovies();
     }
 
+    @OnClick(R.id.button_print_directors)
+    public void onClickPrintDirectors() {
+        sabresController.printDirectors();
+    }
+
     @OnClick(R.id.button_create_fight_club_movie)
     public void onClickCreateFightClubMovie() {
         fightClubController.createMovie();
@@ -65,6 +72,11 @@ public class SabresFragment extends Fragment {
         fightClubController.deleteMovie();
     }
 
+    @OnClick(R.id.button_set_director_to_fight_club_movie)
+    public void onClickSetDirectorToFightClub() {
+        fightClubController.setDirector();
+    }
+
     @OnClick(R.id.button_create_reservoir_dogs_movie)
     public void onClickCreateReservoirDogsMovie() {
         reservoirDogsController.createMovie();
@@ -78,5 +90,20 @@ public class SabresFragment extends Fragment {
     @OnClick(R.id.button_delete_reservoir_dogs_movie)
     public void onClickDeleteReservoirDogsMovie() {
         reservoirDogsController.deleteMovie();
+    }
+
+    @OnClick(R.id.button_create_quentin_director_object)
+    public void onClickCreateQuentinDirector() {
+        quentinController.createDirector();
+    }
+
+    @OnClick(R.id.button_delete_quentin_director_object)
+    public void onClickDeleteQuentinDirector() {
+        quentinController.deleteDirector();
+    }
+
+    @OnClick(R.id.button_quentin_set_director_to_movie_object)
+    public void onClickSetDirectorToMovie() {
+        quentinController.setToMovie();
     }
 }

@@ -15,6 +15,7 @@
  */
 package com.example.sabres.controller;
 
+import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
 import com.sabres.SabresObject;
@@ -34,5 +35,9 @@ public class SabresController {
 
     public void printMovies() {
         SabresObject.printAll(Movie.class);
+    }
+
+    public void printDirectors() {
+        SabresObject.printAll(Director.class);
     }
 }

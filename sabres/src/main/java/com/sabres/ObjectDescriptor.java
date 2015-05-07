@@ -45,6 +45,15 @@ final class ObjectDescriptor {
         return name;
     }
 
+    @Override
+    public String toString() {
+        if (type.equals(Type.Pointer)) {
+            return String.format("%s to %s", type.toString(), name);
+        }
+
+        return type.toString();
+    }
+
     enum Type {
         Integer("Integer") {
             @Override
@@ -108,18 +117,18 @@ final class ObjectDescriptor {
         };
 
 
-    private String text;
+        private String text;
 
-    Type(String text) {
-        this.text = text;
+        Type(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
+
+        abstract SqlType toSqlType();
     }
-
-    @Override
-    public String toString() {
-        return text;
-    }
-
-    abstract SqlType toSqlType();
-}
 }
 
