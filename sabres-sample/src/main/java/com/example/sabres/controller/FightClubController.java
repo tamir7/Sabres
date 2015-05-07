@@ -31,7 +31,7 @@ import bolts.Task;
 
 // Uses Bolts Tasks API
 public class FightClubController {
-    private static final String TITLE = "Fight Club";
+    static final String TITLE = "Fight Club";
     private static final String DIRECTOR_NAME = "David Fincher";
     private static final Double RATING = 8.9;
     private static final Byte META_SCORE = 66;

@@ -36,6 +36,7 @@ import bolts.Task;
 abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
     private static final String UNDEFINED = "(undefined)";
+    private static final Map<String, Class<? extends SabresObject>> subClasses = new HashMap<>();
     static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
@@ -46,10 +47,20 @@ abstract public class SabresObject {
     private final Map<String, SabresObject> dirtyChildren = new HashMap<>();
     private boolean dataAvailable = false;
     private final String name;
-    private long id = 0;
+    protected long id = 0;
 
     protected SabresObject() {
         name = getClass().getSimpleName();
+    }
+
+    private static <T extends SabresObject> T createWithoutData(Class<T> clazz, long id) {
+        T object = createObjectInstance(clazz);
+        object.id = id;
+        return object;
+    }
+
+    public static void registerSubclass(Class<? extends SabresObject> subClass) {
+        subClasses.put(subClass.getSimpleName(), subClass);
     }
 
     public void put(String key, Object value) {
@@ -318,7 +329,7 @@ abstract public class SabresObject {
         dirtyChildren.clear();
     }
 
-    void populate(Cursor c, Schema schema) {
+    <T extends SabresObject> void populate(Cursor c, Schema schema) {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         this.schema.putAll(schema);
         for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
@@ -343,8 +354,12 @@ abstract public class SabresObject {
                         break;
                     case Long:
                     case Date:
-                    case Pointer:
                         values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
+                        break;
+                    case Pointer:
+                        children.put(entry.getKey(),
+                                createWithoutData(subClasses.get(entry.getValue().getName()),
+                                CursorHelper.getLong(c, entry.getKey())));
                         break;
                 }
             }

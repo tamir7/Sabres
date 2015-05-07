@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import com.example.sabres.R;
 import com.example.sabres.controller.FightClubController;
 import com.example.sabres.controller.QuentinController;
+import com.example.sabres.controller.QueryController;
 import com.example.sabres.controller.ReservoirDogsController;
 import com.example.sabres.controller.SabresController;
 
@@ -20,6 +21,7 @@ public class SabresFragment extends Fragment {
     private final FightClubController fightClubController = new FightClubController();
     private final ReservoirDogsController reservoirDogsController = new ReservoirDogsController();
     private final QuentinController quentinController = new QuentinController();
+    private final QueryController queryController = new QueryController();
 
 
     public SabresFragment() {}
@@ -105,5 +107,10 @@ public class SabresFragment extends Fragment {
     @OnClick(R.id.button_quentin_set_director_to_movie_object)
     public void onClickSetDirectorToMovie() {
         quentinController.setToMovie();
+    }
+
+    @OnClick(R.id.button_query_movie_without_include)
+    public void onClickQueryFightClubWithoutInclude() {
+        queryController.queryFightClub(false);
     }
 }

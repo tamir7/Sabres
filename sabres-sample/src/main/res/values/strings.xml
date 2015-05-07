@@ -9,7 +9,9 @@
     <string name="label_fight_club_object">Fight Club Movie Object</string>
     <string name="label_reservoir_dogs_object">Reservoir Dogs Movie Object</string>
     <string name="label_quentin_director_object">Quentin Director Object</string>
+    <string name="label_queries">Queries</string>
     <string name="button_create">Create</string>
+    <string name="button_get_fight_club_without_include">Get Fight Club Without include</string>
     <string name="button_set_director">Set Director</string>
     <string name="button_modify">Modify</string>
     <string name="button_delete">Delete</string>

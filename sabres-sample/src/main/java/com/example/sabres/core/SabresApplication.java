@@ -18,13 +18,18 @@ package com.example.sabres.core;
 
 import android.app.Application;
 
+import com.example.sabres.model.Director;
+import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
+import com.sabres.SabresObject;
 
 public class SabresApplication extends Application {
 
     @Override
     public void onCreate() {
         super.onCreate();
+        SabresObject.registerSubclass(Director.class);
+        SabresObject.registerSubclass(Movie.class);
         Sabres.initialize(this);
     }
 }
