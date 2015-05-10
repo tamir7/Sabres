@@ -111,6 +111,11 @@ public class SabresFragment extends Fragment {
 
     @OnClick(R.id.button_fetch_fight_club_director)
     public void onClickQueryFightClubWithoutInclude() {
-        queryController.queryFightClub(false);
+        queryController.queryFightClubFetchDirector();
+    }
+
+    @OnClick(R.id.button_include_fight_club_director)
+    public void onClickQueryFightClubWithInclude() {
+        queryController.queryFightClubIncludeDirector();
     }
 }

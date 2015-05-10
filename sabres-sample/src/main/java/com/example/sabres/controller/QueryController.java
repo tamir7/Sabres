@@ -20,6 +20,7 @@ import android.util.Log;
 
 import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
+import com.sabres.Sabres;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ import bolts.Task;
 public class QueryController {
     private static final String TAG = QueryController.class.getSimpleName();
 
-    public void queryFightClub(boolean includeDirector) {
+    public void queryFightClubFetchDirector() {
         final Capture<Director> directorCapture = new Capture<>();
         Movie.findWithTitleInBackground(FightClubController.TITLE).continueWithTask(new Continuation<List<Movie>, Task<Void>>() {
             @Override
@@ -57,5 +58,9 @@ public class QueryController {
                 return null;
             }
         }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    public void queryFightClubIncludeDirector() {
+        Sabres.testFunction();
     }
 }

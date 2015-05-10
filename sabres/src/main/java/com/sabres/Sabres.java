@@ -267,4 +267,26 @@ public final class Sabres {
                 String.format("SELECT count(*) FROM sqlite_master WHERE type='table' AND  name='%s'",
                         table), null) > 0;
     }
+
+    public static void testFunction() {
+        Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                SelectCommand command = new SelectCommand("Movie");
+                command.join("Director", "director");
+                command.where(Where.equalTo("title", "Fight Club"));
+                Sabres sabres = Sabres.self;
+                sabres.open();
+                Cursor c = sabres.database.rawQuery(command.toString(), null);
+                DatabaseUtils.dumpCursor(c);
+                c.close();
+                sabres.close();
+                return null;
+            }
+        });
+
+
+
+
+    }
 }

@@ -12,6 +12,7 @@
     <string name="label_queries">Queries</string>
     <string name="button_create">Create</string>
     <string name="button_fetch_fight_club_director">Fetch Fight Club Director</string>
+    <string name="button_include_fight_club_director">Include Fight Club Director</string>
     <string name="button_set_director">Set Director</string>
     <string name="button_modify">Modify</string>
     <string name="button_delete">Delete</string>

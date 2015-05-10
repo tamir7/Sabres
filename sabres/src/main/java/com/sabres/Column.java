@@ -19,12 +19,18 @@ package com.sabres;
 final class Column {
     private final String name;
     private final SqlType type;
+    private String foreignTable;
     private boolean primaryKey = false;
     private boolean notNull = false;
 
     Column(String name, SqlType type) {
         this.name = name;
         this.type = type;
+    }
+
+    Column foreignKeyIn(String foreignTable) {
+        this.foreignTable = foreignTable;
+        return this;
     }
 
     Column primaryKey() {
@@ -47,6 +53,10 @@ final class Column {
 
         if (notNull) {
             sb.append(" NOT NULL");
+        }
+
+        if (foreignTable != null) {
+            sb.append(" REFERENCES ").append(foreignTable);
         }
 
         return sb.toString();

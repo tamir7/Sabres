@@ -294,7 +294,12 @@ abstract public class SabresObject {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
         for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
-            createCommand.withColumn(new Column(entry.getKey(), entry.getValue().toSqlType()));
+            Column column = new Column(entry.getKey(), entry.getValue().toSqlType());
+            if (entry.getValue().getType().equals(ObjectDescriptor.Type.Pointer)) {
+                column.foreignKeyIn(entry.getValue().getName());
+            }
+
+            createCommand.withColumn(column);
         }
 
         sabres.execSQL(createCommand.toString());
