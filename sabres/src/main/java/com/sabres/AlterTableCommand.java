@@ -27,6 +27,10 @@ final class AlterTableCommand {
 
     @Override
     public String toString() {
+        return toSql();
+    }
+
+    String toSql() {
         return  String.format("AlTER TABLE %s ADD %s;", name, column.toString());
     }
 }

@@ -37,6 +37,10 @@ final class CreateIndexCommand {
 
     @Override
     public String toString() {
+        return toSql();
+    }
+
+    String toSql() {
         final StringBuilder sb = new StringBuilder("CREATE ");
 
         sb.append("INDEX ");

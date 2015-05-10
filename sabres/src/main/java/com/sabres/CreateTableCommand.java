@@ -41,6 +41,10 @@ final class CreateTableCommand {
 
     @Override
     public String toString() {
+        return toSql();
+    }
+
+    String toSql() {
         final StringBuilder sb = new StringBuilder("CREATE TABLE ");
 
         if (ifNotExists) {

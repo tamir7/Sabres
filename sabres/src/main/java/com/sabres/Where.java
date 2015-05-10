@@ -82,8 +82,12 @@ final class Where {
         return keyIndices;
     }
 
+    String toSql() {
+        return where;
+    }
+
     @Override
     public String toString() {
-        return where;
+        return toSql();
     }
 }

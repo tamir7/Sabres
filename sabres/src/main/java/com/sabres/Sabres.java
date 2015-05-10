@@ -51,6 +51,10 @@ public final class Sabres {
         self = new Sabres(context);
     }
 
+    static Sabres self() {
+        return self;
+    }
+
     void execSQL(String sql) throws SabresException {
         try {
             database.execSQL(sql);
@@ -58,10 +62,6 @@ public final class Sabres {
             throw new SabresException(SabresException.SQL_ERROR,
                     String.format("Failed to exec sql: %s", sql), e);
         }
-    }
-
-    static Sabres self() {
-        return self;
     }
 
     long insert(String table, ContentValues values) throws SabresException {
@@ -89,6 +89,11 @@ public final class Sabres {
         Utils.checkNotMain();
         return database.query(table, null, where == null ? null : where.toString(), null, null,
                 null, null);
+    }
+
+    long count(String sql) {
+        Utils.checkNotMain();
+        return DatabaseUtils.longForQuery(database, sql, null);
     }
 
     void open() throws SabresException {
@@ -260,12 +265,6 @@ public final class Sabres {
                 return null;
             }
         }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    static boolean tableExists(Sabres sabres, String table) {
-        return DatabaseUtils.longForQuery(sabres.database,
-                String.format("SELECT count(*) FROM sqlite_master WHERE type='table' AND  name='%s'",
-                        table), null) > 0;
     }
 
     public static void testFunction() {

@@ -16,42 +16,31 @@
 
 package com.sabres;
 
-final class SelectCommand {
+final class CountCommand {
     private final String table;
-    private String joinTable;
-    private String joinColumn;
     private Where where;
 
-    SelectCommand(String table) {
+    CountCommand(String table) {
         this.table = table;
     }
 
-    void join(String table, String column) {
-        joinTable = table;
-        joinColumn = column;
+    CountCommand where(Where where) {
+        this.where = where;
+        return this;
     }
 
-    void where(Where where) {
-        this.where = where;
+    String toSql() {
+        final StringBuilder sb = new StringBuilder(String.format("SELECT count(*) FROM %s", table));
+
+        if (where != null) {
+            sb.append(String.format(" WHERE %s", where.toSql()));
+        }
+
+        return sb.append(";").toString();
     }
 
     @Override
     public String toString() {
         return toSql();
-    }
-
-    String toSql() {
-        StringBuilder sb = new StringBuilder("SELECT * FROM ").append(table);
-
-        if (joinTable != null) {
-            sb.append(String.format(" LEFT JOIN %s ON %s.%s = %s.objectId", joinTable, table, joinColumn,
-                    joinTable));
-        }
-
-        if (where != null) {
-            sb.append(String.format(" WHERE %s", where.toString()));
-        }
-
-        return sb.append(";").toString();
     }
 }

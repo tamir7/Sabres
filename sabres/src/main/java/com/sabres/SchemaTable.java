@@ -54,7 +54,7 @@ final class SchemaTable {
 
     static Schema select(Sabres sabres, String name) throws SabresException {
         Schema schema = new Schema();
-        if (Sabres.tableExists(sabres, SCHEMA_TABLE_NAME)) {
+        if (SqliteMasterTable.tableExists(sabres, SCHEMA_TABLE_NAME)) {
             Cursor c = sabres.select(SCHEMA_TABLE_NAME, Where.equalTo(TABLE_KEY, name));
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                 schema.put(CursorHelper.getString(c, COLUMN_KEY),

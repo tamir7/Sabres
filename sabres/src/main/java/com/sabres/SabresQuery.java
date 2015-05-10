@@ -93,7 +93,7 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     private void checkTableExists(Sabres sabres) throws SabresException {
-        if (!Sabres.tableExists(sabres, name)){
+        if (!SqliteMasterTable.tableExists(sabres, name)){
             throw new SabresException(SabresException.OBJECT_NOT_FOUND,
                     String.format("table %s does not exist", name));
         }
@@ -130,7 +130,7 @@ public class SabresQuery<T extends SabresObject> {
         sabres.open();
         Cursor c = null;
         try {
-            if (Sabres.tableExists(sabres, name)) {
+            if (SqliteMasterTable.tableExists(sabres, name)) {
                 createIndices(sabres, name, where.getKeyIndices());
                 Schema schema = SchemaTable.select(sabres, name);
                 c = sabres.select(name, where);

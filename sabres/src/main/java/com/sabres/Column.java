@@ -45,6 +45,10 @@ final class Column {
 
     @Override
     public String toString() {
+        return toSql();
+    }
+
+    String toSql() {
         StringBuilder sb = new StringBuilder(String.format("%s %s", name, type.toString()));
 
         if (primaryKey) {

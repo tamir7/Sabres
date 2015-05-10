@@ -493,7 +493,7 @@ abstract public class SabresObject {
                 sabres.open();
                 Cursor c = null;
                 try {
-                    if (Sabres.tableExists(sabres, clazz.getSimpleName())) {
+                    if (SqliteMasterTable.tableExists(sabres, clazz.getSimpleName())) {
                         c = sabres.select(clazz.getSimpleName(), null);
                         Schema schema = SchemaTable.select(sabres, clazz.getSimpleName());
                         List<SabresObject> objects = new ArrayList<>();
