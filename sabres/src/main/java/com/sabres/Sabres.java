@@ -85,10 +85,9 @@ public final class Sabres {
         return database.delete(table, where == null ? null : where.toString(), null);
     }
 
-    Cursor select(String table, Where where) {
+    Cursor select(String sql) {
         Utils.checkNotMain();
-        return database.query(table, null, where == null ? null : where.toString(), null, null,
-                null, null);
+        return database.rawQuery(sql, null);
     }
 
     long count(String sql) {
@@ -149,59 +148,17 @@ public final class Sabres {
         }
     }
 
-    private static String getTables() throws SabresException {
-        Utils.checkNotMain();
-        self.open();
-        Cursor c = null;
-        try {
-            String[] headers = new String[]{"table", "count"};
-            c = self.select("sqlite_master",
-                    Where.equalTo("type", "table").and(Where.notEqualTo("name", "android_metadata").
-                            and(Where.notEqualTo("name", SchemaTable.getTableName()))));
-            String[][] data = new String[c.getCount()][2];
-            int i = 0;
-            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                final String table = CursorHelper.getString(c, "name");
-                data[i++] = new String[]
-                        {table, String.valueOf(DatabaseUtils.queryNumEntries(self.database, table))};
-            }
-            return FlipTable.of(headers, data);
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-            self.close();
-        }
-    }
-
-    private static String getIndices() throws SabresException {
-        Utils.checkNotMain();
-        self.open();
-        Cursor c = null;
-        try {
-            String[] headers = new String[]{"table", "index"};
-            c = self.select("sqlite_master", Where.equalTo("type", "index").
-                    and(Where.notEqualTo("tbl_name", SchemaTable.getTableName())));
-            String[][] data = new String[c.getCount()][2];
-            int i = 0;
-            for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                data[i++] = new String[] {CursorHelper.getString(c, "tbl_name"),
-                        CursorHelper.getString(c, "name")};
-            }
-            return FlipTable.of(headers, data);
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-            self.close();
-        }
-    }
-
     public static void printTables() {
         Task.callInBackground(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return getTables();
+                Sabres sabres = Sabres.self;
+                sabres.open();
+                try {
+                    return SqliteMasterTable.getTables(sabres);
+                } finally {
+                    sabres.close();
+                }
             }
         }).continueWith(new Continuation<String, Void>() {
             @Override
@@ -220,7 +177,13 @@ public final class Sabres {
         Task.callInBackground(new Callable<String>() {
             @Override
             public String call() throws Exception {
-                return getIndices();
+                Sabres sabres = Sabres.self;
+                sabres.open();
+                try {
+                    return SqliteMasterTable.getIndices(sabres);
+                } finally {
+                    sabres.close();
+                }
             }
         }).continueWith(new Continuation<String, Void>() {
             @Override

@@ -55,7 +55,9 @@ final class SchemaTable {
     static Schema select(Sabres sabres, String name) throws SabresException {
         Schema schema = new Schema();
         if (SqliteMasterTable.tableExists(sabres, SCHEMA_TABLE_NAME)) {
-            Cursor c = sabres.select(SCHEMA_TABLE_NAME, Where.equalTo(TABLE_KEY, name));
+            SelectCommand command = new SelectCommand(SCHEMA_TABLE_NAME).
+                    where(Where.equalTo(TABLE_KEY, name));
+            Cursor c = sabres.select(command.toSql());
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                 schema.put(CursorHelper.getString(c, COLUMN_KEY),
                         new ObjectDescriptor(CursorHelper.getString(c, TYPE_KEY),
@@ -73,7 +75,7 @@ final class SchemaTable {
     }
 
     static String[][] getData(Sabres sabres) {
-        final Cursor c = sabres.select(SCHEMA_TABLE_NAME, null);
+        final Cursor c = sabres.select(new SelectCommand(SCHEMA_TABLE_NAME).toSql());
         String[][] data = new String[c.getCount()][c.getColumnCount()];
         int i = 0;
         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {

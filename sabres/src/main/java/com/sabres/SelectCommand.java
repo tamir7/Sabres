@@ -31,8 +31,9 @@ final class SelectCommand {
         joinColumn = column;
     }
 
-    void where(Where where) {
+    SelectCommand where(Where where) {
         this.where = where;
+        return this;
     }
 
     @Override

@@ -342,7 +342,9 @@ abstract public class SabresObject {
         Cursor c = null;
         try {
             schema.putAll(SchemaTable.select(sabres, name));
-            c = sabres.select(name, Where.equalTo(OBJECT_ID_KEY, id));
+            SelectCommand command = new SelectCommand(name).
+                    where(Where.equalTo(OBJECT_ID_KEY, id));
+            c = sabres.select(command.toSql());
             if (!c.moveToFirst()) {
                 throw new SabresException(SabresException.OBJECT_NOT_FOUND,
                         String.format("table %s has no object with key %s", name, id));
@@ -494,7 +496,7 @@ abstract public class SabresObject {
                 Cursor c = null;
                 try {
                     if (SqliteMasterTable.tableExists(sabres, clazz.getSimpleName())) {
-                        c = sabres.select(clazz.getSimpleName(), null);
+                        c = sabres.select(new SelectCommand(clazz.getSimpleName()).toSql());
                         Schema schema = SchemaTable.select(sabres, clazz.getSimpleName());
                         List<SabresObject> objects = new ArrayList<>();
                         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
