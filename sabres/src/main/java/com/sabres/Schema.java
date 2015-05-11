@@ -39,6 +39,7 @@ final class Schema {
     private static final String TYPE_KEY = "_type";
     private static final String NAME_KEY = "_name";
     private static final String[] headers = new String[]{COLUMN_KEY, TYPE_KEY, NAME_KEY};
+    private static final String[] selectKeys = new String[]{TABLE_KEY, COLUMN_KEY, TYPE_KEY, NAME_KEY};
 
     private Schema() {}
 
@@ -49,7 +50,7 @@ final class Schema {
             if (!subClassNames.isEmpty()) {
                 try {
                     SelectCommand command = new SelectCommand(SCHEMA_TABLE_NAME,
-                            Arrays.asList(headers));
+                            Arrays.asList(selectKeys));
                     boolean first = true;
                     Where where = null;
 
@@ -59,7 +60,7 @@ final class Schema {
                             where = Where.equalTo(TABLE_KEY, name);
                             first = false;
                         }  else {
-                            where.and(Where.equalTo(TABLE_KEY, name));
+                            where.or(Where.equalTo(TABLE_KEY, name));
                         }
                     }
                     command.where(where);

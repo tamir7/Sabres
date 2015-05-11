@@ -21,7 +21,6 @@ import android.database.Cursor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import bolts.Continuation;
@@ -31,6 +30,7 @@ public class SabresQuery<T extends SabresObject> {
     private final String name;
     private final Class<T> clazz;
     private Where where;
+    private final List<String> keyIndices = new ArrayList<>();
 
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
@@ -82,6 +82,7 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     public void whereEqualTo(String key, Object object) {
+        keyIndices.add(key);
         addWhere(Where.equalTo(key, stringifyObject(object)));
     }
 
@@ -132,8 +133,7 @@ public class SabresQuery<T extends SabresObject> {
         Cursor c = null;
         try {
             if (SqliteMaster.tableExists(sabres, name)) {
-                createIndices(sabres, name, where.getKeyIndices());
-                Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
+                createIndices(sabres, name, keyIndices);
                 c = sabres.select(new SelectCommand(name, Schema.getKeys(name)).where(where).toSql());
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();

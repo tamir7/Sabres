@@ -237,7 +237,6 @@ public final class Sabres {
                 command.where(Where.equalTo("title", "Fight Club"));
                 Sabres sabres = Sabres.self;
                 sabres.open();
-                Log.e("Test", command.toSql());
                 Cursor c = sabres.database.rawQuery(command.toSql(), null);
                 DatabaseUtils.dumpCursor(c);
                 c.close();
