@@ -16,7 +16,6 @@
 
 package com.sabres;
 
-import android.content.ContentValues;
 import android.database.Cursor;
 import android.util.Log;
 
@@ -28,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import bolts.Continuation;
@@ -37,17 +37,17 @@ abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
     private static final String UNDEFINED = "(undefined)";
     private static final Map<String, Class<? extends SabresObject>> subClasses = new HashMap<>();
-    static final String OBJECT_ID_KEY = "objectId";
+    private static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
-    private final ContentValues values = new ContentValues();
-    private final ContentValues dirtyValues = new ContentValues();
-    private final Schema schema = new Schema();
+    private final Map<String, ObjectValue> values = new HashMap<>();
+    private final Map<String, ObjectValue> dirtyValues = new HashMap<>();
+    private final Map<String, ObjectDescriptor> schemaChanges = new HashMap<>();
     private final Map<String, SabresObject> children = new HashMap<>();
     private final Map<String, SabresObject> dirtyChildren = new HashMap<>();
     private boolean dataAvailable = false;
     private final String name;
-    protected long id = 0;
+    private long id = 0;
 
     protected SabresObject() {
         name = getClass().getSimpleName();
@@ -55,8 +55,16 @@ abstract public class SabresObject {
 
     private static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz, long id) {
         T object = createObjectInstance(clazz);
-        object.id = id;
+        object.setObjectId(id);
         return object;
+    }
+
+    void setObjectId(long objectId) {
+        this.id = objectId;
+    }
+
+    static Set<String> getSubClassNames() {
+        return subClasses.keySet();
     }
 
     static <T extends SabresObject> T createWithoutData(String className, long id) {
@@ -76,40 +84,17 @@ abstract public class SabresObject {
             throw new IllegalArgumentException("Value cannot be null");
         }
 
-        if (value instanceof String) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.String));
-            dirtyValues.put(key, (String)value);
-        } else if (value instanceof Integer) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Integer));
-            dirtyValues.put(key, (Integer)value);
-        } else if (value instanceof Date) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Date));
-            dirtyValues.put(key, ((Date)value).getTime());
-        } else if (value instanceof Boolean) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Boolean));
-            dirtyValues.put(key, (Boolean)value);
-        } else if (value instanceof Long) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Long));
-            dirtyValues.put(key, (Long)value);
-        } else if (value instanceof Short) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Short));
-            dirtyValues.put(key, (Short)value);
-        } else if (value instanceof Byte) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Byte));
-            dirtyValues.put(key, (Byte) value);
-        } else if (value instanceof Float) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Float));
-            dirtyValues.put(key, (Float) value);
-        } else if (value instanceof Double){
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Double));
-            dirtyValues.put(key, (Double) value);
-        } else if (value instanceof SabresObject) {
-            schema.put(key, new ObjectDescriptor(ObjectDescriptor.Type.Pointer,
-                    value.getClass().getSimpleName()));
-            dirtyChildren.put(key, (SabresObject) value);
+        ObjectDescriptor descriptor = Schema.getDescriptor(name, key);
+        if (descriptor == null) {
+            descriptor = ObjectDescriptor.fromObject(value);
+            schemaChanges.put(key, descriptor);
+        }
+
+        if (descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
+            dirtyChildren.put(key, (SabresObject)value);
         } else {
-            throw new IllegalArgumentException(String.format("Class %s is not supported",
-                    value.getClass().getSimpleName()));
+            dirtyValues.put(key, new ObjectValue(value, descriptor));
+
         }
     }
 
@@ -128,86 +113,54 @@ abstract public class SabresObject {
         }
     }
 
-    public String getString(String key) {
+    private <T> T get(String key, Class<T> clazz) {
         if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsString(key);
+            return dirtyValues.get(key).get(clazz);
         }
 
         checkDataAvailable();
-        return values.getAsString(key);
+        if (values.containsKey(key)) {
+            return values.get(key).get(clazz);
+        }
+
+        return null;
+    }
+
+    public String getString(String key) {
+        return get(key, String.class);
     }
 
 
     public Boolean getBoolean(String key)  {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsBoolean(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsBoolean(key);
+        return get(key, Boolean.class);
     }
 
     public Integer getInt(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsInteger(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsInteger(key);
+        return get(key, Integer.class);
     }
 
     public Byte getByte(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsByte(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsByte(key);
+        return get(key, Byte.class);
     }
 
     public Short getShort(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsShort(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsShort(key);
+        return get(key, Short.class);
     }
 
     public Long getLong(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsLong(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsLong(key);
+        return get(key, Long.class);
     }
 
     public Float getFloat(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsFloat(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsFloat(key);
+        return get(key, Float.class);
     }
 
     public Double getDouble(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.getAsDouble(key);
-        }
-
-        checkDataAvailable();
-        return values.getAsDouble(key);
+        return get(key, Double.class);
     }
 
     public Date getDate(String key) {
-        if (dirtyValues.containsKey(key)) {
-            return new Date(dirtyValues.getAsLong(key));
-        }
-
-        checkDataAvailable();
-        return values.containsKey(key) ? new Date(values.getAsLong(key)) : null;
+        return get(key, Date.class);
     }
 
     public SabresObject getSabresObject(String key) {
@@ -239,6 +192,12 @@ abstract public class SabresObject {
         });
     }
 
+    private void saveIfNeededInTransaction(Sabres sabres) throws SabresException {
+        if (id == 0 || isDirty()) {
+            saveInTransaction(sabres);
+        }
+    }
+
     private void saveInTransaction(Sabres sabres) throws SabresException {
         if (id == 0) {
             createObject(sabres);
@@ -263,17 +222,14 @@ abstract public class SabresObject {
     }
 
     private void updateSchema(Sabres sabres) throws SabresException {
-        SchemaTable.create(sabres);
-        Schema currentSchema = SchemaTable.select(sabres, name);
-        if (currentSchema.isEmpty()) {
-            SchemaTable.insert(sabres, name, schema);
-            createTable(sabres, schema);
+        Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
+        if (schema == null) {
+            Schema.update(sabres, name, schemaChanges);
+            createTable(sabres);
         } else {
-            Schema newSchema = currentSchema.createDiffSchema(schema);
-            if (!newSchema.isEmpty()) {
-                SchemaTable.insert(sabres, name, newSchema);
-                alterTable(sabres, newSchema);
-            }
+            Schema.update(sabres, name, schemaChanges);
+            alterTable(sabres);
+
         }
     }
 
@@ -290,10 +246,10 @@ abstract public class SabresObject {
         update(sabres);
     }
 
-    private void createTable(Sabres sabres, Schema schema) throws SabresException {
+    private void createTable(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
-        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schemaChanges.entrySet()) {
             Column column = new Column(entry.getKey(), entry.getValue().toSqlType());
             if (entry.getValue().getType().equals(ObjectDescriptor.Type.Pointer)) {
                 column.foreignKeyIn(entry.getValue().getName());
@@ -305,8 +261,8 @@ abstract public class SabresObject {
         sabres.execSQL(createCommand.toString());
     }
 
-    private void alterTable(Sabres sabres, Schema schema) throws SabresException {
-        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
+    private void alterTable(Sabres sabres) throws SabresException {
+        for (Map.Entry<String, ObjectDescriptor> entry: schemaChanges.entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
                     entry.getValue().toSqlType())).toString());
         }
@@ -314,14 +270,16 @@ abstract public class SabresObject {
 
     private void updateChildren(Sabres sabres) throws SabresException {
         for (Map.Entry<String, SabresObject> entry: dirtyChildren.entrySet()) {
-            entry.getValue().saveInTransaction(sabres);
-            dirtyValues.put(entry.getKey(), entry.getValue().getObjectId());
+            entry.getValue().saveIfNeededInTransaction(sabres);
+            dirtyValues.put(entry.getKey(), new ObjectValue(entry.getValue().getObjectId(),
+                    new ObjectDescriptor(ObjectDescriptor.Type.Pointer,
+                            entry.getValue().getClass().getSimpleName())));
         }
     }
 
     private long insert(Sabres sabres) throws SabresException {
         updateChildren(sabres);
-        long id = sabres.insert(name, dirtyValues);
+        long id = sabres.insert(new InsertCommand(name, dirtyValues).toSql());
         values.putAll(dirtyValues);
         children.putAll(dirtyChildren);
         dirtyValues.clear();
@@ -331,7 +289,9 @@ abstract public class SabresObject {
 
     private void update(Sabres sabres) throws SabresException {
         updateChildren(sabres);
-        sabres.update(name, dirtyValues, Where.equalTo(OBJECT_ID_KEY, id));
+        UpdateCommand command = new UpdateCommand(name, dirtyValues);
+        command.where(Where.equalTo(OBJECT_ID_KEY, id));
+        sabres.execSQL(command.toSql());
         values.putAll(dirtyValues);
         children.putAll(dirtyChildren);
         dirtyValues.clear();
@@ -341,7 +301,6 @@ abstract public class SabresObject {
     void fetch(Sabres sabres) throws SabresException {
         Cursor c = null;
         try {
-            schema.putAll(SchemaTable.select(sabres, name));
             SelectCommand command = new SelectCommand(name).
                     where(Where.equalTo(OBJECT_ID_KEY, id));
             c = sabres.select(command.toSql());
@@ -349,7 +308,7 @@ abstract public class SabresObject {
                 throw new SabresException(SabresException.OBJECT_NOT_FOUND,
                         String.format("table %s has no object with key %s", name, id));
             }
-            populate(c, schema);
+            populate(c);
         } finally {
             if (c != null) {
                 c.close();
@@ -387,38 +346,51 @@ abstract public class SabresObject {
         });
     }
 
-    void populate(Cursor c, Schema schema) {
+    void populate(Cursor c) {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
-        this.schema.putAll(schema);
-        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
+        Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
+
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.entrySet()) {
             if (!c.isNull(c.getColumnIndex(entry.getKey()))) {
+                Object value = null;
                 switch (entry.getValue().getType()) {
                     case Integer:
+                        value = CursorHelper.getInt(c, entry.getKey());
+                        break;
                     case Boolean:
+                        value = CursorHelper.getBoolean(c, entry.getKey());
+                        break;
                     case Byte:
-                        values.put(entry.getKey(), CursorHelper.getInt(c, entry.getKey()));
+                        value = CursorHelper.getByte(c, entry.getKey());
                         break;
                     case Double:
-                        values.put(entry.getKey(), CursorHelper.getDouble(c, entry.getKey()));
+                        value = CursorHelper.getDouble(c, entry.getKey());
                         break;
                     case Float:
-                        values.put(entry.getKey(), CursorHelper.getFloat(c, entry.getKey()));
+                        value = CursorHelper.getFloat(c, entry.getKey());
                         break;
                     case String:
-                        values.put(entry.getKey(), CursorHelper.getString(c, entry.getKey()));
+                        value = CursorHelper.getString(c, entry.getKey());
                         break;
                     case Short:
-                        values.put(entry.getKey(), CursorHelper.getShort(c, entry.getKey()));
+                        value = CursorHelper.getShort(c, entry.getKey());
                         break;
                     case Long:
+                        value = CursorHelper.getLong(c, entry.getKey());
+                        break;
                     case Date:
-                        values.put(entry.getKey(), CursorHelper.getLong(c, entry.getKey()));
+                        value = CursorHelper.getDate(c, entry.getKey());
                         break;
                     case Pointer:
+                        value = CursorHelper.getLong(c, entry.getKey());
                         children.put(entry.getKey(),
                                 createWithoutData(subClasses.get(entry.getValue().getName()),
-                                CursorHelper.getLong(c, entry.getKey())));
+                                        CursorHelper.getLong(c, entry.getKey())));
                         break;
+                }
+
+                if (value != null) {
+                    values.put(entry.getKey(), new ObjectValue(value, entry.getValue()));
                 }
             }
         }
@@ -431,27 +403,11 @@ abstract public class SabresObject {
            return UNDEFINED;
        }
 
-       switch (schema.getType(key)) {
-           case Integer:
-           case Double:
-           case Float:
-           case String:
-           case Byte:
-           case Short:
-           case Long:
-           case Pointer:
-               return values.get(key).toString();
-           case Boolean:
-               return values.getAsInteger(key) == 0 ? String.valueOf(false) : String.valueOf(true);
-           case Date:
-               return new Date(values.getAsLong(key)).toString();
-       }
-
-       throw new IllegalStateException(String.format("No rule to stringify %s object",
-               schema.getType(key)));
+       return values.get(key).toString();
    }
 
-    private static String toString(Schema schema, List<SabresObject> objects) {
+    private static String toString(String name, List<SabresObject> objects) {
+        Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
         String[] headers = new String[schema.size() + 1];
         String[][] data = new String[objects.size()][schema.size() + 1];
         int i = 0;
@@ -461,7 +417,7 @@ abstract public class SabresObject {
             data[i++][0] = String.valueOf(o.getObjectId());
         }
 
-        for (Map.Entry<String, ObjectDescriptor> entry: schema.getObjectDescriptors().entrySet()) {
+        for (Map.Entry<String, ObjectDescriptor> entry: schema.entrySet()) {
             headers[j] = String.format("%s(%s)", entry.getKey(), entry.getValue().toString());
             i = 0;
             for (SabresObject o: objects) {
@@ -474,7 +430,7 @@ abstract public class SabresObject {
 
     @Override
     public String toString() {
-        return SabresObject.toString(schema, Collections.singletonList(this));
+        return SabresObject.toString(name, Collections.singletonList(this));
     }
 
     private static <T extends SabresObject> T createObjectInstance(Class<? extends SabresObject> clazz) {
@@ -495,17 +451,16 @@ abstract public class SabresObject {
                 sabres.open();
                 Cursor c = null;
                 try {
-                    if (SqliteMasterTable.tableExists(sabres, clazz.getSimpleName())) {
+                    if (SqliteMaster.tableExists(sabres, clazz.getSimpleName())) {
                         c = sabres.select(new SelectCommand(clazz.getSimpleName()).toSql());
-                        Schema schema = SchemaTable.select(sabres, clazz.getSimpleName());
                         List<SabresObject> objects = new ArrayList<>();
                         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                             T object = SabresObject.createObjectInstance(clazz);
-                            object.populate(c, schema);
+                            object.populate(c);
                             objects.add(object);
                         }
 
-                        return SabresObject.toString(schema, objects);
+                        return SabresObject.toString(clazz.getSimpleName(), objects);
                     } else {
                         return String.format("Class %s does not exist", clazz.getSimpleName());
                     }
@@ -533,7 +488,7 @@ abstract public class SabresObject {
     public void delete() throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
-        sabres.delete(name, Where.equalTo(OBJECT_ID_KEY, id));
+        sabres.execSQL(new DeleteCommand(name).where(Where.equalTo(OBJECT_ID_KEY, id)).toSql());
         sabres.close();
     }
 

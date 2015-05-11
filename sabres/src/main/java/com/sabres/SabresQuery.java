@@ -21,6 +21,7 @@ import android.database.Cursor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import bolts.Continuation;
@@ -93,7 +94,7 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     private void checkTableExists(Sabres sabres) throws SabresException {
-        if (!SqliteMasterTable.tableExists(sabres, name)){
+        if (!SqliteMaster.tableExists(sabres, name)){
             throw new SabresException(SabresException.OBJECT_NOT_FOUND,
                     String.format("table %s does not exist", name));
         }
@@ -130,13 +131,13 @@ public class SabresQuery<T extends SabresObject> {
         sabres.open();
         Cursor c = null;
         try {
-            if (SqliteMasterTable.tableExists(sabres, name)) {
+            if (SqliteMaster.tableExists(sabres, name)) {
                 createIndices(sabres, name, where.getKeyIndices());
-                Schema schema = SchemaTable.select(sabres, name);
+                Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
                 c = sabres.select(new SelectCommand(name).where(where).toSql());
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();
-                    object.populate(c, schema);
+                    object.populate(c);
                     objects.add(object);
                 }
             }

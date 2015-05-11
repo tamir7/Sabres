@@ -16,18 +16,17 @@
 
 package com.sabres;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.os.Build;
 import android.util.Log;
 
-import com.jakewharton.fliptables.FlipTable;
-
 import java.util.concurrent.Callable;
+import java.util.concurrent.Semaphore;
 
 import bolts.Continuation;
 import bolts.Task;
@@ -36,7 +35,7 @@ public final class Sabres {
     private final static String DATABASE_NAME = "sabres.db";
     private static Sabres self;
     private final Context context;
-    private final Object lock = new Object();
+    private final Semaphore sem = new Semaphore(1, true);
     private SQLiteDatabase database;
 
     private Sabres(Context context) {
@@ -44,11 +43,26 @@ public final class Sabres {
     }
 
     public static void initialize(Context context) {
-        if (self != null)  {
-            throw new IllegalStateException("Sabres library was already initialized");
-        }
+        if (self == null)  {
+            self = new Sabres(context);
+            try {
+                self.sem.acquire();
+                Task.callInBackground(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        Sabres sabres = Sabres.self;
+                        sabres.openWithoutLock();
+                        Schema.initialize(sabres);
+                        sabres.closeWithoutLock();
+                        self.sem.release();
+                        return null;
+                    }
+                });
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Sabres Initialize failed", e);
+            }
 
-        self = new Sabres(context);
+        }
     }
 
     static Sabres self() {
@@ -56,6 +70,7 @@ public final class Sabres {
     }
 
     void execSQL(String sql) throws SabresException {
+        Utils.checkNotMain();
         try {
             database.execSQL(sql);
         } catch (SQLException e) {
@@ -64,25 +79,20 @@ public final class Sabres {
         }
     }
 
-    long insert(String table, ContentValues values) throws SabresException {
+    long insert(String sql) throws SabresException {
         Utils.checkNotMain();
+        SQLiteStatement statement = null;
         try {
-            return database.insertOrThrow(table, null, values);
+            statement = database.compileStatement(sql);
+            return statement.executeInsert();
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR,
-                    String.format("Failed to insert into table %s, values: %s", table,
-                            values.toString()), e);
+                    String.format("Failed to execute insert sql %s", sql), e);
+        } finally {
+            if (statement != null) {
+                statement.close();
+            }
         }
-    }
-
-    long update(String table, ContentValues values, Where where) {
-        Utils.checkNotMain();
-        return database.update(table, values, where.toString(), null);
-    }
-
-    int delete(String table, Where where) {
-        Utils.checkNotMain();
-        return database.delete(table, where == null ? null : where.toString(), null);
     }
 
     Cursor select(String sql) {
@@ -95,23 +105,39 @@ public final class Sabres {
         return DatabaseUtils.longForQuery(database, sql, null);
     }
 
-    void open() throws SabresException {
-        Utils.checkNotMain();
-        synchronized (lock) {
-            if (database == null || !database.isOpen()) {
-                createDatabase();
-            } else {
-                database.acquireReference();
-            }
+    private void openWithoutLock() throws SabresException {
+        if (database == null || !database.isOpen()) {
+            createDatabase();
+        } else {
+            database.acquireReference();
         }
     }
 
-    void close() {
+    void open() throws SabresException {
         Utils.checkNotMain();
-        synchronized (lock) {
-            if (database != null && database.isOpen()) {
-                database.releaseReference();
-            }
+        try {
+            sem.acquire();
+            openWithoutLock();
+            sem.release();
+        } catch (InterruptedException e) {
+            throw new SabresException(SabresException.OTHER_CAUSE, e.getMessage(), e);
+        }
+    }
+
+    private void closeWithoutLock() {
+        if (database != null && database.isOpen()) {
+            database.releaseReference();
+        }
+    }
+
+    void close() throws SabresException {
+        Utils.checkNotMain();
+        try {
+            sem.acquire();
+            closeWithoutLock();
+            sem.release();
+        } catch (InterruptedException e) {
+            throw new SabresException(SabresException.OTHER_CAUSE, e.getMessage(), e);
         }
     }
 
@@ -155,7 +181,7 @@ public final class Sabres {
                 Sabres sabres = Sabres.self;
                 sabres.open();
                 try {
-                    return SqliteMasterTable.getTables(sabres);
+                    return SqliteMaster.getTables(sabres);
                 } finally {
                     sabres.close();
                 }
@@ -180,7 +206,7 @@ public final class Sabres {
                 Sabres sabres = Sabres.self;
                 sabres.open();
                 try {
-                    return SqliteMasterTable.getIndices(sabres);
+                    return SqliteMaster.getIndices(sabres);
                 } finally {
                     sabres.close();
                 }
@@ -198,36 +224,8 @@ public final class Sabres {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
-    private static String getSchemaTable() throws SabresException {
-        Utils.checkNotMain();
-        self.open();
-        String[] headers = SchemaTable.getHeaders();
-        String [][] data = SchemaTable.getData(self);
-        self.close();
-        return FlipTable.of(headers, data);
-    }
-
-    public static void printSchemaTable() {
-        Task.callInBackground(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                self.open();
-                SchemaTable.create(self);
-                String schemaTable = getSchemaTable();
-                self.close();
-                return schemaTable;
-            }
-        }).continueWith(new Continuation<String, Void>() {
-            @Override
-            public Void then(Task<String> task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(getClass().getSimpleName(), "getSchemaTable failed", task.getError());
-                } else {
-                    Log.i(getClass().getSimpleName(), String.format("schema_table:\n%s", task.getResult()));
-                }
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
+    public static <T extends SabresObject> void printSchemaTable(Class<T> clazz) {
+        Schema.printSchema(clazz.getSimpleName());
     }
 
     public static void testFunction() {

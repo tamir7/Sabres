@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.sabres.controller;
 
-import com.example.sabres.model.Director;
-import com.example.sabres.model.Movie;
-import com.sabres.Sabres;
-import com.sabres.SabresObject;
+package com.sabres;
 
-public class SabresController {
-    public void printTables() {
-        Sabres.printTables();
+final class DeleteCommand {
+    private final String table;
+    private Where where;
+
+    DeleteCommand(String table) {
+        this.table = table;
+     }
+
+    DeleteCommand where(Where where) {
+        this.where = where;
+        return this;
     }
 
-    public void printIndices() {
-        Sabres.printIndices();
+    String toSql() {
+        StringBuilder sb = new StringBuilder(String.format("DELETE FROM %s", table));
+
+        if (where != null) {
+            sb.append(String.format(" WHERE %s", where.toSql()));
+        }
+
+        return sb.append(";").toString();
     }
 
-    public void printSchema() {
-        Sabres.printSchemaTable(Movie.class);
+    @Override
+    public String toString() {
+        return toSql();
     }
 
-    public void printMovies() {
-        SabresObject.printAll(Movie.class);
-    }
 
-    public void printDirectors() {
-        SabresObject.printAll(Director.class);
-    }
 }

@@ -18,6 +18,8 @@ package com.sabres;
 
 import android.database.Cursor;
 
+import java.util.Date;
+
 final class CursorHelper {
     private CursorHelper() {}
 
@@ -25,12 +27,40 @@ final class CursorHelper {
         return cursor.getString(cursor.getColumnIndex(column));
     }
 
+    static Boolean getBoolean(Cursor cursor, String column) {
+        Integer intValue =  cursor.getInt(cursor.getColumnIndex(column));
+        if (intValue != null) {
+            return intValue != 0;
+        }
+
+        return null;
+    }
+
     static Integer getInt(Cursor cursor, String column) {
         return cursor.getInt(cursor.getColumnIndex(column));
     }
 
+    static Byte getByte(Cursor cursor, String column) {
+        Integer intValue =  cursor.getInt(cursor.getColumnIndex(column));
+        if (intValue != null) {
+            return intValue.byteValue();
+        }
+
+        return null;
+
+    }
+
     static Short getShort(Cursor cursor, String column) {
         return cursor.getShort(cursor.getColumnIndex(column));
+    }
+
+    static Date getDate(Cursor cursor, String column) {
+        Long longValue =  cursor.getLong(cursor.getColumnIndex(column));
+        if (longValue != null) {
+            return new Date(longValue);
+        }
+
+        return null;
     }
 
     static Long getLong(Cursor cursor, String column) {

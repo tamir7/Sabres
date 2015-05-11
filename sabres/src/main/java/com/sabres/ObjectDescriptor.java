@@ -16,6 +16,8 @@
 
 package com.sabres;
 
+import java.util.Date;
+
 final class ObjectDescriptor {
     private final Type type;
     private final String name;
@@ -31,6 +33,33 @@ final class ObjectDescriptor {
     ObjectDescriptor(Type type, String name) {
         this.type = type;
         this.name = name;
+    }
+
+    static ObjectDescriptor fromObject(Object o) {
+        if (o instanceof String) {
+            return new ObjectDescriptor(Type.String);
+        } else if (o instanceof Integer) {
+            return new ObjectDescriptor(Type.Integer);
+        } else if (o instanceof Date) {
+            return new ObjectDescriptor(Type.Date);
+        } else if (o instanceof Boolean) {
+            return new ObjectDescriptor(Type.Boolean);
+        } else if (o instanceof Long) {
+            return new ObjectDescriptor(Type.Long);
+        } else if (o instanceof Short) {
+            return new ObjectDescriptor(Type.Short);
+        } else if (o instanceof Byte) {
+            return new ObjectDescriptor(Type.Byte);
+        } else if (o instanceof Float) {
+            return new ObjectDescriptor(Type.Float);
+        } else if (o instanceof Double){
+            return new ObjectDescriptor(Type.Double);
+        } else if (o instanceof SabresObject) {
+            return new ObjectDescriptor(Type.Pointer, o.getClass().getSimpleName());
+        } else {
+            throw new IllegalArgumentException(String.format("Class %s is not supported",
+                    o.getClass().getSimpleName()));
+        }
     }
 
     SqlType toSqlType() {

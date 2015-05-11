@@ -19,13 +19,13 @@ import android.database.Cursor;
 
 import com.jakewharton.fliptables.FlipTable;
 
-final class SqliteMasterTable {
+final class SqliteMaster {
     private static final String TABLE_NAME = "sqlite_master";
     private static final String NAME_KEY = "name";
     private static final String TYPE_KEY = "type";
     private static final String TABLE_NAME_KEY = "tbl_name";
     private static final String ANDROID_METADATA_TABLE = "android_metadata";
-    private static final String SCHEMA_TABLE = SchemaTable.getTableName();
+    private static final String SCHEMA_TABLE = Schema.getTableName();
 
     private static final String[] tableHeaders = new String[] {"table", "count"};
     private static final String[] indexHeaders = new String[] {"table", "index"};
@@ -59,7 +59,7 @@ final class SqliteMasterTable {
             SelectCommand command = new SelectCommand(TABLE_NAME);
             command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
                     and(Where.notEqualTo(NAME_KEY, ANDROID_METADATA_TABLE).
-                    and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE))));
+                            and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE))));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][tableHeaders.length];
             int i = 0;
