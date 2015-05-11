@@ -28,12 +28,7 @@ final class CursorHelper {
     }
 
     static Boolean getBoolean(Cursor cursor, String column) {
-        Integer intValue =  cursor.getInt(cursor.getColumnIndex(column));
-        if (intValue != null) {
-            return intValue != 0;
-        }
-
-        return null;
+        return   cursor.getInt(cursor.getColumnIndex(column)) != 0;
     }
 
     static Integer getInt(Cursor cursor, String column) {
@@ -41,13 +36,7 @@ final class CursorHelper {
     }
 
     static Byte getByte(Cursor cursor, String column) {
-        Integer intValue =  cursor.getInt(cursor.getColumnIndex(column));
-        if (intValue != null) {
-            return intValue.byteValue();
-        }
-
-        return null;
-
+        return  Integer.valueOf(cursor.getInt(cursor.getColumnIndex(column))).byteValue();
     }
 
     static Short getShort(Cursor cursor, String column) {
@@ -55,12 +44,7 @@ final class CursorHelper {
     }
 
     static Date getDate(Cursor cursor, String column) {
-        Long longValue =  cursor.getLong(cursor.getColumnIndex(column));
-        if (longValue != null) {
-            return new Date(longValue);
-        }
-
-        return null;
+        return new Date(cursor.getLong(cursor.getColumnIndex(column)));
     }
 
     static Long getLong(Cursor cursor, String column) {

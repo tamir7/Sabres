@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.sabres;
 
 import java.util.Map;
@@ -21,7 +22,6 @@ public class UpdateCommand {
     private final String table;
     private final Map<String, ObjectValue> objects;
     private Where where;
-
 
     UpdateCommand(String table, Map<String, ObjectValue> objects) {
         this.table = table;
