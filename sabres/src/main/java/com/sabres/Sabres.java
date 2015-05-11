@@ -232,12 +232,13 @@ public final class Sabres {
         Task.callInBackground(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                SelectCommand command = new SelectCommand("Movie");
-                command.join("Director", "director");
+                SelectCommand command = new SelectCommand("Movie", Schema.getKeys("Movie"));
+                command.join("Director", "director", Schema.getKeys("Director"));
                 command.where(Where.equalTo("title", "Fight Club"));
                 Sabres sabres = Sabres.self;
                 sabres.open();
-                Cursor c = sabres.database.rawQuery(command.toString(), null);
+                Log.e("Test", command.toSql());
+                Cursor c = sabres.database.rawQuery(command.toSql(), null);
                 DatabaseUtils.dumpCursor(c);
                 c.close();
                 sabres.close();

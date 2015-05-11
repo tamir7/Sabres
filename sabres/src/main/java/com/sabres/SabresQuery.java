@@ -134,7 +134,7 @@ public class SabresQuery<T extends SabresObject> {
             if (SqliteMaster.tableExists(sabres, name)) {
                 createIndices(sabres, name, where.getKeyIndices());
                 Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
-                c = sabres.select(new SelectCommand(name).where(where).toSql());
+                c = sabres.select(new SelectCommand(name, Schema.getKeys(name)).where(where).toSql());
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();
                     object.populate(c);

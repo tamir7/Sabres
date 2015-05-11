@@ -21,8 +21,12 @@ import android.util.Log;
 
 import com.jakewharton.fliptables.FlipTable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,7 +48,8 @@ final class Schema {
             Set<String> subClassNames = SabresObject.getSubClassNames();
             if (!subClassNames.isEmpty()) {
                 try {
-                    SelectCommand command = new SelectCommand(SCHEMA_TABLE_NAME);
+                    SelectCommand command = new SelectCommand(SCHEMA_TABLE_NAME,
+                            Arrays.asList(headers));
                     boolean first = true;
                     Where where = null;
 
@@ -134,6 +139,13 @@ final class Schema {
         } finally {
             sabres.endTransaction();
         }
+    }
+
+    static Collection<String> getKeys(String name) {
+        List<String> keys = new ArrayList<>();
+        keys.add(SabresObject.getObjectIdKey());
+        keys.addAll(schemas.get(name).keySet());
+        return keys;
     }
 
     static void printSchema(String table) {

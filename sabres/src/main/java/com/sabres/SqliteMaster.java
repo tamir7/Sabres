@@ -19,6 +19,8 @@ import android.database.Cursor;
 
 import com.jakewharton.fliptables.FlipTable;
 
+import java.util.Arrays;
+
 final class SqliteMaster {
     private static final String TABLE_NAME = "sqlite_master";
     private static final String NAME_KEY = "name";
@@ -26,6 +28,7 @@ final class SqliteMaster {
     private static final String TABLE_NAME_KEY = "tbl_name";
     private static final String ANDROID_METADATA_TABLE = "android_metadata";
     private static final String SCHEMA_TABLE = Schema.getTableName();
+    private static final String[] selectKeys = new String[] {NAME_KEY, TYPE_KEY, TABLE_NAME_KEY};
 
     private static final String[] tableHeaders = new String[] {"table", "count"};
     private static final String[] indexHeaders = new String[] {"table", "index"};
@@ -56,7 +59,7 @@ final class SqliteMaster {
     static String getTables(Sabres sabres) throws SabresException {
         Cursor c = null;
         try {
-            SelectCommand command = new SelectCommand(TABLE_NAME);
+            SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
             command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
                     and(Where.notEqualTo(NAME_KEY, ANDROID_METADATA_TABLE).
                             and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE))));
@@ -80,7 +83,7 @@ final class SqliteMaster {
     static String getIndices(Sabres sabres) throws SabresException {
         Cursor c = null;
         try {
-            SelectCommand command = new SelectCommand(TABLE_NAME);
+            SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
             command.where(Where.equalTo(TYPE_KEY, Type.Index.toString()).
                     and(Where.notEqualTo(TABLE_NAME_KEY, SCHEMA_TABLE)));
             c = sabres.select(command.toSql());

@@ -98,6 +98,10 @@ abstract public class SabresObject {
         }
     }
 
+    static String getObjectIdKey() {
+        return OBJECT_ID_KEY;
+    }
+
     private boolean isDirty() {
         return dirtyValues.size() != 0 || !dirtyChildren.isEmpty();
     }
@@ -301,7 +305,7 @@ abstract public class SabresObject {
     void fetch(Sabres sabres) throws SabresException {
         Cursor c = null;
         try {
-            SelectCommand command = new SelectCommand(name).
+            SelectCommand command = new SelectCommand(name, Schema.getKeys(name)).
                     where(Where.equalTo(OBJECT_ID_KEY, id));
             c = sabres.select(command.toSql());
             if (!c.moveToFirst()) {
@@ -452,7 +456,8 @@ abstract public class SabresObject {
                 Cursor c = null;
                 try {
                     if (SqliteMaster.tableExists(sabres, clazz.getSimpleName())) {
-                        c = sabres.select(new SelectCommand(clazz.getSimpleName()).toSql());
+                        c = sabres.select(new SelectCommand(clazz.getSimpleName(),
+                                Schema.getKeys(clazz.getSimpleName())).toSql());
                         List<SabresObject> objects = new ArrayList<>();
                         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                             T object = SabresObject.createObjectInstance(clazz);

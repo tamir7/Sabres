@@ -16,19 +16,36 @@
 
 package com.sabres;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 final class SelectCommand {
     private final String table;
-    private String joinTable;
-    private String joinColumn;
+    private final List<String> keys = new ArrayList<>();
+    private final List<Join> joins = new ArrayList<>();
     private Where where;
 
-    SelectCommand(String table) {
-        this.table = table;
+    private static class Join {
+        private final String table;
+        private final String column;
+        private final List<String> keys = new ArrayList<>();
+
+        Join(String table, String column, Collection<String> selectKeys) {
+            this.table = table;
+            this.column = column;
+            keys.addAll(selectKeys);
+        }
     }
 
-    void join(String table, String column) {
-        joinTable = table;
-        joinColumn = column;
+    SelectCommand(String table, Collection<String> selectKeys) {
+        this.table = table;
+        this.keys.addAll(selectKeys);
+    }
+
+    SelectCommand join(String table, String column, Collection<String> selectKeys) {
+        joins.add(new Join(table, column, selectKeys));
+        return this;
     }
 
     SelectCommand where(Where where) {
@@ -42,12 +59,32 @@ final class SelectCommand {
     }
 
     String toSql() {
-        StringBuilder sb = new StringBuilder("SELECT * FROM ").append(table);
+        StringBuilder sb = new StringBuilder("SELECT ");
+        boolean first = true;
 
-        if (joinTable != null) {
-            sb.append(String.format(" LEFT JOIN %s ON %s.%s = %s.objectId", joinTable, table, joinColumn,
-                    joinTable));
+        for (String key: keys) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+
+            sb.append(String.format("%s.%s", table, key));
         }
+
+        StringBuilder joinSb = new StringBuilder();
+
+        for (Join join: joins) {
+            joinSb.append(String.format(" LEFT JOIN %s ON %s.%s = %s.objectId", join.table, table,
+                    join.column,  join.table));
+            for (String key: join.keys) {
+                sb.append(String.format(", %s.%s AS %s_%s", join.table, key, join.column, key));
+            }
+        }
+
+        sb.append(String.format(" FROM %s", table));
+
+        sb.append(joinSb);
 
         if (where != null) {
             sb.append(String.format(" WHERE %s", where.toString()));
