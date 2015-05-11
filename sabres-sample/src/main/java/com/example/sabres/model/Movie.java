@@ -104,6 +104,13 @@ public class Movie extends SabresObject {
         return q.findInBackground();
     }
 
+    public static Task<List<Movie>> findWithTitleInBackgroundIncludeDirector(String title) {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+        q.include(DIRECTOR_KEY);
+        q.whereEqualTo(TITLE_KEY, title);
+        return q.findInBackground();
+    }
+
     public static void findWithTitleInBackground(String title, final FindCallback<Movie> callback) {
         SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
         q.whereEqualTo(TITLE_KEY, title);

@@ -20,7 +20,6 @@ import android.util.Log;
 
 import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
-import com.sabres.Sabres;
 
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class QueryController {
             @Override
             public Object then(Task<Void> task) throws Exception {
                 if (task.isFaulted()) {
-                    Log.e(TAG, "failed to get director from Fight Club Object");
+                    Log.e(TAG, "failed to get director from Fight Club Object", task.getError());
                 } else {
                     Log.i(TAG, String.format("Director of Fight Club movie is %s", directorCapture.get().getName()));
                 }
@@ -61,6 +60,21 @@ public class QueryController {
     }
 
     public void queryFightClubIncludeDirector() {
-        Sabres.testFunction();
+        Movie.findWithTitleInBackgroundIncludeDirector(FightClubController.TITLE).
+                continueWith(new Continuation<List<Movie>, Void>() {
+                    @Override
+                    public Void then(Task<List<Movie>> task) throws Exception {
+                        if (task.isFaulted()) {
+                            Log.e(TAG, "failed to get director from Fight Club Object",
+                                    task.getError());
+                        } else if (task.getResult().isEmpty()) {
+                            Log.w(TAG, "Could not find Fight Club object");
+                        } else {
+                            Log.i(TAG, String.format("Director of Fight Club movie is %s",
+                                    task.getResult().get(0).getDirector().getName()));
+                        }
+                        return null;
+                    }
+                }, Task.UI_THREAD_EXECUTOR);
     }
 }

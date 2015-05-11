@@ -351,45 +351,58 @@ abstract public class SabresObject {
     }
 
     void populate(Cursor c) {
+        populate(c, null);
+    }
+
+    private String getCursorKey(String prefix, String key) {
+        if (prefix == null) {
+            return key;
+        }
+
+        return String.format("%s_%s", prefix, key);
+    }
+
+    void populate(Cursor c, String prefix) {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
 
         for (Map.Entry<String, ObjectDescriptor> entry: schema.entrySet()) {
-            if (!c.isNull(c.getColumnIndex(entry.getKey()))) {
+            if (!c.isNull(c.getColumnIndex(getCursorKey(prefix, entry.getKey())))) {
                 Object value = null;
                 switch (entry.getValue().getType()) {
                     case Integer:
-                        value = CursorHelper.getInt(c, entry.getKey());
+                        value = CursorHelper.getInt(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Boolean:
-                        value = CursorHelper.getBoolean(c, entry.getKey());
+                        value = CursorHelper.getBoolean(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Byte:
-                        value = CursorHelper.getByte(c, entry.getKey());
+                        value = CursorHelper.getByte(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Double:
-                        value = CursorHelper.getDouble(c, entry.getKey());
+                        value = CursorHelper.getDouble(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Float:
-                        value = CursorHelper.getFloat(c, entry.getKey());
+                        value = CursorHelper.getFloat(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case String:
-                        value = CursorHelper.getString(c, entry.getKey());
+                        value = CursorHelper.getString(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Short:
-                        value = CursorHelper.getShort(c, entry.getKey());
+                        value = CursorHelper.getShort(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Long:
-                        value = CursorHelper.getLong(c, entry.getKey());
+                        value = CursorHelper.getLong(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Date:
-                        value = CursorHelper.getDate(c, entry.getKey());
+                        value = CursorHelper.getDate(c, getCursorKey(prefix, entry.getKey()));
                         break;
                     case Pointer:
-                        value = CursorHelper.getLong(c, entry.getKey());
+                        value = CursorHelper.getLong(c, getCursorKey(prefix, entry.getKey()));
                         children.put(entry.getKey(),
                                 createWithoutData(subClasses.get(entry.getValue().getName()),
-                                        CursorHelper.getLong(c, entry.getKey())));
+                                        CursorHelper.getLong(c, getCursorKey(prefix,
+                                                entry.getKey()))));
                         break;
                 }
 
@@ -402,13 +415,17 @@ abstract public class SabresObject {
         dataAvailable = true;
     }
 
-   private String stringify(String key) {
-       if (!values.containsKey(key)) {
-           return UNDEFINED;
-       }
+    void populateChild(Cursor c, String key) {
+        children.get(key).populate(c, key);
+    }
 
-       return values.get(key).toString();
-   }
+    private String stringify(String key) {
+        if (!values.containsKey(key)) {
+            return UNDEFINED;
+        }
+
+        return values.get(key).toString();
+    }
 
     private static String toString(String name, List<SabresObject> objects) {
         Map<String, ObjectDescriptor> schema = Schema.getSchema(name);

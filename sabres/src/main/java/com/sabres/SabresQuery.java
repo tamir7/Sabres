@@ -17,6 +17,7 @@
 package com.sabres;
 
 import android.database.Cursor;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,10 +28,12 @@ import bolts.Continuation;
 import bolts.Task;
 
 public class SabresQuery<T extends SabresObject> {
+    private static final String TAG = SabresQuery.class.getSimpleName();
     private final String name;
     private final Class<T> clazz;
     private Where where;
     private final List<String> keyIndices = new ArrayList<>();
+    private final List<String> includes = new ArrayList<>();
 
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
@@ -58,6 +61,23 @@ public class SabresQuery<T extends SabresObject> {
                 return null;
             }
         });
+    }
+
+    public SabresQuery include(String key) {
+        ObjectDescriptor descriptor = Schema.getDescriptor(name, key);
+        if (descriptor == null) {
+            throw new IllegalArgumentException(String.format("Unrecognized key %s in Object %s",
+                    key, name));
+        }
+
+        if (descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
+            includes.add(key);
+        } else {
+            Log.w(TAG, String.format("keys of type %s are always included in query results",
+                    descriptor.getType().toString()));
+        }
+
+        return this;
     }
 
     private String stringifyObject(Object object)  {
@@ -134,10 +154,23 @@ public class SabresQuery<T extends SabresObject> {
         try {
             if (SqliteMaster.tableExists(sabres, name)) {
                 createIndices(sabres, name, keyIndices);
-                c = sabres.select(new SelectCommand(name, Schema.getKeys(name)).where(where).toSql());
+                SelectCommand command = new SelectCommand(name, Schema.getKeys(name));
+                for (String include: includes) {
+                    ObjectDescriptor descriptor = Schema.getDescriptor(name, include);
+                    if (descriptor != null &&
+                            descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
+                        command.join(descriptor.getName(), include,
+                                Schema.getKeys(descriptor.getName()));
+                    }
+                }
+                c = sabres.select(command.where(where).toSql());
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();
                     object.populate(c);
+                    for (String include: includes) {
+                        object.populateChild(c, include);
+                    }
+
                     objects.add(object);
                 }
             }
