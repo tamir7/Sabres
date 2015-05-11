@@ -145,7 +145,6 @@ final class ObjectDescriptor {
             }
         };
 
-
         private String text;
 
         Type(String text) {
