@@ -97,6 +97,10 @@ public class SabresQuery<T extends SabresObject> {
             return String.valueOf(((Date) object).getTime());
         }
 
+        if (object instanceof SabresObject) {
+            return String.valueOf(((SabresObject)object).getObjectId());
+        }
+
         throw new IllegalArgumentException(String.format("No rule to stringify Object of class %s",
                 object.getClass().getSimpleName()));
     }
