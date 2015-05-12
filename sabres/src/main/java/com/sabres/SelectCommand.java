@@ -74,7 +74,7 @@ final class SelectCommand {
 
         StringBuilder joinSb = new StringBuilder();
 
-        for (Join join: joins) {
+        for (Join join : joins) {
             joinSb.append(String.format(" LEFT JOIN %s ON %s.%s = %s.objectId", join.table, table,
                     join.column,  join.table));
             for (String key: join.keys) {

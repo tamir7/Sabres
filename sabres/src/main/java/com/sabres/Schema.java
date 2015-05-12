@@ -33,13 +33,17 @@ import java.util.Set;
 final class Schema {
     private static final String TAG = Schema.class.getSimpleName();
     private static final Map<String, Map<String, ObjectDescriptor>> schemas = new HashMap<>();
+    private static final String UNDEFINED = "(undefined)";
     private static final String SCHEMA_TABLE_NAME = "_schema_table";
     private static final String TABLE_KEY = "_table";
     private static final String COLUMN_KEY = "_column";
     private static final String TYPE_KEY = "_type";
+    private static final String OF_TYPE_KEY = "_ofType";
     private static final String NAME_KEY = "_name";
-    private static final String[] headers = new String[]{COLUMN_KEY, TYPE_KEY, NAME_KEY};
-    private static final String[] selectKeys = new String[]{TABLE_KEY, COLUMN_KEY, TYPE_KEY, NAME_KEY};
+    private static final String[] headers =
+            new String[]{COLUMN_KEY, TYPE_KEY, OF_TYPE_KEY, NAME_KEY};
+    private static final String[] selectKeys =
+            new String[]{TABLE_KEY, COLUMN_KEY, TYPE_KEY, OF_TYPE_KEY, NAME_KEY};
 
     private Schema() {}
 
@@ -66,10 +70,23 @@ final class Schema {
                     command.where(where);
                     c = sabres.select(command.toSql());
                     for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                        schemas.get(CursorHelper.getString(c, TABLE_KEY)).
-                                put(CursorHelper.getString(c, COLUMN_KEY),
-                                        new ObjectDescriptor(CursorHelper.getString(c, TYPE_KEY),
-                                                CursorHelper.getString(c, NAME_KEY)));
+                        String table = CursorHelper.getString(c, TABLE_KEY);
+                        String column = CursorHelper.getString(c, COLUMN_KEY);
+                        ObjectDescriptor.Type type =
+                                ObjectDescriptor.Type.valueOf(CursorHelper.getString(c, TYPE_KEY));
+                        ObjectDescriptor.Type ofType = null;
+                        String objectName = null;
+                        if (type.equals(ObjectDescriptor.Type.Collection)) {
+                            ofType = ObjectDescriptor.Type.valueOf(CursorHelper.getString(c,
+                                            OF_TYPE_KEY));
+                        }
+
+                        if (type.equals(ObjectDescriptor.Type.Pointer) ||
+                                (ofType != null && ofType.equals(ObjectDescriptor.Type.Pointer))) {
+                            objectName = CursorHelper.getString(c, NAME_KEY);
+                        }
+                        schemas.get(table).put(column, new ObjectDescriptor(type, ofType,
+                                objectName));
                     }
                 } finally {
                     if (c != null) {
@@ -88,7 +105,8 @@ final class Schema {
                 withColumn(new Column(TABLE_KEY, SqlType.Text).notNull()).
                 withColumn(new Column(COLUMN_KEY, SqlType.Text).notNull()).
                 withColumn(new Column(TYPE_KEY, SqlType.Text).notNull()).
-                withColumn(new Column(NAME_KEY, SqlType.Text).notNull());
+                withColumn(new Column(OF_TYPE_KEY, SqlType.Text)).
+                withColumn(new Column(NAME_KEY, SqlType.Text));
 
         CreateIndexCommand indexCommand = new CreateIndexCommand(SCHEMA_TABLE_NAME,
                 Collections.singletonList(TABLE_KEY)).ifNotExists();
@@ -125,8 +143,15 @@ final class Schema {
                 Map<String, ObjectValue> values = new HashMap<>();
                 values.put(TABLE_KEY, new ObjectValue(name, objectDescriptor));
                 values.put(COLUMN_KEY, new ObjectValue(entry.getKey(), objectDescriptor));
-                values.put(TYPE_KEY, new ObjectValue(entry.getValue().getType().name(), objectDescriptor));
-                values.put(NAME_KEY, new ObjectValue(entry.getValue().getName(), objectDescriptor));
+                values.put(TYPE_KEY, new ObjectValue(entry.getValue().getType().name(),
+                        objectDescriptor));
+                if (entry.getValue().getOfType() != null) {
+                    values.put(OF_TYPE_KEY, new ObjectValue(entry.getValue().getOfType().name(),
+                            objectDescriptor));
+                }
+                if (entry.getValue().getName() != null) {
+                    values.put(NAME_KEY, new ObjectValue(entry.getValue().getName(), objectDescriptor));
+                }
                 sabres.insert(new InsertCommand(SCHEMA_TABLE_NAME, values).toSql());
             }
 
@@ -149,6 +174,16 @@ final class Schema {
         return keys;
     }
 
+    static Collection<String> getListsKeys(String name) {
+        List<String> keys = new ArrayList<>();
+        for (Map.Entry<String, ObjectDescriptor> entry: schemas.get(name).entrySet()) {
+            if (entry.getValue().getType().equals(ObjectDescriptor.Type.Collection)) {
+                keys.add(entry.getKey());
+            }
+        }
+        return keys;
+    }
+
     static void printSchema(String table) {
         Map<String, ObjectDescriptor> schema = getSchema(table);
 
@@ -161,7 +196,9 @@ final class Schema {
         int i = 0;
         for (Map.Entry<String, ObjectDescriptor> entry: schema.entrySet()) {
             String[] row = new String[] {entry.getKey(), entry.getValue().getType().toString(),
-                    entry.getValue().getName()};
+                    entry.getValue().getOfType() == null ? UNDEFINED :
+                            entry.getValue().getOfType().name(),
+                    entry.getValue().getName() == null ? UNDEFINED : entry.getValue().getName()};
             data[i++] = row;
         }
 

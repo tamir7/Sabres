@@ -31,6 +31,6 @@ final class AlterTableCommand {
     }
 
     String toSql() {
-        return  String.format("AlTER TABLE %s ADD %s;", name, column.toString());
+        return  String.format("ALTER TABLE %s ADD %s;", name, column.toString());
     }
 }

@@ -22,6 +22,7 @@ import android.util.Log;
 import com.jakewharton.fliptables.FlipTable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import bolts.Task;
 abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
     private static final String UNDEFINED = "(undefined)";
+    private static final String LIST_VALUE = "(unused)";
     private static final Map<String, Class<? extends SabresObject>> subClasses = new HashMap<>();
     private static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
@@ -45,6 +47,8 @@ abstract public class SabresObject {
     private final Map<String, ObjectDescriptor> schemaChanges = new HashMap<>();
     private final Map<String, SabresObject> children = new HashMap<>();
     private final Map<String, SabresObject> dirtyChildren = new HashMap<>();
+    private final Map<String, Collection<Object>> collections = new HashMap<>();
+    private final Map<String, Collection<Object>> dirtyCollections = new HashMap<>();
     private boolean dataAvailable = false;
     private final String name;
     private long id = 0;
@@ -75,6 +79,18 @@ abstract public class SabresObject {
         subClasses.put(subClass.getSimpleName(), subClass);
     }
 
+    public void add(String key, Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Value cannot be null");
+        }
+
+        put(key, Collections.singletonList(value));
+    }
+
+    public void addAll(String key, Collection<?> objects) {
+        put(key, objects);
+    }
+
     public void put(String key, Object value) {
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
@@ -92,9 +108,19 @@ abstract public class SabresObject {
 
         if (descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
             dirtyChildren.put(key, (SabresObject)value);
+        } else if (descriptor.getType().equals(ObjectDescriptor.Type.Collection)) {
+            Collection<Object> collection = dirtyCollections.get(key);
+            if (collection == null) {
+                //noinspection unchecked
+                collection = (Collection<Object>)value;
+            } else {
+                //noinspection unchecked
+                collection.addAll((Collection)value);
+            }
+            dirtyCollections.put(key, collection);
+            dirtyValues.put(key, new ObjectValue(LIST_VALUE, descriptor));
         } else {
             dirtyValues.put(key, new ObjectValue(value, descriptor));
-
         }
     }
 
@@ -134,7 +160,6 @@ abstract public class SabresObject {
         return get(key, String.class);
     }
 
-
     public Boolean getBoolean(String key)  {
         return get(key, Boolean.class);
     }
@@ -165,6 +190,20 @@ abstract public class SabresObject {
 
     public Date getDate(String key) {
         return get(key, Date.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getList(String key) {
+        if (dirtyCollections.containsKey(key)) {
+            ArrayList list = new ArrayList<>();
+            list.addAll(dirtyCollections.get(key));
+            return list;
+        }
+
+        checkDataAvailable();
+        ArrayList list = new ArrayList<>();
+        list.addAll(collections.get(key));
+        return list;
     }
 
     public SabresObject getSabresObject(String key) {
@@ -250,6 +289,10 @@ abstract public class SabresObject {
         update(sabres);
     }
 
+    void populateList(String key, Collection<Object> list) {
+        collections.put(key, list);
+    }
+
     private void createTable(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
@@ -262,13 +305,13 @@ abstract public class SabresObject {
             createCommand.withColumn(column);
         }
 
-        sabres.execSQL(createCommand.toString());
+        sabres.execSQL(createCommand.toSql());
     }
 
     private void alterTable(Sabres sabres) throws SabresException {
         for (Map.Entry<String, ObjectDescriptor> entry: schemaChanges.entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
-                    entry.getValue().toSqlType())).toString());
+                    entry.getValue().toSqlType())).toSql());
         }
     }
 
@@ -281,9 +324,30 @@ abstract public class SabresObject {
         }
     }
 
+    private void updateCollections(Sabres sabres) throws SabresException {
+        for (Map.Entry<String, Collection<Object>> entry: dirtyCollections.entrySet()) {
+            SabresCollection collection = SabresCollection.get(sabres, name, entry.getKey());
+            collection.insert(sabres, id, entry.getValue(),
+                    Schema.getDescriptor(name, entry.getKey()));
+        }
+
+        for (Map.Entry<String, Collection<Object>> entry: dirtyCollections.entrySet()) {
+            Collection collection = collections.get(entry.getKey());
+            if (collection == null) {
+                collections.put(entry.getKey(), entry.getValue());
+            } else {
+                //noinspection unchecked
+                collection.addAll(entry.getValue());
+            }
+        }
+
+        dirtyCollections.clear();
+    }
+
     private long insert(Sabres sabres) throws SabresException {
         updateChildren(sabres);
         long id = sabres.insert(new InsertCommand(name, dirtyValues).toSql());
+        updateCollections(sabres);
         values.putAll(dirtyValues);
         children.putAll(dirtyChildren);
         dirtyValues.clear();
@@ -296,6 +360,7 @@ abstract public class SabresObject {
         UpdateCommand command = new UpdateCommand(name, dirtyValues);
         command.where(Where.equalTo(OBJECT_ID_KEY, id));
         sabres.execSQL(command.toSql());
+        updateCollections(sabres);
         values.putAll(dirtyValues);
         children.putAll(dirtyChildren);
         dirtyValues.clear();

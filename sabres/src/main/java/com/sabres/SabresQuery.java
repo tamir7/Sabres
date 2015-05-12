@@ -167,12 +167,19 @@ public class SabresQuery<T extends SabresObject> {
                                 Schema.getKeys(descriptor.getName()));
                     }
                 }
+
                 c = sabres.select(command.where(where).toSql());
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();
                     object.populate(c);
                     for (String include: includes) {
                         object.populateChild(c, include);
+                    }
+
+                    for (String key: Schema.getListsKeys(name)) {
+                        object.populateList(key, SabresCollection.get(sabres, name, key).
+                                select(sabres, object.getObjectId(),
+                                        Schema.getDescriptor(name, key)));
                     }
 
                     objects.add(object);

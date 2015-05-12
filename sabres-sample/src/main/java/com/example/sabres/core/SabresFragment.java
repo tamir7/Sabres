@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import com.example.sabres.R;
 import com.example.sabres.controller.FightClubController;
+import com.example.sabres.controller.ListsController;
 import com.example.sabres.controller.QuentinController;
 import com.example.sabres.controller.QueryController;
 import com.example.sabres.controller.ReservoirDogsController;
@@ -22,7 +23,7 @@ public class SabresFragment extends Fragment {
     private final ReservoirDogsController reservoirDogsController = new ReservoirDogsController();
     private final QuentinController quentinController = new QuentinController();
     private final QueryController queryController = new QueryController();
-
+    private final ListsController listsController = new ListsController();
 
     public SabresFragment() {}
 
@@ -117,5 +118,15 @@ public class SabresFragment extends Fragment {
     @OnClick(R.id.button_include_fight_club_director)
     public void onClickQueryFightClubWithInclude() {
         queryController.queryFightClubIncludeDirector();
+    }
+
+    @OnClick(R.id.button_set_starring_to_fight_club)
+    public void onClickSetStarringToFightClub() {
+        listsController.setStaringToFightClub();
+    }
+
+    @OnClick(R.id.button_get_starring_from_fight_club)
+    public void onClickGetStarringFromFightClub() {
+        listsController.getStarringFromFightClub();
     }
 }

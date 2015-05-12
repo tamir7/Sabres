@@ -33,6 +33,7 @@ public class Movie extends SabresObject {
     private static final String GROSS_KEY = "gross";
     private static final String HAS_BRAD_PITT_KEY = "hasBradPitt";
     private static final String DIRECTOR_KEY = "director";
+    private static final String STARRING_KEY = "starring";
 
     public String getTitle() {
         return getString(TITLE_KEY);
@@ -96,6 +97,14 @@ public class Movie extends SabresObject {
 
     public void setRating(double rating) {
         put(RATING_KEY, rating);
+    }
+
+    public void setStarring(List<String> starring) {
+        addAll(STARRING_KEY, starring);
+    }
+
+    public List<String> getStarring() {
+        return getList(STARRING_KEY);
     }
 
     public static Task<List<Movie>> findWithTitleInBackground(String title) {
