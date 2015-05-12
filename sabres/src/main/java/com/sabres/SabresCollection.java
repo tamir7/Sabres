@@ -66,7 +66,7 @@ final class SabresCollection {
         return collection;
     }
 
-    <T> List<T> select(Sabres sabres, long parentId, ObjectDescriptor descriptor) {
+    <T> List<T> select(Sabres sabres, long parentId, SabresDescriptor descriptor) {
         List<Object> list = new ArrayList<>();
         Cursor c = null;
         try {
@@ -118,18 +118,18 @@ final class SabresCollection {
         return (List<T>)list;
     }
 
-    void insert(Sabres sabres, long parentId, Collection<?> collection, ObjectDescriptor descriptor)
+    void insert(Sabres sabres, long parentId, Collection<?> collection, SabresDescriptor descriptor)
             throws SabresException {
         Iterator it = collection.iterator();
         sabres.beginTransaction();
         try {
             while (it.hasNext()) {
-                Map<String, ObjectValue> values = new HashMap<>();
-                values.put(PARENT_ID_KEY, new ObjectValue(parentId,
-                        new ObjectDescriptor(ObjectDescriptor.Type.Integer)));
+                Map<String, SabresValue> values = new HashMap<>();
+                values.put(PARENT_ID_KEY, new SabresValue(parentId,
+                        new SabresDescriptor(SabresDescriptor.Type.Integer)));
                 Object value = it.next();
-                values.put(VALUE_KEY, new ObjectValue(value,
-                        new ObjectDescriptor(descriptor.getOfType())));
+                values.put(VALUE_KEY, new SabresValue(value,
+                        new SabresDescriptor(descriptor.getOfType())));
                 sabres.insert(new InsertCommand(getTableName(), values).toSql());
             }
             sabres.setTransactionSuccessful();

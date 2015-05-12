@@ -18,11 +18,11 @@ package com.sabres;
 
 import java.util.Date;
 
-final class ObjectValue {
+final class SabresValue {
     private final Object value;
-    private final ObjectDescriptor descriptor;
+    private final SabresDescriptor descriptor;
 
-    ObjectValue(Object value, ObjectDescriptor descriptor) {
+    SabresValue(Object value, SabresDescriptor descriptor) {
         this.value = value;
         this.descriptor = descriptor;
     }

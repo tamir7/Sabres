@@ -20,9 +20,9 @@ import java.util.Map;
 
 public class InsertCommand {
     private final String table;
-    private final Map<String, ObjectValue> objects;
+    private final Map<String, SabresValue> objects;
 
-    InsertCommand(String table, Map<String, ObjectValue> objects) {
+    InsertCommand(String table, Map<String, SabresValue> objects) {
         this.table = table;
         this.objects = objects;
     }
@@ -34,7 +34,7 @@ public class InsertCommand {
         boolean first = true;
 
 
-        for (Map.Entry<String, ObjectValue> entry: objects.entrySet()) {
+        for (Map.Entry<String, SabresValue> entry: objects.entrySet()) {
             if (first) {
                 first = false;
             } else {

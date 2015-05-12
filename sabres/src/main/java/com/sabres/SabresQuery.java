@@ -64,13 +64,13 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     public SabresQuery include(String key) {
-        ObjectDescriptor descriptor = Schema.getDescriptor(name, key);
+        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
         if (descriptor == null) {
             throw new IllegalArgumentException(String.format("Unrecognized key %s in Object %s",
                     key, name));
         }
 
-        if (descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
+        if (descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
             includes.add(key);
         } else {
             Log.w(TAG, String.format("keys of type %s are always included in query results",
@@ -160,9 +160,9 @@ public class SabresQuery<T extends SabresObject> {
                 createIndices(sabres, name, keyIndices);
                 SelectCommand command = new SelectCommand(name, Schema.getKeys(name));
                 for (String include: includes) {
-                    ObjectDescriptor descriptor = Schema.getDescriptor(name, include);
+                    SabresDescriptor descriptor = Schema.getDescriptor(name, include);
                     if (descriptor != null &&
-                            descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
+                            descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
                         command.join(descriptor.getName(), include,
                                 Schema.getKeys(descriptor.getName()));
                     }

@@ -20,10 +20,10 @@ import java.util.Map;
 
 public class UpdateCommand {
     private final String table;
-    private final Map<String, ObjectValue> objects;
+    private final Map<String, SabresValue> objects;
     private Where where;
 
-    UpdateCommand(String table, Map<String, ObjectValue> objects) {
+    UpdateCommand(String table, Map<String, SabresValue> objects) {
         this.table = table;
         this.objects = objects;
     }
@@ -38,7 +38,7 @@ public class UpdateCommand {
         boolean first = true;
 
 
-        for (Map.Entry<String, ObjectValue> entry: objects.entrySet()) {
+        for (Map.Entry<String, SabresValue> entry: objects.entrySet()) {
             if (first) {
                 first = false;
             } else {

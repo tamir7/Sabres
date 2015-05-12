@@ -19,26 +19,26 @@ package com.sabres;
 import java.util.Collection;
 import java.util.Date;
 
-final class ObjectDescriptor {
+final class SabresDescriptor {
     private final Type type;
     private final Type ofType;
     private final String name;
 
-    ObjectDescriptor(Type type, Type ofType) {
+    SabresDescriptor(Type type, Type ofType) {
         this(type, ofType, null);
     }
 
-    ObjectDescriptor(Type type) {
+    SabresDescriptor(Type type) {
         this(type, null, null);
     }
 
-    ObjectDescriptor(Type type, Type ofType, String name) {
+    SabresDescriptor(Type type, Type ofType, String name) {
         this.type = type;
         this.ofType = ofType;
         this.name = name;
     }
 
-    ObjectDescriptor(Type type, String name) {
+    SabresDescriptor(Type type, String name) {
         this(type, null, name);
     }
 
@@ -71,7 +71,7 @@ final class ObjectDescriptor {
         }
     }
 
-    static ObjectDescriptor fromObject(Object o) {
+    static SabresDescriptor fromObject(Object o) {
         Type type = getTypeFromObject(o);
         switch (type) {
             case Integer:
@@ -83,9 +83,9 @@ final class ObjectDescriptor {
             case Long:
             case Boolean:
             case Date:
-                return new ObjectDescriptor(type);
+                return new SabresDescriptor(type);
             case Pointer:
-                return new ObjectDescriptor(type, o.getClass().getSimpleName());
+                return new SabresDescriptor(type, o.getClass().getSimpleName());
             case Collection:
                 Object internalObject = ((Collection)o).iterator().next();
                 Type ofType = getTypeFromObject(internalObject);
@@ -99,9 +99,9 @@ final class ObjectDescriptor {
                     case Long:
                     case Boolean:
                     case Date:
-                        return new ObjectDescriptor(type, ofType);
+                        return new SabresDescriptor(type, ofType);
                     case Pointer:
-                        return new ObjectDescriptor(type, ofType,
+                        return new SabresDescriptor(type, ofType,
                                 internalObject.getClass().getSimpleName());
                     case Collection:
                         throw new IllegalArgumentException(

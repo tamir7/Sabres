@@ -42,9 +42,9 @@ abstract public class SabresObject {
     private static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
-    private final Map<String, ObjectValue> values = new HashMap<>();
-    private final Map<String, ObjectValue> dirtyValues = new HashMap<>();
-    private final Map<String, ObjectDescriptor> schemaChanges = new HashMap<>();
+    private final Map<String, SabresValue> values = new HashMap<>();
+    private final Map<String, SabresValue> dirtyValues = new HashMap<>();
+    private final Map<String, SabresDescriptor> schemaChanges = new HashMap<>();
     private final Map<String, SabresObject> children = new HashMap<>();
     private final Map<String, SabresObject> dirtyChildren = new HashMap<>();
     private final Map<String, Collection<Object>> collections = new HashMap<>();
@@ -100,15 +100,15 @@ abstract public class SabresObject {
             throw new IllegalArgumentException("Value cannot be null");
         }
 
-        ObjectDescriptor descriptor = Schema.getDescriptor(name, key);
+        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
         if (descriptor == null) {
-            descriptor = ObjectDescriptor.fromObject(value);
+            descriptor = SabresDescriptor.fromObject(value);
             schemaChanges.put(key, descriptor);
         }
 
-        if (descriptor.getType().equals(ObjectDescriptor.Type.Pointer)) {
+        if (descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
             dirtyChildren.put(key, (SabresObject)value);
-        } else if (descriptor.getType().equals(ObjectDescriptor.Type.Collection)) {
+        } else if (descriptor.getType().equals(SabresDescriptor.Type.Collection)) {
             Collection<Object> collection = dirtyCollections.get(key);
             if (collection == null) {
                 //noinspection unchecked
@@ -118,9 +118,9 @@ abstract public class SabresObject {
                 collection.addAll((Collection)value);
             }
             dirtyCollections.put(key, collection);
-            dirtyValues.put(key, new ObjectValue(LIST_VALUE, descriptor));
+            dirtyValues.put(key, new SabresValue(LIST_VALUE, descriptor));
         } else {
-            dirtyValues.put(key, new ObjectValue(value, descriptor));
+            dirtyValues.put(key, new SabresValue(value, descriptor));
         }
     }
 
@@ -265,7 +265,7 @@ abstract public class SabresObject {
     }
 
     private void updateSchema(Sabres sabres) throws SabresException {
-        Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
+        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
         if (schema == null) {
             Schema.update(sabres, name, schemaChanges);
             createTable(sabres);
@@ -296,9 +296,9 @@ abstract public class SabresObject {
     private void createTable(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
-        for (Map.Entry<String, ObjectDescriptor> entry: schemaChanges.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry: schemaChanges.entrySet()) {
             Column column = new Column(entry.getKey(), entry.getValue().toSqlType());
-            if (entry.getValue().getType().equals(ObjectDescriptor.Type.Pointer)) {
+            if (entry.getValue().getType().equals(SabresDescriptor.Type.Pointer)) {
                 column.foreignKeyIn(entry.getValue().getName());
             }
 
@@ -309,7 +309,7 @@ abstract public class SabresObject {
     }
 
     private void alterTable(Sabres sabres) throws SabresException {
-        for (Map.Entry<String, ObjectDescriptor> entry: schemaChanges.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry: schemaChanges.entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
                     entry.getValue().toSqlType())).toSql());
         }
@@ -318,8 +318,8 @@ abstract public class SabresObject {
     private void updateChildren(Sabres sabres) throws SabresException {
         for (Map.Entry<String, SabresObject> entry: dirtyChildren.entrySet()) {
             entry.getValue().saveIfNeededInTransaction(sabres);
-            dirtyValues.put(entry.getKey(), new ObjectValue(entry.getValue().getObjectId(),
-                    new ObjectDescriptor(ObjectDescriptor.Type.Pointer,
+            dirtyValues.put(entry.getKey(), new SabresValue(entry.getValue().getObjectId(),
+                    new SabresDescriptor(SabresDescriptor.Type.Pointer,
                             entry.getValue().getClass().getSimpleName())));
         }
     }
@@ -429,9 +429,9 @@ abstract public class SabresObject {
 
     void populate(Cursor c, String prefix) {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
-        Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
+        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
 
-        for (Map.Entry<String, ObjectDescriptor> entry: schema.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry: schema.entrySet()) {
             if (!c.isNull(c.getColumnIndex(getCursorKey(prefix, entry.getKey())))) {
                 Object value = null;
                 switch (entry.getValue().getType()) {
@@ -472,7 +472,7 @@ abstract public class SabresObject {
                 }
 
                 if (value != null) {
-                    values.put(entry.getKey(), new ObjectValue(value, entry.getValue()));
+                    values.put(entry.getKey(), new SabresValue(value, entry.getValue()));
                 }
             }
         }
@@ -493,7 +493,7 @@ abstract public class SabresObject {
     }
 
     private static String toString(String name, List<SabresObject> objects) {
-        Map<String, ObjectDescriptor> schema = Schema.getSchema(name);
+        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
         String[] headers = new String[schema.size() + 1];
         String[][] data = new String[objects.size()][schema.size() + 1];
         int i = 0;
@@ -503,7 +503,7 @@ abstract public class SabresObject {
             data[i++][0] = String.valueOf(o.getObjectId());
         }
 
-        for (Map.Entry<String, ObjectDescriptor> entry: schema.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry: schema.entrySet()) {
             headers[j] = String.format("%s(%s)", entry.getKey(), entry.getValue().toString());
             i = 0;
             for (SabresObject o: objects) {
