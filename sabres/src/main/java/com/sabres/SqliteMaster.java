@@ -63,7 +63,8 @@ final class SqliteMaster {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
             command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
                     and(Where.notEqualTo(NAME_KEY, ANDROID_METADATA_TABLE).
-                            and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE))));
+                            and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE)).
+                            and(Where.doesNotStartWith(NAME_KEY, SabresCollection.getPrefix()))));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][tableHeaders.length];
             int i = 0;
@@ -86,7 +87,8 @@ final class SqliteMaster {
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
             command.where(Where.equalTo(TYPE_KEY, Type.Index.toString()).
-                    and(Where.notEqualTo(TABLE_NAME_KEY, SCHEMA_TABLE)));
+                    and(Where.notEqualTo(TABLE_NAME_KEY, SCHEMA_TABLE)).
+                    and(Where.doesNotStartWith(TABLE_NAME_KEY, SabresCollection.getPrefix())));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][indexHeaders.length];
             int i = 0;

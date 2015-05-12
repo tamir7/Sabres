@@ -23,7 +23,9 @@ final class Where {
         GreaterThen(">"),
         GreaterThenOrEqual(">="),
         LessThen("<"),
-        LessThenOrEqual("<=");
+        LessThenOrEqual("<="),
+        Like(" LIKE "),
+        NotLike(" NOT LIKE ");
 
         private final String value;
 
@@ -45,6 +47,14 @@ final class Where {
 
     public static Where equalTo(String key, Object value) {
         return new Where(key, value, Operator.Equal);
+    }
+
+    public static Where startsWith(String key, String prefix) {
+        return new Where(key, String.format("%s%%", prefix), Operator.Like);
+    }
+
+    public static Where doesNotStartWith(String key, String prefix) {
+        return new Where(key, String.format("%s%%", prefix), Operator.NotLike);
     }
 
     public static Where notEqualTo(String key, Object value) {

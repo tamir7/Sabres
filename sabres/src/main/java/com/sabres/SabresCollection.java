@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 final class SabresCollection {
+    private static final String LIST_PREFIX = "_sabres_list";
     private static final String PARENT_ID_KEY = "_parentId";
     private static final String VALUE_KEY = "_value";
     private final String parent;
@@ -138,7 +139,7 @@ final class SabresCollection {
     }
 
     private String getTableName() {
-        return String.format("_%s_%s", parent, parentKey);
+        return String.format("%s_%s_%s", LIST_PREFIX, parent, parentKey);
     }
 
     static String getTableName(String parent, String parentKey) {
@@ -147,6 +148,10 @@ final class SabresCollection {
 
     static String getParentIdKey() {
         return PARENT_ID_KEY;
+    }
+
+    static String getPrefix() {
+        return LIST_PREFIX;
     }
 
     static Collection<String> getSelectKeys() {
