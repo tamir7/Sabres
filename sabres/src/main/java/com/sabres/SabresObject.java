@@ -132,6 +132,10 @@ abstract public class SabresObject {
         }
     }
 
+    public boolean containsKey(String key) {
+        return values.containsKey(key);
+    }
+
     public String getString(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
