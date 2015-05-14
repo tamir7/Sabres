@@ -22,10 +22,10 @@ import android.util.Log;
 import com.jakewharton.fliptables.FlipTable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,18 +37,13 @@ import bolts.Task;
 abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
     private static final String UNDEFINED = "(undefined)";
-    private static final String LIST_VALUE = "(unused)";
     private static final Map<String, Class<? extends SabresObject>> subClasses = new HashMap<>();
     private static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
     private final Map<String, SabresValue> values = new HashMap<>();
-    private final Map<String, SabresValue> dirtyValues = new HashMap<>();
     private final Map<String, SabresDescriptor> schemaChanges = new HashMap<>();
-    private final Map<String, SabresObject> children = new HashMap<>();
-    private final Map<String, SabresObject> dirtyChildren = new HashMap<>();
-    private final Map<String, Collection<Object>> collections = new HashMap<>();
-    private final Map<String, Collection<Object>> dirtyCollections = new HashMap<>();
+    private final Set<String> dirtyKeys = new HashSet<>();
     private boolean dataAvailable = false;
     private final String name;
     private long id = 0;
@@ -57,7 +52,8 @@ abstract public class SabresObject {
         name = getClass().getSimpleName();
     }
 
-    private static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz, long id) {
+    private static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz,
+                                                                long id) {
         T object = createObjectInstance(clazz);
         object.setObjectId(id);
         return object;
@@ -87,7 +83,7 @@ abstract public class SabresObject {
         put(key, Collections.singletonList(value));
     }
 
-    public void addAll(String key, Collection<?> objects) {
+    public void addAll(String key, List<?> objects) {
         put(key, objects);
     }
 
@@ -100,119 +96,169 @@ abstract public class SabresObject {
             throw new IllegalArgumentException("Value cannot be null");
         }
 
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            descriptor = SabresDescriptor.fromObject(value);
-            schemaChanges.put(key, descriptor);
+        SabresValue sabresValue = SabresValue.create(value);
+
+        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
+        if (schema != null && schema.containsKey(key)) {
+            if (!schema.get(key).equals(sabresValue.getDescriptor())) {
+                throw new IllegalArgumentException(String.format("Cannot set key %s to type %s. " +
+                        "Already set to type %s", key, sabresValue.getDescriptor().toString(),
+                        schema.get(key).toString()));
+            }
+        } else {
+            schemaChanges.put(key, sabresValue.getDescriptor());
         }
 
-        if (descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
-            dirtyChildren.put(key, (SabresObject)value);
-        } else if (descriptor.getType().equals(SabresDescriptor.Type.Collection)) {
-            Collection<Object> collection = dirtyCollections.get(key);
-            if (collection == null) {
-                //noinspection unchecked
-                collection = (Collection<Object>)value;
-            } else {
-                //noinspection unchecked
-                collection.addAll((Collection)value);
-            }
-            dirtyCollections.put(key, collection);
-            dirtyValues.put(key, new SabresValue(LIST_VALUE, descriptor));
-        } else {
-            dirtyValues.put(key, new SabresValue(value, descriptor));
-        }
+        values.put(key, sabresValue);
+        dirtyKeys.add(key);
     }
 
     static String getObjectIdKey() {
         return OBJECT_ID_KEY;
     }
 
-    private boolean isDirty() {
-        return dirtyValues.size() != 0 || !dirtyChildren.isEmpty();
-    }
-
     public long getObjectId() {
         return id;
     }
 
+    public boolean isDataAvailable() {
+        return dataAvailable;
+    }
+
     private void checkDataAvailable() {
-        if (!dataAvailable) {
+        if (id != 0 && !dataAvailable) {
             throw new IllegalStateException("No data associated with object," +
                     "call fetch to populate data from database");
         }
     }
 
-    private <T> T get(String key, Class<T> clazz) {
-        if (dirtyValues.containsKey(key)) {
-            return dirtyValues.get(key).get(clazz);
-        }
-
+    public String getString(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
-            return values.get(key).get(clazz);
+            SabresValue value = values.get(key);
+            if (value instanceof StringValue) {
+                return ((StringValue)value).getValue();
+            }
         }
 
         return null;
     }
 
-    public String getString(String key) {
-        return get(key, String.class);
-    }
-
     public Boolean getBoolean(String key)  {
-        return get(key, Boolean.class);
+        checkDataAvailable();
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof BooleanValue) {
+                return ((BooleanValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Integer getInt(String key) {
-        return get(key, Integer.class);
+        checkDataAvailable();
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof IntValue) {
+                return ((IntValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Byte getByte(String key) {
-        return get(key, Byte.class);
+        checkDataAvailable();
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof ByteValue) {
+                return ((ByteValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Short getShort(String key) {
-        return get(key, Short.class);
+        checkDataAvailable();
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof ShortValue) {
+                return ((ShortValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Long getLong(String key) {
-        return get(key, Long.class);
+        checkDataAvailable();
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof LongValue) {
+                return ((LongValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Float getFloat(String key) {
-        return get(key, Float.class);
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof FloatValue) {
+                return ((FloatValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Double getDouble(String key) {
-        return get(key, Double.class);
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof DoubleValue) {
+                return ((DoubleValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     public Date getDate(String key) {
-        return get(key, Date.class);
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof DateValue) {
+                return ((DateValue)value).getValue();
+            }
+        }
+
+        return null;
     }
 
     @SuppressWarnings("unchecked")
     public <T> List<T> getList(String key) {
-        if (dirtyCollections.containsKey(key)) {
-            ArrayList list = new ArrayList<>();
-            list.addAll(dirtyCollections.get(key));
-            return list;
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof ListValue) {
+                return ((ListValue<T>)value).getValue();
+            }
         }
 
-        checkDataAvailable();
-        ArrayList list = new ArrayList<>();
-        list.addAll(collections.get(key));
-        return list;
+        return null;
     }
 
-    public SabresObject getSabresObject(String key) {
-        if (dirtyChildren.containsKey(key)) {
-            return dirtyChildren.get(key);
+    @SuppressWarnings("unchecked")
+    public <T extends SabresObject> T getSabresObject(String key) {
+        if (values.containsKey(key)) {
+            SabresValue value = values.get(key);
+            if (value instanceof ObjectValue) {
+                return ((ObjectValue<T>)value).getValue();
+            }
         }
 
-        checkDataAvailable();
-        return children.get(key);
+        return null;
     }
 
     public Task<Void> saveInBackground() {
@@ -236,17 +282,29 @@ abstract public class SabresObject {
     }
 
     private void saveIfNeededInTransaction(Sabres sabres) throws SabresException {
-        if (id == 0 || isDirty()) {
+        if (id == 0 || !dirtyKeys.isEmpty()) {
             saveInTransaction(sabres);
         }
     }
 
     private void saveInTransaction(Sabres sabres) throws SabresException {
+        put(UPDATED_AT_KEY, new Date());
         if (id == 0) {
-            createObject(sabres);
-        } else {
-            updateObject(sabres);
+            put(CREATED_AT_KEY, new Date());
         }
+
+        updateSchema(sabres);
+        updateChildren(sabres);
+
+        if (id == 0) {
+            id = insert(sabres);
+        } else {
+            update(sabres);
+        }
+
+        updateLists(sabres);
+
+        dirtyKeys.clear();
         dataAvailable = true;
     }
 
@@ -266,31 +324,12 @@ abstract public class SabresObject {
 
     private void updateSchema(Sabres sabres) throws SabresException {
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
+        Schema.update(sabres, name, schemaChanges);
         if (schema == null) {
-            Schema.update(sabres, name, schemaChanges);
             createTable(sabres);
         } else {
-            Schema.update(sabres, name, schemaChanges);
             alterTable(sabres);
-
         }
-    }
-
-    private void createObject(Sabres sabres) throws SabresException {
-        put(CREATED_AT_KEY, new Date());
-        put(UPDATED_AT_KEY, new Date());
-        updateSchema(sabres);
-        id = insert(sabres);
-    }
-
-    private void updateObject(Sabres sabres) throws SabresException {
-        put(UPDATED_AT_KEY, new Date());
-        updateSchema(sabres);
-        update(sabres);
-    }
-
-    void populateList(String key, Collection<Object> list) {
-        collections.put(key, list);
     }
 
     private void createTable(Sabres sabres) throws SabresException {
@@ -316,55 +355,36 @@ abstract public class SabresObject {
     }
 
     private void updateChildren(Sabres sabres) throws SabresException {
-        for (Map.Entry<String, SabresObject> entry: dirtyChildren.entrySet()) {
-            entry.getValue().saveIfNeededInTransaction(sabres);
-            dirtyValues.put(entry.getKey(), new SabresValue(entry.getValue().getObjectId(),
-                    new SabresDescriptor(SabresDescriptor.Type.Pointer,
-                            entry.getValue().getClass().getSimpleName())));
+        for (Map.Entry<String, SabresValue> entry : values.entrySet()) {
+            if (entry.getValue() instanceof ObjectValue) {
+                SabresObject o = ((ObjectValue<?>) entry.getValue()).getValue();
+                o.saveIfNeededInTransaction(sabres);
+            }
         }
     }
 
-    private void updateCollections(Sabres sabres) throws SabresException {
-        for (Map.Entry<String, Collection<Object>> entry: dirtyCollections.entrySet()) {
-            SabresCollection collection = SabresCollection.get(sabres, name, entry.getKey());
-            collection.insert(sabres, id, entry.getValue(),
-                    Schema.getDescriptor(name, entry.getKey()));
-        }
-
-        for (Map.Entry<String, Collection<Object>> entry: dirtyCollections.entrySet()) {
-            Collection collection = collections.get(entry.getKey());
-            if (collection == null) {
-                collections.put(entry.getKey(), entry.getValue());
-            } else {
-                //noinspection unchecked
-                collection.addAll(entry.getValue());
+    private void updateLists(Sabres sabres) throws SabresException {
+        for (Map.Entry<String, SabresValue> entry: values.entrySet()) {
+            if (entry.getValue() instanceof ListValue) {
+                SabresList list = SabresList.get(sabres, name, entry.getKey());
+                list.insert(sabres, id, ((ListValue<?>) entry.getValue()).getValue());
             }
         }
-
-        dirtyCollections.clear();
     }
 
     private long insert(Sabres sabres) throws SabresException {
-        updateChildren(sabres);
-        long id = sabres.insert(new InsertCommand(name, dirtyValues).toSql());
-        updateCollections(sabres);
-        values.putAll(dirtyValues);
-        children.putAll(dirtyChildren);
-        dirtyValues.clear();
-        dirtyChildren.clear();
-        return id;
+        return sabres.insert(new InsertCommand(name, values).toSql());
     }
 
     private void update(Sabres sabres) throws SabresException {
-        updateChildren(sabres);
+        final Map<String, SabresValue> dirtyValues = new HashMap<>(dirtyKeys.size());
+        for (String key: dirtyKeys) {
+            dirtyValues.put(key, values.get(key));
+        }
+
         UpdateCommand command = new UpdateCommand(name, dirtyValues);
         command.where(Where.equalTo(OBJECT_ID_KEY, id));
         sabres.execSQL(command.toSql());
-        updateCollections(sabres);
-        values.putAll(dirtyValues);
-        children.putAll(dirtyChildren);
-        dirtyValues.clear();
-        dirtyChildren.clear();
     }
 
     void fetch(Sabres sabres) throws SabresException {
@@ -377,7 +397,7 @@ abstract public class SabresObject {
                 throw new SabresException(SabresException.OBJECT_NOT_FOUND,
                         String.format("table %s has no object with key %s", name, id));
             }
-            populate(c);
+            populate(sabres, c);
         } finally {
             if (c != null) {
                 c.close();
@@ -415,8 +435,8 @@ abstract public class SabresObject {
         });
     }
 
-    void populate(Cursor c) {
-        populate(c, null);
+    void populate(Sabres sabres, Cursor c) throws SabresException {
+        populate(sabres, c, null);
     }
 
     private String getCursorKey(String prefix, String key) {
@@ -427,52 +447,66 @@ abstract public class SabresObject {
         return String.format("%s_%s", prefix, key);
     }
 
-    void populate(Cursor c, String prefix) {
+    void populate(Sabres sabres, Cursor c, String prefix) throws SabresException {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
 
         for (Map.Entry<String, SabresDescriptor> entry: schema.entrySet()) {
             if (!c.isNull(c.getColumnIndex(getCursorKey(prefix, entry.getKey())))) {
-                Object value = null;
+                SabresValue value = null;
                 switch (entry.getValue().getType()) {
                     case Integer:
-                        value = CursorHelper.getInt(c, getCursorKey(prefix, entry.getKey()));
+                        value = new IntValue(CursorHelper.getInt(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Boolean:
-                        value = CursorHelper.getBoolean(c, getCursorKey(prefix, entry.getKey()));
+                        value = new BooleanValue(CursorHelper.getBoolean(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Byte:
-                        value = CursorHelper.getByte(c, getCursorKey(prefix, entry.getKey()));
+                        value = new ByteValue(CursorHelper.getByte(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Double:
-                        value = CursorHelper.getDouble(c, getCursorKey(prefix, entry.getKey()));
+                        value = new DoubleValue(CursorHelper.getDouble(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Float:
-                        value = CursorHelper.getFloat(c, getCursorKey(prefix, entry.getKey()));
+                        value = new FloatValue(CursorHelper.getFloat(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case String:
-                        value = CursorHelper.getString(c, getCursorKey(prefix, entry.getKey()));
+                        value = new StringValue(CursorHelper.getString(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Short:
-                        value = CursorHelper.getShort(c, getCursorKey(prefix, entry.getKey()));
+                        value = new ShortValue(CursorHelper.getShort(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Long:
-                        value = CursorHelper.getLong(c, getCursorKey(prefix, entry.getKey()));
+                        value = new LongValue(CursorHelper.getLong(c,
+                                getCursorKey(prefix, entry.getKey())));
                         break;
                     case Date:
-                        value = CursorHelper.getDate(c, getCursorKey(prefix, entry.getKey()));
+                        value = new DateValue(CursorHelper.getDate(c, getCursorKey(prefix,
+                                entry.getKey())));
                         break;
                     case Pointer:
-                        value = CursorHelper.getLong(c, getCursorKey(prefix, entry.getKey()));
-                        children.put(entry.getKey(),
+                        SabresObject object =
                                 createWithoutData(subClasses.get(entry.getValue().getName()),
                                         CursorHelper.getLong(c, getCursorKey(prefix,
-                                                entry.getKey()))));
+                                                entry.getKey())));
+                        value = new ObjectValue<>(object);
+                        break;
+                    case List:
+                        List<?> list = SabresList.get(sabres, name, entry.getKey()).
+                                select(sabres, id, entry.getValue());
+                        value = SabresValue.create(list);
                         break;
                 }
 
                 if (value != null) {
-                    values.put(entry.getKey(), new SabresValue(value, entry.getValue()));
+                    values.put(entry.getKey(), value);
                 }
             }
         }
@@ -480,8 +514,18 @@ abstract public class SabresObject {
         dataAvailable = true;
     }
 
-    void populateChild(Cursor c, String key) {
-        children.get(key).populate(c, key);
+    void populateChild(Sabres sabres, Cursor c, String key) throws SabresException {
+        SabresValue value = values.get(key);
+        if (value == null) {
+            throw new IllegalStateException(String.format("Child with key %s does not exist", key));
+        }
+
+        if (!(value instanceof ObjectValue)) {
+            throw new IllegalArgumentException(
+                    String.format("value of key %s in not a SabresObject", key));
+        }
+
+        ((ObjectValue<?>)value).getValue().populate(sabres, c, key);
     }
 
     private String stringify(String key) {
@@ -543,7 +587,7 @@ abstract public class SabresObject {
                         List<SabresObject> objects = new ArrayList<>();
                         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                             T object = SabresObject.createObjectInstance(clazz);
-                            object.populate(c);
+                            object.populate(sabres, c);
                             objects.add(object);
                         }
 

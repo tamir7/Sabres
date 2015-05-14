@@ -22,8 +22,25 @@ import java.util.List;
 final class CreateTableCommand {
     private final List<Column> columns = new ArrayList<>();
     private final String name;
+    private final List<String[]> uniqueColumns = new ArrayList<>();
+    private ConflictResolution resolution;
 
     private boolean ifNotExists = false;
+
+    enum ConflictResolution {
+        REPLACE("REPLACE");
+
+        private final String text;
+
+        ConflictResolution(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return "ON CONFLICT " + text;
+        }
+    }
 
     CreateTableCommand(String name) {
         this.name = name;
@@ -34,8 +51,18 @@ final class CreateTableCommand {
         return this;
     }
 
+    CreateTableCommand withConflictResolution(ConflictResolution resolution) {
+        this.resolution = resolution;
+        return this;
+    }
+
     CreateTableCommand withColumn(Column column) {
         columns.add(column);
+        return this;
+    }
+
+    CreateTableCommand unique(String[] columnNames) {
+        uniqueColumns.add(columnNames);
         return this;
     }
 
@@ -53,18 +80,38 @@ final class CreateTableCommand {
 
         sb.append(name).append("(");
 
-        final int count = columns.size();
-        int i = 0;
-        while (count > i) {
-            sb.append(columns.get(i).toString());
-
-            if (++i == count) {
-                sb.append(");");
+        boolean first = true;
+        for (Column column: columns) {
+            if (first) {
+                first = false;
             } else {
                 sb.append(", ");
             }
+
+            sb.append(column.toString());
         }
 
-        return sb.toString();
+        if (!uniqueColumns.isEmpty()) {
+            for (String[] columns: uniqueColumns) {
+                sb.append(", UNIQUE(");
+                first = true;
+                for (String column: columns) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        sb.append(", ");
+                    }
+
+                    sb.append(column);
+                }
+                sb.append(")");
+            }
+        }
+
+        if (resolution != null) {
+            sb.append(String.format(" %s", resolution.toString()));
+        }
+
+        return sb.append(");").toString();
     }
 }

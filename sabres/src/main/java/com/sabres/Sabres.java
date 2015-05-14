@@ -32,14 +32,20 @@ import bolts.Continuation;
 import bolts.Task;
 
 public final class Sabres {
+    private final static String TAG = Sabres.class.getSimpleName();
     private final static String DATABASE_NAME = "sabres.db";
     private static Sabres self;
+    private boolean debug = false;
     private final Context context;
     private final Semaphore sem = new Semaphore(1, true);
     private SQLiteDatabase database;
 
     private Sabres(Context context) {
         this.context = context.getApplicationContext();
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     public static void initialize(Context context) {
@@ -69,9 +75,16 @@ public final class Sabres {
         return self;
     }
 
+    private void log(String sql) {
+        if (debug) {
+            Log.d(TAG, sql);
+        }
+    }
+
     void execSQL(String sql) throws SabresException {
         Utils.checkNotMain();
         try {
+            log(sql);
             database.execSQL(sql);
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR,
@@ -81,6 +94,7 @@ public final class Sabres {
 
     long insert(String sql) throws SabresException {
         Utils.checkNotMain();
+        log(sql);
         SQLiteStatement statement = null;
         try {
             statement = database.compileStatement(sql);
@@ -97,11 +111,13 @@ public final class Sabres {
 
     Cursor select(String sql) {
         Utils.checkNotMain();
+        log(sql);
         return database.rawQuery(sql, null);
     }
 
     long count(String sql) {
         Utils.checkNotMain();
+        log(sql);
         return DatabaseUtils.longForQuery(database, sql, null);
     }
 
@@ -168,7 +184,7 @@ public final class Sabres {
                     database.enableWriteAheadLogging();
                 }
             }
-            database.execSQL("PRAGMA foreign_keys = ON;");
+            execSQL("PRAGMA foreign_keys = ON;");
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR, "Failed to construct database", e);
         }

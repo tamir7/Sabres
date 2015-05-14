@@ -18,7 +18,7 @@ package com.sabres;
 
 import java.util.Map;
 
-public class InsertCommand {
+final class InsertCommand {
     private final String table;
     private final Map<String, SabresValue> objects;
 

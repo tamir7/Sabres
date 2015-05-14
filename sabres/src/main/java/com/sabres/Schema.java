@@ -76,7 +76,7 @@ final class Schema {
                                 SabresDescriptor.Type.valueOf(CursorHelper.getString(c, TYPE_KEY));
                         SabresDescriptor.Type ofType = null;
                         String objectName = null;
-                        if (type.equals(SabresDescriptor.Type.Collection)) {
+                        if (type.equals(SabresDescriptor.Type.List)) {
                             ofType = SabresDescriptor.Type.valueOf(CursorHelper.getString(c,
                                             OF_TYPE_KEY));
                         }
@@ -136,21 +136,18 @@ final class Schema {
 
     static void update(Sabres sabres, String name, Map<String, SabresDescriptor> schema)
             throws SabresException {
-        SabresDescriptor sabresDescriptor = new SabresDescriptor(SabresDescriptor.Type.String);
         sabres.beginTransaction();
         try {
             for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
                 Map<String, SabresValue> values = new HashMap<>();
-                values.put(TABLE_KEY, new SabresValue(name, sabresDescriptor));
-                values.put(COLUMN_KEY, new SabresValue(entry.getKey(), sabresDescriptor));
-                values.put(TYPE_KEY, new SabresValue(entry.getValue().getType().name(),
-                        sabresDescriptor));
+                values.put(TABLE_KEY, new StringValue(name));
+                values.put(COLUMN_KEY, new StringValue(entry.getKey()));
+                values.put(TYPE_KEY, new StringValue(entry.getValue().getType().name()));
                 if (entry.getValue().getOfType() != null) {
-                    values.put(OF_TYPE_KEY, new SabresValue(entry.getValue().getOfType().name(),
-                            sabresDescriptor));
+                    values.put(OF_TYPE_KEY, new StringValue(entry.getValue().getOfType().name()));
                 }
                 if (entry.getValue().getName() != null) {
-                    values.put(NAME_KEY, new SabresValue(entry.getValue().getName(), sabresDescriptor));
+                    values.put(NAME_KEY, new StringValue(entry.getValue().getName()));
                 }
                 sabres.insert(new InsertCommand(SCHEMA_TABLE_NAME, values).toSql());
             }
@@ -171,16 +168,6 @@ final class Schema {
         List<String> keys = new ArrayList<>();
         keys.add(SabresObject.getObjectIdKey());
         keys.addAll(schemas.get(name).keySet());
-        return keys;
-    }
-
-    static Collection<String> getListsKeys(String name) {
-        List<String> keys = new ArrayList<>();
-        for (Map.Entry<String, SabresDescriptor> entry: schemas.get(name).entrySet()) {
-            if (entry.getValue().getType().equals(SabresDescriptor.Type.Collection)) {
-                keys.add(entry.getKey());
-            }
-        }
         return keys;
     }
 

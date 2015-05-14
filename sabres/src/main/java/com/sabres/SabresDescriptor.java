@@ -16,9 +16,6 @@
 
 package com.sabres;
 
-import java.util.Collection;
-import java.util.Date;
-
 final class SabresDescriptor {
     private final Type type;
     private final Type ofType;
@@ -40,78 +37,6 @@ final class SabresDescriptor {
 
     SabresDescriptor(Type type, String name) {
         this(type, null, name);
-    }
-
-    private static Type getTypeFromObject(Object o) {
-        if (o instanceof String) {
-            return Type.String;
-        } else if (o instanceof Integer) {
-            return Type.Integer;
-        } else if (o instanceof Date) {
-            return Type.Date;
-        } else if (o instanceof Boolean) {
-            return Type.Boolean;
-        } else if (o instanceof Long) {
-            return Type.Long;
-        } else if (o instanceof Short) {
-            return Type.Short;
-        } else if (o instanceof Byte) {
-            return Type.Byte;
-        } else if (o instanceof Float) {
-            return Type.Float;
-        } else if (o instanceof Double){
-            return Type.Double;
-        } else if (o instanceof SabresObject) {
-            return Type.Pointer;
-        } else if (o instanceof Collection) {
-            return Type.Collection;
-        } else {
-            throw new IllegalArgumentException(String.format("Class %s is not supported",
-                    o.getClass().getSimpleName()));
-        }
-    }
-
-    static SabresDescriptor fromObject(Object o) {
-        Type type = getTypeFromObject(o);
-        switch (type) {
-            case Integer:
-            case Double:
-            case Float:
-            case String:
-            case Byte:
-            case Short:
-            case Long:
-            case Boolean:
-            case Date:
-                return new SabresDescriptor(type);
-            case Pointer:
-                return new SabresDescriptor(type, o.getClass().getSimpleName());
-            case Collection:
-                Object internalObject = ((Collection)o).iterator().next();
-                Type ofType = getTypeFromObject(internalObject);
-                switch (ofType) {
-                    case Integer:
-                    case Double:
-                    case Float:
-                    case String:
-                    case Byte:
-                    case Short:
-                    case Long:
-                    case Boolean:
-                    case Date:
-                        return new SabresDescriptor(type, ofType);
-                    case Pointer:
-                        return new SabresDescriptor(type, ofType,
-                                internalObject.getClass().getSimpleName());
-                    case Collection:
-                        throw new IllegalArgumentException(
-                                String.format("List of type %s is not supported",
-                                        internalObject.getClass().getSimpleName()));
-                }
-        }
-
-        throw new IllegalArgumentException(String.format("Class %s is not supported",
-                o.getClass().getSimpleName()));
     }
 
     SqlType toSqlType() {
@@ -136,7 +61,43 @@ final class SabresDescriptor {
             return String.format("%s to %s", type.toString(), name);
         }
 
+        if (type.equals(Type.List)) {
+            if (ofType.equals(Type.Pointer)) {
+                return String.format("list of %s to %s", type.toString(), name);
+            }
+
+            return String.format("List of %s", ofType.toString());
+        }
+
         return type.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = type.name().hashCode();
+        if (ofType != null) {
+            hash += ofType.name().hashCode();
+        }
+
+        if (name != null) {
+            hash += name.hashCode();
+        }
+
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SabresDescriptor))
+            return false;
+        if (obj == this)
+            return true;
+
+        SabresDescriptor other = (SabresDescriptor) obj;
+
+        return type.equals(other.type) &&
+                !(ofType != null && !(ofType.equals(other.ofType))) &&
+                !(name != null && !(name.equals(other.name)));
     }
 
     enum Type {
@@ -200,7 +161,7 @@ final class SabresDescriptor {
                 return SqlType.Integer;
             }
         },
-        Collection("Collection") {
+        List("List") {
             @Override
             SqlType toSqlType() {
                 return SqlType.Text;
