@@ -17,7 +17,6 @@
 package com.sabres;
 
 public class SabresException extends Exception {
-    public static final int INCORRECT_TYPE = 1;
     public static final int SQL_ERROR = 2;
     public static final int OTHER_CAUSE = 3;
     public static final int OBJECT_NOT_FOUND = 4;

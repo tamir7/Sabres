@@ -36,10 +36,6 @@ abstract class SabresValue<T> {
         return value;
     }
 
-    static SabresValue create(SabresObject o) {
-        return new ObjectValue<>(o);
-    }
-
     static SabresValue create(List<?> list) {
         if (list.isEmpty()) {
             throw new IllegalArgumentException("Cannot create SabresValue from an empty List");
@@ -69,10 +65,6 @@ abstract class SabresValue<T> {
 
         if (o instanceof Double) {
             return new DoubleListValue(Utils.copyList(list, Double[].class));
-        }
-
-        if (o instanceof Boolean) {
-            return new BooleanListValue(Utils.copyList(list, Boolean[].class));
         }
 
         if (o instanceof Date) {

@@ -18,7 +18,7 @@ package com.sabres;
 
 import java.util.List;
 
-public class StringListValue extends ListValue<String> {
+final class StringListValue extends ListValue<String> {
 
     StringListValue(List<String> value) {
         super(value);

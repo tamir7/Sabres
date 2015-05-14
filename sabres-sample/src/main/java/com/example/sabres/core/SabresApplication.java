@@ -30,6 +30,8 @@ public class SabresApplication extends Application {
         super.onCreate();
         SabresObject.registerSubclass(Director.class);
         SabresObject.registerSubclass(Movie.class);
+        Sabres.setDebug(true);
         Sabres.initialize(this);
+
     }
 }

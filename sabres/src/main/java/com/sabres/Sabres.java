@@ -35,7 +35,7 @@ public final class Sabres {
     private final static String TAG = Sabres.class.getSimpleName();
     private final static String DATABASE_NAME = "sabres.db";
     private static Sabres self;
-    private boolean debug = false;
+    private static boolean debug = false;
     private final Context context;
     private final Semaphore sem = new Semaphore(1, true);
     private SQLiteDatabase database;
@@ -44,8 +44,8 @@ public final class Sabres {
         this.context = context.getApplicationContext();
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public static void setDebug(boolean debug) {
+        Sabres.debug = debug;
     }
 
     public static void initialize(Context context) {
