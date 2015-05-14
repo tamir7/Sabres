@@ -18,7 +18,7 @@ package com.sabres;
 
 import java.util.Map;
 
-public class UpdateCommand {
+final class UpdateCommand {
     private final String table;
     private final Map<String, SabresValue> objects;
     private Where where;

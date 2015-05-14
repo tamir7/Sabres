@@ -71,10 +71,22 @@ abstract public class SabresObject {
         return createWithoutData(subClasses.get(className), id);
     }
 
+    /**
+     * Register a custom subclass type with Sabres lib.
+     *
+     * @param subClass The subclass type to register.
+     */
     public static void registerSubclass(Class<? extends SabresObject> subClass) {
         subClasses.put(subClass.getSimpleName(), subClass);
     }
 
+    /**
+     * Add a value to a list with the given key.
+     *
+     * @param key       Key of list object.
+     * @param value     Value to add. Can be of Type Byte, Short, Integer, Long,
+     *                  Float, Double, Date or an extension of SabresObject.
+     */
     public void add(String key, Object value) {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");
@@ -83,10 +95,24 @@ abstract public class SabresObject {
         put(key, Collections.singletonList(value));
     }
 
+    /**
+     * Add objects to a list with the given key.
+     *
+     * @param key       Key of list object.
+     * @param objects   List of Objects to add. List can be of Type Byte, Short, Integer, Long,
+     *                  Float, Double, Date or an extension of SabresObject.
+     */
     public void addAll(String key, List<?> objects) {
         put(key, objects);
     }
 
+    /**
+     * Add a key-value pair to the object.
+     *
+     * @param key       Key in object.
+     * @param value     Can be of type Boolean, Byte, Short, Integer, Long,
+     *                  Float, Double, Date or an extension of SabresObject.
+     */
     public void put(String key, Object value) {
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
@@ -117,10 +143,20 @@ abstract public class SabresObject {
         return OBJECT_ID_KEY;
     }
 
+    /**
+     * Get the unique id of the object. Assigned when object is first saved into the database.
+     *
+     * @return objectId.
+     */
     public long getObjectId() {
         return id;
     }
 
+    /**
+     * Is the object been fetched from the database.
+     *
+     * @return true if the object been fatched from the database. false otherwise.
+     */
     public boolean isDataAvailable() {
         return dataAvailable;
     }
@@ -132,10 +168,22 @@ abstract public class SabresObject {
         }
     }
 
+    /**
+     * Does the object has a specific key.
+     *
+     * @param   key The key to check.
+     * @return      true if the object has data paired with the given key. false otherwise.
+     */
     public boolean containsKey(String key) {
         return values.containsKey(key);
     }
 
+    /**
+     * Get a String value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a String.
+     */
     public String getString(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
@@ -148,6 +196,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Boolean value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Boolean.
+     */
     public Boolean getBoolean(String key)  {
         checkDataAvailable();
         if (values.containsKey(key)) {
@@ -160,6 +214,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get an Integer value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not an Integer.
+     */
     public Integer getInt(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
@@ -172,6 +232,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Byte value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Byte.
+     */
     public Byte getByte(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
@@ -184,6 +250,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Short value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Short.
+     */
     public Short getShort(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
@@ -196,6 +268,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Long value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Long.
+     */
     public Long getLong(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
@@ -208,6 +286,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Float value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Float.
+     */
     public Float getFloat(String key) {
         if (values.containsKey(key)) {
             SabresValue value = values.get(key);
@@ -219,6 +303,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Double value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Double.
+     */
     public Double getDouble(String key) {
         if (values.containsKey(key)) {
             SabresValue value = values.get(key);
@@ -230,6 +320,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a Date value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's not a Date.
+     */
     public Date getDate(String key) {
         if (values.containsKey(key)) {
             SabresValue value = values.get(key);
@@ -241,6 +337,12 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a List value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's cannot be converted to a list.
+     */
     @SuppressWarnings("unchecked")
     public <T> List<T> getList(String key) {
         if (values.containsKey(key)) {
@@ -253,6 +355,13 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Get a custom subclass of SabresObject value for a given key.
+     *
+     * @param key   The key to access value for.
+     * @return      null is there is no such value or if it's cannot be converted to a
+     *              SabresObject.
+     */
     @SuppressWarnings("unchecked")
     public <T extends SabresObject> T getSabresObject(String key) {
         if (values.containsKey(key)) {
@@ -265,6 +374,13 @@ abstract public class SabresObject {
         return null;
     }
 
+    /**
+     * Saves this object to the database in a background thread.
+     * This is preferable to using @link #save(),
+     * unless your code is already running from a background thread.
+     *
+     * @return A Task that is resolved when the save completes.
+     */
     public Task<Void> saveInBackground() {
         return Task.callInBackground(new Callable<Void>() {
             @Override
@@ -275,6 +391,13 @@ abstract public class SabresObject {
         });
     }
 
+    /**
+     * Saves this object to the database in a background thread.
+     * This is preferable to using @link #save(),
+     * unless your code is already running from a background thread.
+     *
+     * @param callback callback.done(e) is called when the save completes.
+     */
     public void saveInBackground(final SaveCallback callback) {
         saveInBackground().continueWith(new Continuation<Void, Void>() {
             @Override
