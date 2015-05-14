@@ -161,6 +161,35 @@ public class SabresQuery<T extends SabresObject> {
         sabres.execSQL(createIndexCommand.toString());
     }
 
+    public long count() throws SabresException {
+        Sabres sabres = Sabres.self();
+        sabres.open();
+        try {
+            return sabres.count(new CountCommand(name).toSql());
+        } finally {
+            sabres.close();
+        }
+    }
+
+    public void countInBackground(final CountCallback callback) {
+        countInBackground().continueWith(new Continuation<Long, Void>() {
+            @Override
+            public Void then(Task<Long> task) throws Exception {
+                callback.done(task.getResult(), SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    public Task<Long> countInBackground() {
+        return Task.callInBackground(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                return count();
+            }
+        });
+    }
+
     public List<T> find() throws SabresException {
         Sabres sabres = Sabres.self();
         List<T> objects = new ArrayList<>();
