@@ -429,6 +429,10 @@ abstract public class SabresObject {
         });
     }
 
+    public boolean hasSameId(SabresObject other) {
+        return id == other.id;
+    }
+
     public void fetchInBackground(final FetchCallback callback)  {
         fetchInBackground().continueWith(new Continuation<Void, Void>() {
             @Override
@@ -437,6 +441,18 @@ abstract public class SabresObject {
                 return null;
             }
         });
+    }
+
+    public boolean isDirty() {
+        return !dirtyKeys.isEmpty();
+    }
+
+    public boolean isDirty(String key) {
+        return dirtyKeys.contains(key);
+    }
+
+    public Set<String> keySet() {
+        return Schema.getSchema(name).keySet();
     }
 
     void populate(Sabres sabres, Cursor c) throws SabresException {
