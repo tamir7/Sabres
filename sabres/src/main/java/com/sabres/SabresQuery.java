@@ -34,10 +34,21 @@ public class SabresQuery<T extends SabresObject> {
     private Where where;
     private final List<String> keyIndices = new ArrayList<>();
     private final List<String> includes = new ArrayList<>();
+    private final List<OrderBy> orderByList = new ArrayList<>();
 
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
         name = clazz.getSimpleName();
+    }
+
+    SabresQuery<T> addAscendingOrder(String key) {
+        orderByList.add(new OrderBy(key, OrderBy.Direction.Ascending));
+        return this;
+    }
+
+    SabresQuery<T>	addDescendingOrder(String key) {
+        orderByList.add(new OrderBy(key, OrderBy.Direction.Descending));
+        return this;
     }
 
     public static <T extends SabresObject> SabresQuery<T> getQuery(Class<T> clazz) {
@@ -63,7 +74,7 @@ public class SabresQuery<T extends SabresObject> {
         });
     }
 
-    public SabresQuery include(String key) {
+    public SabresQuery<T> include(String key) {
         SabresDescriptor descriptor = Schema.getDescriptor(name, key);
         if (descriptor == null) {
             throw new IllegalArgumentException(String.format("Unrecognized key %s in Object %s",
@@ -166,6 +177,10 @@ public class SabresQuery<T extends SabresObject> {
                         command.join(descriptor.getName(), include,
                                 Schema.getKeys(descriptor.getName()));
                     }
+                }
+
+                for (OrderBy orderBy: orderByList) {
+                    command.orderBy(orderBy);
                 }
 
                 c = sabres.select(command.where(where).toSql());

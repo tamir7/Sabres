@@ -24,6 +24,8 @@ final class SelectCommand {
     private final String table;
     private final List<String> keys = new ArrayList<>();
     private final List<Join> joins = new ArrayList<>();
+    private List<OrderBy> orderByList = new ArrayList<>();
+
     private Where where;
 
     private static class Join {
@@ -45,6 +47,11 @@ final class SelectCommand {
 
     SelectCommand join(String table, String column, Collection<String> selectKeys) {
         joins.add(new Join(table, column, selectKeys));
+        return this;
+    }
+
+    SelectCommand orderBy(OrderBy orderBy) {
+        orderByList.add(orderBy);
         return this;
     }
 
@@ -88,6 +95,17 @@ final class SelectCommand {
 
         if (where != null) {
             sb.append(String.format(" WHERE %s", where.toString()));
+        }
+
+        first = true;
+        for (OrderBy orderBy: orderByList) {
+            if (first) {
+                sb.append(" ORDER BY ");
+            } else {
+                sb.append(", ");
+                first = false;
+            }
+            sb.append(orderBy.toSql());
         }
 
         return sb.append(";").toString();
