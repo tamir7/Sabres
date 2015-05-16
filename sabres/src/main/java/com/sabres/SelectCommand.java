@@ -101,9 +101,9 @@ final class SelectCommand {
         for (OrderBy orderBy : orderByList) {
             if (first) {
                 sb.append(" ORDER BY ");
+                first = false;
             } else {
                 sb.append(", ");
-                first = false;
             }
             sb.append(orderBy.toSql());
         }
