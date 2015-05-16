@@ -18,10 +18,6 @@ package com.sabres;
 
 import android.os.Looper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 final class Utils {
     private static boolean isMain() {
         return Looper.getMainLooper().getThread() == Thread.currentThread();
@@ -31,11 +27,5 @@ final class Utils {
         if (isMain()) {
             throw new IllegalStateException("Method call should not happen from the main thread.");
         }
-    }
-
-    static <T, U> List<T> copyList(List<U> list, Class<T[]> clazz) {
-        Object[] objectArray = list.toArray();
-        T[] typeArray = Arrays.copyOf(objectArray, objectArray.length, clazz);
-        return new ArrayList<>(Arrays.asList(typeArray));
     }
 }

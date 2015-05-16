@@ -1039,7 +1039,7 @@ abstract public class SabresObject {
         return String.format("%s_%s", prefix, key);
     }
 
-    private void populate(Sabres sabres, Cursor c, String prefix) throws SabresException {
+    void populate(Sabres sabres, Cursor c, String prefix) throws SabresException {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
 

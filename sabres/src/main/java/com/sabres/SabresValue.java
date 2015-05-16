@@ -26,6 +26,7 @@ abstract class SabresValue<T> {
         this.value = value;
     }
 
+    @SuppressWarnings("unchecked")
     static SabresValue create(List<?> list) {
         if (list.isEmpty()) {
             throw new IllegalArgumentException("Cannot create SabresValue from an empty List");
@@ -34,39 +35,39 @@ abstract class SabresValue<T> {
         Object o = list.get(0);
 
         if (o instanceof Integer) {
-            return new IntListValue(Utils.copyList(list, Integer[].class));
+            return new IntListValue((List<Integer>)list);
         }
 
         if (o instanceof Byte) {
-            return new ByteListValue(Utils.copyList(list, Byte[].class));
+            return new ByteListValue((List<Byte>)list);
         }
 
         if (o instanceof Short) {
-            return new ShortListValue(Utils.copyList(list, Short[].class));
+            return new ShortListValue((List<Short>)list);
         }
 
         if (o instanceof Long) {
-            return new LongListValue(Utils.copyList(list, Long[].class));
+            return new LongListValue((List<Long>)list);
         }
 
         if (o instanceof Float) {
-            return new FloatListValue(Utils.copyList(list, Float[].class));
+            return new FloatListValue((List<Float>)list);
         }
 
         if (o instanceof Double) {
-            return new DoubleListValue(Utils.copyList(list, Double[].class));
+            return new DoubleListValue((List<Double>)list);
         }
 
         if (o instanceof Date) {
-            return new DateListValue(Utils.copyList(list, Date[].class));
+            return new DateListValue((List<Date>)list);
         }
 
         if (o instanceof String) {
-            return new StringListValue(Utils.copyList(list, String[].class));
+            return new StringListValue((List<String>)list);
         }
 
         if (o instanceof SabresObject) {
-            return new ObjectListValue<>(Utils.copyList(list, SabresObject[].class));
+            return new ObjectListValue<>((List<SabresObject>)list);
         }
 
         throw new IllegalArgumentException("Cannot create SabresListValue out of class " +

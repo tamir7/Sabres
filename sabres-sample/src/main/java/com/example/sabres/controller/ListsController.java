@@ -67,7 +67,7 @@ public class ListsController {
                 } else if (task.getResult().isEmpty()) {
                     Log.w(TAG, "Fight Club movie does not exist");
                 } else {
-                    List<String> stars = task.getResult().get(0) .getStarring();
+                    List<String> stars = task.getResult().get(0).getStarring();
                     Log.i(TAG, "Stars of Fight Club: " + Arrays.toString(stars.toArray()));
                 }
 
