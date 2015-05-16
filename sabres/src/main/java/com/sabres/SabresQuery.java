@@ -297,6 +297,57 @@ public class SabresQuery<T extends SabresObject> {
         }
     }
 
+    /**
+     * Retrieves at most one SabresObject that satisfies this query.
+     *
+     * @return A SabresObject obeying the conditions set in this query.
+     * @throws SabresException throws an exception if no object was found or if there was a
+     *                         problem with the query.
+     * @see SabresException#OBJECT_NOT_FOUND
+     */
+    public T getFirst() throws SabresException {
+        limit = 1;
+        List<T> results = find();
+        if (results.isEmpty()) {
+            throw new SabresException(SabresException.OBJECT_NOT_FOUND,
+                String.format("failed to get first object for query %s", where.toString()));
+        }
+
+        return results.get(0);
+    }
+
+    /**
+     * Retrieves at most one SabresObject that satisfies this query in a background thread.
+     * This is preferable to using {@link #getFirst()}, unless your code is already
+     * running in a background thread.
+     *
+     * @return A Task that will be resolved when the get has completed.
+     */
+    public Task<T> getFirstInBackground() {
+        return Task.callInBackground(new Callable<T>() {
+            @Override
+            public T call() throws Exception {
+                return getFirst();
+            }
+        });
+    }
+
+    /**
+     * Retrieves at most one SabresObject that satisfies this query in a background thread.
+     * This is preferable to using {@link #getFirst()}, unless your code is already
+     *
+     * @param callback callback.done(object, e) is called when the find completes.
+     */
+    public void getFirstInBackground(final GetCallback<T> callback) {
+        getFirstInBackground().continueWith(new Continuation<T, Void>() {
+            @Override
+            public Void then(Task<T> task) throws Exception {
+                callback.done(task.getResult(), SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
     private void checkTableExists(Sabres sabres) throws SabresException {
         if (!SqliteMaster.tableExists(sabres, name)) {
             throw new SabresException(SabresException.OBJECT_NOT_FOUND,
