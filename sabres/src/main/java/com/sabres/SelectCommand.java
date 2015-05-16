@@ -25,6 +25,8 @@ final class SelectCommand {
     private final List<String> keys = new ArrayList<>();
     private final List<Join> joins = new ArrayList<>();
     private List<OrderBy> orderByList = new ArrayList<>();
+    private Integer limit;
+    private Integer skip;
 
     private Where where;
 
@@ -45,6 +47,16 @@ final class SelectCommand {
 
     SelectCommand where(Where where) {
         this.where = where;
+        return this;
+    }
+
+    SelectCommand withLimit(int limit) {
+        this.limit = limit;
+        return this;
+    }
+
+    SelectCommand withSkip(int skip) {
+        this.skip = skip;
         return this;
     }
 
@@ -94,6 +106,14 @@ final class SelectCommand {
                 first = false;
             }
             sb.append(orderBy.toSql());
+        }
+
+        if (limit != null) {
+            sb.append(String.format(" LIMIT %d", limit));
+        }
+
+        if (skip != null) {
+            sb.append(String.format(" OFFSET %d", skip));
         }
 
         return sb.append(";").toString();

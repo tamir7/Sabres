@@ -94,6 +94,8 @@ public class SabresQuery<T extends SabresObject> {
     private final List<String> includes = new ArrayList<>();
     private final List<OrderBy> orderByList = new ArrayList<>();
     private Where where;
+    private Integer limit;
+    private Integer skip;
 
     /**
      * Constructs a query for a SabresObject subclass type.
@@ -125,12 +127,12 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     /**
-     *  Sorts the results in ascending order by the given key.
-     *  Multiple calls with different keys can be made to this and
-     *  {@link #addDescendingOrder(String)} functions for a single query.
+     * Sorts the results in ascending order by the given key.
+     * Multiple calls with different keys can be made to this and
+     * {@link #addDescendingOrder(String)} functions for a single query.
      *
-     * @param key   The key to order by
-     * @return      this, so you can chain this call.
+     * @param key The key to order by
+     * @return this, so you can chain this call.
      */
     public SabresQuery<T> addAscendingOrder(String key) {
         orderByList.add(new OrderBy(key, OrderBy.Direction.Ascending));
@@ -138,12 +140,12 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     /**
-     *  Sorts the results in descending order by the given key.
-     *  Multiple calls with different keys can be made to this and
-     *  {@link #addAscendingOrder(String)} functions for a single query.
+     * Sorts the results in descending order by the given key.
+     * Multiple calls with different keys can be made to this and
+     * {@link #addAscendingOrder(String)} functions for a single query.
      *
-     * @param key   The key to order by
-     * @return      this, so you can chain this call.
+     * @param key The key to order by
+     * @return this, so you can chain this call.
      */
     public SabresQuery<T> addDescendingOrder(String key) {
         orderByList.add(new OrderBy(key, OrderBy.Direction.Descending));
@@ -153,7 +155,8 @@ public class SabresQuery<T extends SabresObject> {
     /**
      * Constructs a SabresObject whose id is already known by fetching data from the database in
      * a background thread.
-     * @param  objectId Object id of the SabresObject to fetch.
+     *
+     * @param objectId Object id of the SabresObject to fetch.
      * @return A Task that is resolved when the fetch completes.
      */
     public Task<T> getInBackground(final long objectId) {
@@ -168,8 +171,9 @@ public class SabresQuery<T extends SabresObject> {
     /**
      * Constructs a SabresObject whose id is already known by fetching data from the database in
      * a background thread.
-     * @param  objectId Object id of the SabresObject to fetch.
-     * @param callback  callback.done(object, e) will be called when the fetch completes.
+     *
+     * @param objectId Object id of the SabresObject to fetch.
+     * @param callback callback.done(object, e) will be called when the fetch completes.
      */
     public void getInBackground(long objectId, final GetCallback<T> callback) {
         getInBackground(objectId).continueWith(new Continuation<T, Object>() {
@@ -182,10 +186,52 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     /**
+     * returns the maximum returned results for this query.
+     *
+     * @return the number of maximum returned results. null if was not set(all results.)
+     */
+    public Integer getLimit() {
+        return limit;
+    }
+
+    /**
+     * Controls the maximum number of results that are returned.
+     * There is no default limit. If not specified, all objects that match the query are returned.
+     *
+     * @param limit The new limit.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> setLimit(int limit) {
+        this.limit = limit;
+        return this;
+    }
+
+    /**
+     * Returns the number of results to skip before returning any results for the current query.
+     *
+     * @return The number of results to skip. null if was not set (don't skip).
+     */
+    public Integer getSkip() {
+        return skip;
+    }
+
+    /**
+     * Controls the number of results to skip before returning any results.
+     * This is useful for pagination. Default is to skip zero results.
+     *
+     * @param skip The new skip.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> setSkip(int skip) {
+        this.skip = skip;
+        return this;
+    }
+
+    /**
      * Include nested SabresObjects for the provided key.
      *
      * @param key The key that should be included.
-     * @return    this, so you can chain this call.
+     * @return this, so you can chain this call.
      */
     public SabresQuery<T> include(String key) {
         SabresDescriptor descriptor = Schema.getDescriptor(name, key);
@@ -233,9 +279,9 @@ public class SabresQuery<T extends SabresObject> {
      * Add a constraint to the query that requires a particular key's value to be equal to the
      * provided value.
      *
-     * @param key    The key to check.
+     * @param key   The key to check.
      * @param value The value that the SabresObject must contain.
-     * @return      this, so you can chain this call.
+     * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEqualTo(String key, Object value) {
         keyIndices.add(key);
@@ -277,7 +323,7 @@ public class SabresQuery<T extends SabresObject> {
      * Retrieves a list of SabresObjects that satisfy this query from the database in a background
      * thread.
      *
-     * @param callback  callback.done(objectList, e) is called when the find completes.
+     * @param callback callback.done(objectList, e) is called when the find completes.
      */
     public void findInBackground(final FindCallback<T> callback) {
         findInBackground().continueWith(new Continuation<List<T>, Void>() {
@@ -362,6 +408,14 @@ public class SabresQuery<T extends SabresObject> {
                     command.orderBy(orderBy);
                 }
 
+                if (limit != null) {
+                    command.withLimit(limit);
+                }
+
+                if (skip != null) {
+                    command.withSkip(skip);
+                }
+
                 c = sabres.select(command.where(where).toSql());
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();
@@ -398,8 +452,8 @@ public class SabresQuery<T extends SabresObject> {
      *
      * @param objectId
      * @return Object id of the ParseObject to fetch.
-     * @throws SabresException  Throws an exception when there is no such object or if there's a
-     * database error.
+     * @throws SabresException Throws an exception when there is no such object or if there's a
+     *                         database error.
      * @see SabresException#OBJECT_NOT_FOUND
      */
     public T get(long objectId) throws SabresException {
