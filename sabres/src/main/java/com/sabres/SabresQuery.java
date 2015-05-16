@@ -27,6 +27,65 @@ import java.util.concurrent.Callable;
 import bolts.Continuation;
 import bolts.Task;
 
+/**
+ * The SabresQuery class defines a query that is used to fetch SabresObjects.
+ * The most common use case is finding all objects that match a query through the
+ * {@link #findInBackground(FindCallback)} method, using a FindCallback. For example,
+ * this sample code fetches all objects of class "MyClass".
+ * <pre>
+ * {@code
+ * SabresQuery<MyClass> query = SabresQuery.getQuery(MyClass.class);
+ * query.findInBackground(new FindCallback<MyClass>() {
+ *     public void done(List<MyClass> objects, SabresException e) {
+ *         if (e == null) {
+ *             objectsWereRetrievedSuccessfully(objects);
+ *         } else {
+ *             objectRetrievalFailed();
+ *         }
+ *    }
+ * });
+ * }
+ * </pre>
+ * A SabresQuery can also be used to retrieve a single object whose id is known,
+ * through the {@link #getInBackground(long)} method, using a GetCallback.
+ * For example, this sample code fetches an object of class "MyClass" for id myId.
+ * <pre>
+ * {@code
+ * SabresQuery<MyClass> query = ParseQuery.getQuery(MyClass.class);
+ * query.getInBackground(myId, new GetCallback<MyClass>() {
+ *     public void done(MyClass object, SabresException e) {
+ *         if (e == null) {
+ *             objectWasRetrievedSuccessfully(object);
+ *         } else {
+ *             objectRetrievalFailed();
+ *         }
+ *     }
+ * });
+ * }
+ * </pre>
+ * A SabresQuery can also be used to count the number of objects that match the query without
+ * retrieving all of those objects. For example,
+ * this sample code counts the number of objects of the class "MyClass".
+ * <pre>
+ * {@code
+ * SabresQuery<MyClass> query = ParseQuery.getQuery(MyClass.class);
+ * query.countInBackground(new CountCallback() {
+ *     public void done(int count, SabresException e) {
+ *         if (e == null) {
+ *             objectsWereCounted(count);
+ *         } else {
+ *             objectCountFailed();
+ *         }
+ *     }
+ * });
+ * }
+ * </pre>
+ * Using the callback methods is usually preferred because the database operation will not block
+ * the calling thread. However, in some cases it may be easier to use the
+ * {@link #find()}, {@link #get(long)} or {@link #count()} calls, which do block the calling thread.
+ * For example, if your application has already spawned a background task to perform work,
+ * that background task could use the blocking calls and avoid the code complexity of callbacks.
+ */
 public class SabresQuery<T extends SabresObject> {
     private static final String TAG = SabresQuery.class.getSimpleName();
     private final String name;
@@ -36,11 +95,25 @@ public class SabresQuery<T extends SabresObject> {
     private final List<OrderBy> orderByList = new ArrayList<>();
     private Where where;
 
+    /**
+     * Constructs a query for a SabresObject subclass type.
+     * A default query with no further parameters will retrieve all SabresObjects of the
+     * provided class.
+     *
+     * @param clazz The SabresObject subclass type to retrieve.
+     */
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
         name = clazz.getSimpleName();
     }
 
+    /**
+     * Creates a new query for the given SabresObject subclass type.
+     * A default query with no further parameters will retrieve all SabresObjects of the
+     * provided class.
+     *
+     * @param clazz The name of the class to retrieve SabresObjects for.
+     */
     public static <T extends SabresObject> SabresQuery<T> getQuery(Class<T> clazz) {
         return new SabresQuery<>(clazz);
     }
@@ -61,6 +134,12 @@ public class SabresQuery<T extends SabresObject> {
         return this;
     }
 
+    /**
+     * Constructs a SabresObject whose id is already known by fetching data from the database in
+     * a background thread.
+     * @param  objectId Object id of the SabresObject to fetch.
+     * @return A Task that is resolved when the fetch completes.
+     */
     public Task<T> getInBackground(final long objectId) {
         return Task.callInBackground(new Callable<T>() {
             @Override
@@ -70,6 +149,12 @@ public class SabresQuery<T extends SabresObject> {
         });
     }
 
+    /**
+     * Constructs a SabresObject whose id is already known by fetching data from the database in
+     * a background thread.
+     * @param  objectId Object id of the SabresObject to fetch.
+     * @param callback  callback.done(object, e) will be called when the fetch completes.
+     */
     public void getInBackground(long objectId, final GetCallback<T> callback) {
         getInBackground(objectId).continueWith(new Continuation<T, Object>() {
             @Override
@@ -80,6 +165,12 @@ public class SabresQuery<T extends SabresObject> {
         });
     }
 
+    /**
+     * Include nested SabresObjects for the provided key.
+     *
+     * @param key The key that should be included.
+     * @return    this, so you can chain this call.
+     */
     public SabresQuery<T> include(String key) {
         SabresDescriptor descriptor = Schema.getDescriptor(name, key);
         if (descriptor == null) {
@@ -122,9 +213,18 @@ public class SabresQuery<T extends SabresObject> {
             object.getClass().getSimpleName()));
     }
 
-    public void whereEqualTo(String key, Object object) {
+    /**
+     * Add a constraint to the query that requires a particular key's value to be equal to the
+     * provided value.
+     *
+     * @param key    The key to check.
+     * @param value The value that the SabresObject must contain.
+     * @return      this, so you can chain this call.
+     */
+    public SabresQuery<T> whereEqualTo(String key, Object value) {
         keyIndices.add(key);
-        addWhere(Where.equalTo(key, stringifyObject(object)));
+        addWhere(Where.equalTo(key, stringifyObject(value)));
+        return this;
     }
 
     private void addWhere(Where where) {
@@ -142,6 +242,12 @@ public class SabresQuery<T extends SabresObject> {
         }
     }
 
+    /**
+     * Retrieves a list of SabresObjects that satisfy this query from the database in a background
+     * thread.
+     *
+     * @return A Task that will be resolved when the find has completed.
+     */
     public Task<List<T>> findInBackground() {
         return Task.callInBackground(new Callable<List<T>>() {
             @Override
@@ -151,6 +257,12 @@ public class SabresQuery<T extends SabresObject> {
         });
     }
 
+    /**
+     * Retrieves a list of SabresObjects that satisfy this query from the database in a background
+     * thread.
+     *
+     * @param callback  callback.done(objectList, e) is called when the find completes.
+     */
     public void findInBackground(final FindCallback<T> callback) {
         findInBackground().continueWith(new Continuation<List<T>, Void>() {
             @Override
@@ -161,6 +273,12 @@ public class SabresQuery<T extends SabresObject> {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
+    /**
+     * Counts the number of objects that match this query.
+     *
+     * @return The number of object that match the query.
+     * @throws SabresException Throws an exception when the query is invalid.
+     */
     public long count() throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
@@ -171,6 +289,11 @@ public class SabresQuery<T extends SabresObject> {
         }
     }
 
+    /**
+     * Counts the number of objects that match this query in a background thread.
+     *
+     * @param callback callback.done(count, e) will be called when the count completes.
+     */
     public void countInBackground(final CountCallback callback) {
         countInBackground().continueWith(new Continuation<Long, Void>() {
             @Override
@@ -181,6 +304,11 @@ public class SabresQuery<T extends SabresObject> {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
+    /**
+     * Counts the number of objects that match this query in a background thread.
+     *
+     * @return A Task that will be resolved when the count has completed.
+     */
     public Task<Long> countInBackground() {
         return Task.callInBackground(new Callable<Long>() {
             @Override
@@ -190,6 +318,12 @@ public class SabresQuery<T extends SabresObject> {
         });
     }
 
+    /**
+     * Retrieves a list of SabresObjects that satisfy this query.
+     *
+     * @return A list of all SabresObjects obeying the conditions set in this query.
+     * @throws SabresException Throws a SabresException if there was an error with the query.
+     */
     public List<T> find() throws SabresException {
         Sabres sabres = Sabres.self();
         List<T> objects = new ArrayList<>();
@@ -243,6 +377,15 @@ public class SabresQuery<T extends SabresObject> {
         }
     }
 
+    /**
+     * Constructs a SabresObject whose id is already known by fetching data from the database.
+     *
+     * @param objectId
+     * @return Object id of the ParseObject to fetch.
+     * @throws SabresException  Throws an exception when there is no such object or if there's a
+     * database error.
+     * @see SabresException#OBJECT_NOT_FOUND
+     */
     public T get(long objectId) throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
