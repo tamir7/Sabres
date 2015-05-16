@@ -38,7 +38,7 @@ final class UpdateCommand {
         boolean first = true;
 
 
-        for (Map.Entry<String, SabresValue> entry: objects.entrySet()) {
+        for (Map.Entry<String, SabresValue> entry : objects.entrySet()) {
             if (first) {
                 first = false;
             } else {

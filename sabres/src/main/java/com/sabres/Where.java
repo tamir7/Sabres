@@ -17,28 +17,6 @@
 package com.sabres;
 
 final class Where {
-    private enum Operator {
-        Equal("="),
-        NotEqual("!="),
-        GreaterThen(">"),
-        GreaterThenOrEqual(">="),
-        LessThen("<"),
-        LessThenOrEqual("<="),
-        Like(" LIKE "),
-        NotLike(" NOT LIKE ");
-
-        private final String value;
-
-        Operator(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value;
-        }
-    }
-
     private String where;
 
     private Where(String key, Object value, Operator operator) {
@@ -94,5 +72,27 @@ final class Where {
     @Override
     public String toString() {
         return toSql();
+    }
+
+    private enum Operator {
+        Equal("="),
+        NotEqual("!="),
+        GreaterThen(">"),
+        GreaterThenOrEqual(">="),
+        LessThen("<"),
+        LessThenOrEqual("<="),
+        Like(" LIKE "),
+        NotLike(" NOT LIKE ");
+
+        private final String value;
+
+        Operator(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
     }
 }

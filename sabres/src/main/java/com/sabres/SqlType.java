@@ -16,7 +16,7 @@
 
 package com.sabres;
 
-enum  SqlType {
+enum SqlType {
     Integer("INTEGER"),
     Real("REAL"),
     Text("TEXT"),

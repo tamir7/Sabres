@@ -21,14 +21,15 @@ import android.database.Cursor;
 import java.util.Date;
 
 final class CursorHelper {
-    private CursorHelper() {}
+    private CursorHelper() {
+    }
 
     static String getString(Cursor cursor, String column) {
         return cursor.getString(cursor.getColumnIndex(column));
     }
 
     static Boolean getBoolean(Cursor cursor, String column) {
-        return   cursor.getInt(cursor.getColumnIndex(column)) != 0;
+        return cursor.getInt(cursor.getColumnIndex(column)) != 0;
     }
 
     static Integer getInt(Cursor cursor, String column) {
@@ -36,7 +37,7 @@ final class CursorHelper {
     }
 
     static Byte getByte(Cursor cursor, String column) {
-        return  Integer.valueOf(cursor.getInt(cursor.getColumnIndex(column))).byteValue();
+        return Integer.valueOf(cursor.getInt(cursor.getColumnIndex(column))).byteValue();
     }
 
     static Short getShort(Cursor cursor, String column) {

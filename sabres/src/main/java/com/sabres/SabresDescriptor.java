@@ -88,16 +88,18 @@ final class SabresDescriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof SabresDescriptor))
+        if (!(obj instanceof SabresDescriptor)) {
             return false;
-        if (obj == this)
+        }
+        if (obj == this) {
             return true;
+        }
 
-        SabresDescriptor other = (SabresDescriptor) obj;
+        SabresDescriptor other = (SabresDescriptor)obj;
 
         return type.equals(other.type) &&
-                !(ofType != null && !(ofType.equals(other.ofType))) &&
-                !(name != null && !(name.equals(other.name)));
+            !(ofType != null && !(ofType.equals(other.ofType))) &&
+            !(name != null && !(name.equals(other.name)));
     }
 
     enum Type {

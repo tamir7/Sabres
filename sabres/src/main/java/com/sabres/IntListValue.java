@@ -27,6 +27,6 @@ final class IntListValue extends ListValue<Integer> {
     @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List,
-                SabresDescriptor.Type.Integer);
+            SabresDescriptor.Type.Integer);
     }
 }

@@ -49,7 +49,7 @@ public final class Sabres {
     }
 
     public static void initialize(Context context) {
-        if (self == null)  {
+        if (self == null) {
             self = new Sabres(context);
             try {
                 self.sem.acquire();
@@ -67,12 +67,67 @@ public final class Sabres {
             } catch (InterruptedException e) {
                 throw new RuntimeException("Sabres Initialize failed", e);
             }
-
         }
     }
 
     static Sabres self() {
         return self;
+    }
+
+    public static void printTables() {
+        Task.callInBackground(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Sabres sabres = Sabres.self;
+                sabres.open();
+                try {
+                    return SqliteMaster.getTables(sabres);
+                } finally {
+                    sabres.close();
+                }
+            }
+        }).continueWith(new Continuation<String, Void>() {
+            @Override
+            public Void then(Task<String> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(getClass().getSimpleName(), "getTables failed", task.getError());
+                } else {
+                    Log.i(getClass().getSimpleName(),
+                        String.format("tables:\n%s", task.getResult()));
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    public static void printIndices() {
+        Task.callInBackground(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Sabres sabres = Sabres.self;
+                sabres.open();
+                try {
+                    return SqliteMaster.getIndices(sabres);
+                } finally {
+                    sabres.close();
+                }
+            }
+        }).continueWith(new Continuation<String, Void>() {
+            @Override
+            public Void then(Task<String> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(getClass().getSimpleName(), "getIndices failed", task.getError());
+                } else {
+                    Log.i(getClass().getSimpleName(),
+                        String.format("indices:\n%s", task.getResult()));
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    public static <T extends SabresObject> void printSchemaTable(Class<T> clazz) {
+        Schema.printSchema(clazz.getSimpleName());
     }
 
     private void log(String sql) {
@@ -88,7 +143,7 @@ public final class Sabres {
             database.execSQL(sql);
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR,
-                    String.format("Failed to exec sql: %s", sql), e);
+                String.format("Failed to exec sql: %s", sql), e);
         }
     }
 
@@ -101,7 +156,7 @@ public final class Sabres {
             return statement.executeInsert();
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR,
-                    String.format("Failed to execute insert sql %s", sql), e);
+                String.format("Failed to execute insert sql %s", sql), e);
         } finally {
             if (statement != null) {
                 statement.close();
@@ -177,7 +232,7 @@ public final class Sabres {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 database = context.openOrCreateDatabase(DATABASE_NAME,
-                        SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING, null);
+                    SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING, null);
             } else {
                 database = context.openOrCreateDatabase(DATABASE_NAME, 0, null);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -188,59 +243,5 @@ public final class Sabres {
         } catch (SQLException e) {
             throw new SabresException(SabresException.SQL_ERROR, "Failed to construct database", e);
         }
-    }
-
-    public static void printTables() {
-        Task.callInBackground(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Sabres sabres = Sabres.self;
-                sabres.open();
-                try {
-                    return SqliteMaster.getTables(sabres);
-                } finally {
-                    sabres.close();
-                }
-            }
-        }).continueWith(new Continuation<String, Void>() {
-            @Override
-            public Void then(Task<String> task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(getClass().getSimpleName(), "getTables failed", task.getError());
-                } else {
-                    Log.i(getClass().getSimpleName(), String.format("tables:\n%s", task.getResult()));
-                }
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    public static void printIndices() {
-        Task.callInBackground(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Sabres sabres = Sabres.self;
-                sabres.open();
-                try {
-                    return SqliteMaster.getIndices(sabres);
-                } finally {
-                    sabres.close();
-                }
-            }
-        }).continueWith(new Continuation<String, Void>() {
-            @Override
-            public Void then(Task<String> task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(getClass().getSimpleName(), "getIndices failed", task.getError());
-                } else {
-                    Log.i(getClass().getSimpleName(), String.format("indices:\n%s", task.getResult()));
-                }
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    public static <T extends SabresObject> void printSchemaTable(Class<T> clazz) {
-        Schema.printSchema(clazz.getSimpleName());
     }
 }

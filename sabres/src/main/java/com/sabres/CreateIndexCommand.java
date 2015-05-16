@@ -22,7 +22,6 @@ final class CreateIndexCommand {
     private static final String INDEX_NAME_PREFIX = "index_on_";
     private final String name;
     private final List<String> keys;
-
     private boolean ifNotExists = false;
 
     CreateIndexCommand(String name, List<String> keys) {
@@ -54,7 +53,7 @@ final class CreateIndexCommand {
 
         boolean first = true;
 
-        for (String key: keys) {
+        for (String key : keys) {
             if (!first) {
                 indexName.append("_");
                 columns.append(", ");

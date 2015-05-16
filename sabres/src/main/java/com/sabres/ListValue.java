@@ -35,7 +35,7 @@ abstract class ListValue<T> extends SabresValue<List<T>> {
         StringBuilder sb = new StringBuilder("{");
         boolean first = true;
 
-        for (Object value: getValue()) {
+        for (Object value : getValue()) {
             if (first) {
                 first = false;
             } else {

@@ -44,8 +44,8 @@ abstract public class SabresObject {
     private final Map<String, SabresValue> values = new HashMap<>();
     private final Map<String, SabresDescriptor> schemaChanges = new HashMap<>();
     private final Set<String> dirtyKeys = new HashSet<>();
-    private boolean dataAvailable = false;
     private final String name;
+    private boolean dataAvailable = false;
     private long id = 0;
 
     protected SabresObject() {
@@ -57,10 +57,6 @@ abstract public class SabresObject {
         T object = createObjectInstance(clazz);
         object.setObjectId(id);
         return object;
-    }
-
-    void setObjectId(long objectId) {
-        this.id = objectId;
     }
 
     static Set<String> getSubClassNames() {
@@ -80,12 +76,92 @@ abstract public class SabresObject {
         subClasses.put(subClass.getSimpleName(), subClass);
     }
 
+    static String getObjectIdKey() {
+        return OBJECT_ID_KEY;
+    }
+
+    private static String toString(String name, List<SabresObject> objects) {
+        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
+        String[] headers = new String[schema.size() + 1];
+        String[][] data = new String[objects.size()][schema.size() + 1];
+        int i = 0;
+        int j = 1;
+        headers[0] = "objectId(String)";
+        for (SabresObject o : objects) {
+            data[i++][0] = String.valueOf(o.getObjectId());
+        }
+
+        for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
+            headers[j] = String.format("%s(%s)", entry.getKey(), entry.getValue().toString());
+            i = 0;
+            for (SabresObject o : objects) {
+                data[i++][j] = o.stringify(entry.getKey());
+            }
+            j++;
+        }
+        return FlipTable.of(headers, data);
+    }
+
+    private static <T extends SabresObject> T createObjectInstance(Class<? extends SabresObject>
+                                                                       clazz) {
+        try {
+            //noinspection unchecked
+            return (T)clazz.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Failed to instantiate class %s",
+                clazz.getSimpleName()), e);
+        }
+    }
+
+    public static <T extends SabresObject> void printAll(final Class<T> clazz) {
+        Task.callInBackground(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                Sabres sabres = Sabres.self();
+                sabres.open();
+                Cursor c = null;
+                try {
+                    if (SqliteMaster.tableExists(sabres, clazz.getSimpleName())) {
+                        c = sabres.select(new SelectCommand(clazz.getSimpleName(),
+                            Schema.getKeys(clazz.getSimpleName())).toSql());
+                        List<SabresObject> objects = new ArrayList<>();
+                        for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
+                            T object = SabresObject.createObjectInstance(clazz);
+                            object.populate(sabres, c);
+                            objects.add(object);
+                        }
+
+                        return SabresObject.toString(clazz.getSimpleName(), objects);
+                    } else {
+                        return String.format("Class %s does not exist", clazz.getSimpleName());
+                    }
+                } finally {
+                    if (c != null) {
+                        c.close();
+                    }
+                    sabres.close();
+                }
+            }
+        }).continueWith(new Continuation<String, Void>() {
+            @Override
+            public Void then(Task<String> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, String.format("Failed to print table %s", clazz.getSimpleName()),
+                        task.getError());
+                } else {
+                    Log.i(TAG, String.format("%s:\n%s", clazz.getSimpleName(), task.getResult()));
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
     /**
      * Add a value to a list with the given key.
      *
-     * @param key       Key of list object.
-     * @param value     Value to add. Can be of Type Byte, Short, Integer, Long,
-     *                  Float, Double, Date or an extension of SabresObject.
+     * @param key   Key of list object.
+     * @param value Value to add. Can be of Type Byte, Short, Integer, Long,
+     *              Float, Double, Date or an extension of SabresObject.
      */
     public void add(String key, Object value) {
         if (value == null) {
@@ -98,9 +174,9 @@ abstract public class SabresObject {
     /**
      * Add objects to a list with the given key.
      *
-     * @param key       Key of list object.
-     * @param objects   List of Objects to add. List can be of Type Byte, Short, Integer, Long,
-     *                  Float, Double, Date or an extension of SabresObject.
+     * @param key     Key of list object.
+     * @param objects List of Objects to add. List can be of Type Byte, Short, Integer, Long,
+     *                Float, Double, Date or an extension of SabresObject.
      */
     public void addAll(String key, List<?> objects) {
         put(key, objects);
@@ -109,9 +185,9 @@ abstract public class SabresObject {
     /**
      * Add a key-value pair to the object.
      *
-     * @param key       Key in object.
-     * @param value     Can be of type Boolean, Byte, Short, Integer, Long,
-     *                  Float, Double, Date or an extension of SabresObject.
+     * @param key   Key in object.
+     * @param value Can be of type Boolean, Byte, Short, Integer, Long,
+     *              Float, Double, Date or an extension of SabresObject.
      */
     public void put(String key, Object value) {
         if (key == null) {
@@ -129,7 +205,7 @@ abstract public class SabresObject {
             if (!schema.get(key).equals(sabresValue.getDescriptor())) {
                 throw new IllegalArgumentException(String.format("Cannot set key %s to type %s. " +
                         "Already set to type %s", key, sabresValue.getDescriptor().toString(),
-                        schema.get(key).toString()));
+                    schema.get(key).toString()));
             }
         } else {
             schemaChanges.put(key, sabresValue.getDescriptor());
@@ -139,10 +215,6 @@ abstract public class SabresObject {
         dirtyKeys.add(key);
     }
 
-    static String getObjectIdKey() {
-        return OBJECT_ID_KEY;
-    }
-
     /**
      * Get the unique id of the object. Assigned when object is first saved into the database.
      *
@@ -150,6 +222,10 @@ abstract public class SabresObject {
      */
     public long getObjectId() {
         return id;
+    }
+
+    void setObjectId(long objectId) {
+        this.id = objectId;
     }
 
     /**
@@ -164,15 +240,15 @@ abstract public class SabresObject {
     private void checkDataAvailable() {
         if (id != 0 && !dataAvailable) {
             throw new IllegalStateException("No data associated with object," +
-                    "call fetch to populate data from database");
+                "call fetch to populate data from database");
         }
     }
 
     /**
      * Does the object has a specific key.
      *
-     * @param   key The key to check.
-     * @return      true if the object has data paired with the given key. false otherwise.
+     * @param key The key to check.
+     * @return true if the object has data paired with the given key. false otherwise.
      */
     public boolean containsKey(String key) {
         return values.containsKey(key);
@@ -181,8 +257,8 @@ abstract public class SabresObject {
     /**
      * Get a String value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a String.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a String.
      */
     public String getString(String key) {
         checkDataAvailable();
@@ -199,10 +275,10 @@ abstract public class SabresObject {
     /**
      * Get a Boolean value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Boolean.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Boolean.
      */
-    public Boolean getBoolean(String key)  {
+    public Boolean getBoolean(String key) {
         checkDataAvailable();
         if (values.containsKey(key)) {
             SabresValue value = values.get(key);
@@ -217,8 +293,8 @@ abstract public class SabresObject {
     /**
      * Get an Integer value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not an Integer.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not an Integer.
      */
     public Integer getInt(String key) {
         checkDataAvailable();
@@ -235,8 +311,8 @@ abstract public class SabresObject {
     /**
      * Get a Byte value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Byte.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Byte.
      */
     public Byte getByte(String key) {
         checkDataAvailable();
@@ -253,8 +329,8 @@ abstract public class SabresObject {
     /**
      * Get a Short value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Short.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Short.
      */
     public Short getShort(String key) {
         checkDataAvailable();
@@ -271,8 +347,8 @@ abstract public class SabresObject {
     /**
      * Get a Long value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Long.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Long.
      */
     public Long getLong(String key) {
         checkDataAvailable();
@@ -289,8 +365,8 @@ abstract public class SabresObject {
     /**
      * Get a Float value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Float.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Float.
      */
     public Float getFloat(String key) {
         if (values.containsKey(key)) {
@@ -306,8 +382,8 @@ abstract public class SabresObject {
     /**
      * Get a Double value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Double.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Double.
      */
     public Double getDouble(String key) {
         if (values.containsKey(key)) {
@@ -323,8 +399,8 @@ abstract public class SabresObject {
     /**
      * Get a Date value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's not a Date.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's not a Date.
      */
     public Date getDate(String key) {
         if (values.containsKey(key)) {
@@ -340,8 +416,8 @@ abstract public class SabresObject {
     /**
      * Get a List value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's cannot be converted to a list.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's cannot be converted to a list.
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> getList(String key) {
@@ -358,9 +434,9 @@ abstract public class SabresObject {
     /**
      * Get a custom subclass of SabresObject value for a given key.
      *
-     * @param key   The key to access value for.
-     * @return      null is there is no such value or if it's cannot be converted to a
-     *              SabresObject.
+     * @param key The key to access value for.
+     * @return null is there is no such value or if it's cannot be converted to a
+     * SabresObject.
      */
     @SuppressWarnings("unchecked")
     public <T extends SabresObject> T getSabresObject(String key) {
@@ -462,7 +538,7 @@ abstract public class SabresObject {
     private void createTable(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
-        for (Map.Entry<String, SabresDescriptor> entry: schemaChanges.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry : schemaChanges.entrySet()) {
             Column column = new Column(entry.getKey(), entry.getValue().toSqlType());
             if (entry.getValue().getType().equals(SabresDescriptor.Type.Pointer)) {
                 column.foreignKeyIn(entry.getValue().getName());
@@ -475,26 +551,26 @@ abstract public class SabresObject {
     }
 
     private void alterTable(Sabres sabres) throws SabresException {
-        for (Map.Entry<String, SabresDescriptor> entry: schemaChanges.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry : schemaChanges.entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
-                    entry.getValue().toSqlType())).toSql());
+                entry.getValue().toSqlType())).toSql());
         }
     }
 
     private void updateChildren(Sabres sabres) throws SabresException {
         for (Map.Entry<String, SabresValue> entry : values.entrySet()) {
             if (entry.getValue() instanceof ObjectValue) {
-                SabresObject o = ((ObjectValue<?>) entry.getValue()).getValue();
+                SabresObject o = ((ObjectValue<?>)entry.getValue()).getValue();
                 o.saveIfNeededInTransaction(sabres);
             }
         }
     }
 
     private void updateLists(Sabres sabres) throws SabresException {
-        for (Map.Entry<String, SabresValue> entry: values.entrySet()) {
+        for (Map.Entry<String, SabresValue> entry : values.entrySet()) {
             if (entry.getValue() instanceof ListValue) {
                 SabresList list = SabresList.get(sabres, name, entry.getKey());
-                list.insert(sabres, id, ((ListValue<?>) entry.getValue()).getValue());
+                list.insert(sabres, id, ((ListValue<?>)entry.getValue()).getValue());
             }
         }
     }
@@ -505,7 +581,7 @@ abstract public class SabresObject {
 
     private void update(Sabres sabres) throws SabresException {
         final Map<String, SabresValue> dirtyValues = new HashMap<>(dirtyKeys.size());
-        for (String key: dirtyKeys) {
+        for (String key : dirtyKeys) {
             dirtyValues.put(key, values.get(key));
         }
 
@@ -518,11 +594,11 @@ abstract public class SabresObject {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(name, Schema.getKeys(name)).
-                    where(Where.equalTo(OBJECT_ID_KEY, id));
+                where(Where.equalTo(OBJECT_ID_KEY, id));
             c = sabres.select(command.toSql());
             if (!c.moveToFirst()) {
                 throw new SabresException(SabresException.OBJECT_NOT_FOUND,
-                        String.format("table %s has no object with key %s", name, id));
+                    String.format("table %s has no object with key %s", name, id));
             }
             populate(sabres, c);
         } finally {
@@ -556,7 +632,7 @@ abstract public class SabresObject {
         return id == other.id;
     }
 
-    public void fetchInBackground(final FetchCallback callback)  {
+    public void fetchInBackground(final FetchCallback callback) {
         fetchInBackground().continueWith(new Continuation<Void, Void>() {
             @Override
             public Void then(Task<Void> task) throws Exception {
@@ -594,56 +670,56 @@ abstract public class SabresObject {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
 
-        for (Map.Entry<String, SabresDescriptor> entry: schema.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
             if (!c.isNull(c.getColumnIndex(getCursorKey(prefix, entry.getKey())))) {
                 SabresValue value = null;
                 switch (entry.getValue().getType()) {
                     case Integer:
                         value = new IntValue(CursorHelper.getInt(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Boolean:
                         value = new BooleanValue(CursorHelper.getBoolean(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Byte:
                         value = new ByteValue(CursorHelper.getByte(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Double:
                         value = new DoubleValue(CursorHelper.getDouble(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Float:
                         value = new FloatValue(CursorHelper.getFloat(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case String:
                         value = new StringValue(CursorHelper.getString(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Short:
                         value = new ShortValue(CursorHelper.getShort(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Long:
                         value = new LongValue(CursorHelper.getLong(c,
-                                getCursorKey(prefix, entry.getKey())));
+                            getCursorKey(prefix, entry.getKey())));
                         break;
                     case Date:
                         value = new DateValue(CursorHelper.getDate(c, getCursorKey(prefix,
-                                entry.getKey())));
+                            entry.getKey())));
                         break;
                     case Pointer:
                         SabresObject object =
-                                createWithoutData(subClasses.get(entry.getValue().getName()),
-                                        CursorHelper.getLong(c, getCursorKey(prefix,
-                                                entry.getKey())));
+                            createWithoutData(subClasses.get(entry.getValue().getName()),
+                                CursorHelper.getLong(c, getCursorKey(prefix,
+                                    entry.getKey())));
                         value = new ObjectValue<>(object);
                         break;
                     case List:
                         List<?> list = SabresList.get(sabres, name, entry.getKey()).
-                                select(sabres, id, entry.getValue());
+                            select(sabres, id, entry.getValue());
                         value = SabresValue.create(list);
                         break;
                 }
@@ -665,7 +741,7 @@ abstract public class SabresObject {
 
         if (!(value instanceof ObjectValue)) {
             throw new IllegalArgumentException(
-                    String.format("value of key %s in not a SabresObject", key));
+                String.format("value of key %s in not a SabresObject", key));
         }
 
         ((ObjectValue<?>)value).getValue().populate(sabres, c, key);
@@ -679,84 +755,9 @@ abstract public class SabresObject {
         return values.get(key).toString();
     }
 
-    private static String toString(String name, List<SabresObject> objects) {
-        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
-        String[] headers = new String[schema.size() + 1];
-        String[][] data = new String[objects.size()][schema.size() + 1];
-        int i = 0;
-        int j = 1;
-        headers[0] = "objectId(String)";
-        for (SabresObject o: objects) {
-            data[i++][0] = String.valueOf(o.getObjectId());
-        }
-
-        for (Map.Entry<String, SabresDescriptor> entry: schema.entrySet()) {
-            headers[j] = String.format("%s(%s)", entry.getKey(), entry.getValue().toString());
-            i = 0;
-            for (SabresObject o: objects) {
-                data[i++][j] = o.stringify(entry.getKey());
-            }
-            j++;
-        }
-        return FlipTable.of(headers, data);
-    }
-
     @Override
     public String toString() {
         return SabresObject.toString(name, Collections.singletonList(this));
-    }
-
-    private static <T extends SabresObject> T createObjectInstance(Class<? extends SabresObject> clazz) {
-        try {
-            //noinspection unchecked
-            return (T) clazz.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Failed to instantiate class %s",
-                    clazz.getSimpleName()), e);
-        }
-    }
-
-    public static <T extends SabresObject> void printAll(final Class<T> clazz) {
-        Task.callInBackground(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                Sabres sabres = Sabres.self();
-                sabres.open();
-                Cursor c = null;
-                try {
-                    if (SqliteMaster.tableExists(sabres, clazz.getSimpleName())) {
-                        c = sabres.select(new SelectCommand(clazz.getSimpleName(),
-                                Schema.getKeys(clazz.getSimpleName())).toSql());
-                        List<SabresObject> objects = new ArrayList<>();
-                        for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                            T object = SabresObject.createObjectInstance(clazz);
-                            object.populate(sabres, c);
-                            objects.add(object);
-                        }
-
-                        return SabresObject.toString(clazz.getSimpleName(), objects);
-                    } else {
-                        return String.format("Class %s does not exist", clazz.getSimpleName());
-                    }
-                } finally {
-                    if (c != null) {
-                        c.close();
-                    }
-                    sabres.close();
-                }
-            }
-        }).continueWith(new Continuation<String, Void>() {
-            @Override
-            public Void then(Task<String> task) throws Exception {
-                if (task.isFaulted()) {
-                    Log.e(TAG, String.format("Failed to print table %s", clazz.getSimpleName()),
-                            task.getError());
-                } else {
-                    Log.i(TAG, String.format("%s:\n%s", clazz.getSimpleName(), task.getResult()));
-                }
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
     }
 
     public void delete() throws SabresException {

@@ -34,7 +34,7 @@ final class InsertCommand {
         boolean first = true;
 
 
-        for (Map.Entry<String, SabresValue> entry: objects.entrySet()) {
+        for (Map.Entry<String, SabresValue> entry : objects.entrySet()) {
             if (first) {
                 first = false;
             } else {
@@ -47,7 +47,7 @@ final class InsertCommand {
         }
 
         return sb.append(String.format("(%s) VALUES (%s);", keys.toString(),
-                values.toString())).toString();
+            values.toString())).toString();
     }
 
     @Override

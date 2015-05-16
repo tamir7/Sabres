@@ -24,23 +24,7 @@ final class CreateTableCommand {
     private final String name;
     private final List<String[]> uniqueColumns = new ArrayList<>();
     private ConflictResolution resolution;
-
     private boolean ifNotExists = false;
-
-    enum ConflictResolution {
-        REPLACE("REPLACE");
-
-        private final String text;
-
-        ConflictResolution(String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return "ON CONFLICT " + text;
-        }
-    }
 
     CreateTableCommand(String name) {
         this.name = name;
@@ -81,7 +65,7 @@ final class CreateTableCommand {
         sb.append(name).append("(");
 
         boolean first = true;
-        for (Column column: columns) {
+        for (Column column : columns) {
             if (first) {
                 first = false;
             } else {
@@ -92,10 +76,10 @@ final class CreateTableCommand {
         }
 
         if (!uniqueColumns.isEmpty()) {
-            for (String[] columns: uniqueColumns) {
+            for (String[] columns : uniqueColumns) {
                 sb.append(", UNIQUE(");
                 first = true;
-                for (String column: columns) {
+                for (String column : columns) {
                     if (first) {
                         first = false;
                     } else {
@@ -113,5 +97,20 @@ final class CreateTableCommand {
         }
 
         return sb.append(");").toString();
+    }
+
+    enum ConflictResolution {
+        REPLACE("REPLACE");
+
+        private final String text;
+
+        ConflictResolution(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return "ON CONFLICT " + text;
+        }
     }
 }

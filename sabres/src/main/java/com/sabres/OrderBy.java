@@ -21,6 +21,15 @@ final class OrderBy {
     private final Direction direction;
 
 
+    OrderBy(String key, Direction direction) {
+        this.key = key;
+        this.direction = direction;
+    }
+
+    String toSql() {
+        return String.format("%s %s", key, direction.toString());
+    }
+
     enum Direction {
         Ascending("ASC"),
         Descending("DESC");
@@ -35,14 +44,5 @@ final class OrderBy {
         public String toString() {
             return text;
         }
-    }
-
-    OrderBy(String key, Direction direction) {
-        this.key = key;
-        this.direction = direction;
-    }
-
-    String toSql() {
-        return String.format("%s %s", key, direction.toString());
     }
 }

@@ -28,18 +28,6 @@ final class SelectCommand {
 
     private Where where;
 
-    private static class Join {
-        private final String table;
-        private final String column;
-        private final List<String> keys = new ArrayList<>();
-
-        Join(String table, String column, Collection<String> selectKeys) {
-            this.table = table;
-            this.column = column;
-            keys.addAll(selectKeys);
-        }
-    }
-
     SelectCommand(String table, Collection<String> selectKeys) {
         this.table = table;
         this.keys.addAll(selectKeys);
@@ -69,7 +57,7 @@ final class SelectCommand {
         StringBuilder sb = new StringBuilder("SELECT ");
         boolean first = true;
 
-        for (String key: keys) {
+        for (String key : keys) {
             if (first) {
                 first = false;
             } else {
@@ -83,8 +71,8 @@ final class SelectCommand {
 
         for (Join join : joins) {
             joinSb.append(String.format(" LEFT JOIN %s ON %s.%s = %s.objectId", join.table, table,
-                    join.column,  join.table));
-            for (String key: join.keys) {
+                join.column, join.table));
+            for (String key : join.keys) {
                 sb.append(String.format(", %s.%s AS %s_%s", join.table, key, join.column, key));
             }
         }
@@ -98,7 +86,7 @@ final class SelectCommand {
         }
 
         first = true;
-        for (OrderBy orderBy: orderByList) {
+        for (OrderBy orderBy : orderByList) {
             if (first) {
                 sb.append(" ORDER BY ");
             } else {
@@ -109,5 +97,17 @@ final class SelectCommand {
         }
 
         return sb.append(";").toString();
+    }
+
+    private static class Join {
+        private final String table;
+        private final String column;
+        private final List<String> keys = new ArrayList<>();
+
+        Join(String table, String column, Collection<String> selectKeys) {
+            this.table = table;
+            this.column = column;
+            keys.addAll(selectKeys);
+        }
     }
 }

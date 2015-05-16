@@ -30,30 +30,13 @@ final class SqliteMaster {
     private static final String ANDROID_METADATA_TABLE = "android_metadata";
     private static final String SCHEMA_TABLE = Schema.getTableName();
     private static final String[] selectKeys = new String[] {NAME_KEY, TYPE_KEY, TABLE_NAME_KEY};
-
     private static final String[] tableHeaders = new String[] {"table", "count"};
     private static final String[] indexHeaders = new String[] {"table", "index"};
-
-    private enum Type {
-        Table("table"),
-        Index("index");
-
-        private String name;
-
-        Type(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
 
     static boolean tableExists(Sabres sabres, String table) {
         CountCommand command = new CountCommand(TABLE_NAME);
         command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
-                and(Where.equalTo(NAME_KEY, table)));
+            and(Where.equalTo(NAME_KEY, table)));
         return sabres.count(command.toSql()) != 0;
     }
 
@@ -62,16 +45,16 @@ final class SqliteMaster {
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
             command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
-                    and(Where.notEqualTo(NAME_KEY, ANDROID_METADATA_TABLE).
-                            and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE)).
-                            and(Where.doesNotStartWith(NAME_KEY, SabresList.getPrefix()))));
+                and(Where.notEqualTo(NAME_KEY, ANDROID_METADATA_TABLE).
+                    and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE)).
+                    and(Where.doesNotStartWith(NAME_KEY, SabresList.getPrefix()))));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][tableHeaders.length];
             int i = 0;
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                 final String table = CursorHelper.getString(c, NAME_KEY);
                 data[i++] = new String[] {table,
-                        String.valueOf(sabres.count(new CountCommand(table).toSql()))};
+                    String.valueOf(sabres.count(new CountCommand(table).toSql()))};
             }
 
             return FlipTable.of(tableHeaders, data);
@@ -87,20 +70,36 @@ final class SqliteMaster {
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
             command.where(Where.equalTo(TYPE_KEY, Type.Index.toString()).
-                    and(Where.notEqualTo(TABLE_NAME_KEY, SCHEMA_TABLE)).
-                    and(Where.doesNotStartWith(TABLE_NAME_KEY, SabresList.getPrefix())));
+                and(Where.notEqualTo(TABLE_NAME_KEY, SCHEMA_TABLE)).
+                and(Where.doesNotStartWith(TABLE_NAME_KEY, SabresList.getPrefix())));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][indexHeaders.length];
             int i = 0;
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                 data[i++] = new String[] {CursorHelper.getString(c, TABLE_NAME_KEY),
-                        CursorHelper.getString(c, NAME_KEY)};
+                    CursorHelper.getString(c, NAME_KEY)};
             }
             return FlipTable.of(indexHeaders, data);
         } finally {
             if (c != null) {
                 c.close();
             }
+        }
+    }
+
+    private enum Type {
+        Table("table"),
+        Index("index");
+
+        private String name;
+
+        Type(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 }

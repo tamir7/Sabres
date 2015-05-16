@@ -22,7 +22,7 @@ final class DeleteCommand {
 
     DeleteCommand(String table) {
         this.table = table;
-     }
+    }
 
     DeleteCommand where(Where where) {
         this.where = where;

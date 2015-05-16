@@ -30,25 +30,35 @@ final class SabresList {
     private static final String LIST_PREFIX = "_sabres_list";
     private static final String PARENT_ID_KEY = "_parentId";
     private static final String VALUE_KEY = "_value";
+    private static final String[] selectKeys = new String[] {PARENT_ID_KEY, VALUE_KEY};
     private final String parent;
     private final String parentKey;
-    private static final String[] selectKeys = new String[] {PARENT_ID_KEY, VALUE_KEY};
 
     private SabresList(String parent, String parentKey) {
         this.parent = parent;
         this.parentKey = parentKey;
     }
 
+    static SabresList get(Sabres sabres, String parent, String parentKey)
+        throws SabresException {
+        SabresList collection = new SabresList(parent, parentKey);
+        collection.create(sabres);
+        return collection;
+    }
+
+    static String getPrefix() {
+        return LIST_PREFIX;
+    }
+
     private void create(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(getTableName()).ifNotExists().
-                withColumn(new Column(PARENT_ID_KEY,
-                        SqlType.Integer).foreignKeyIn(parent).notNull()).
-                withColumn(new Column(VALUE_KEY, SqlType.Text).notNull()).
-                unique(new String[] {PARENT_ID_KEY, VALUE_KEY}).
-                withConflictResolution(CreateTableCommand.ConflictResolution.REPLACE);
+            withColumn(new Column(PARENT_ID_KEY, SqlType.Integer).foreignKeyIn(parent).notNull()).
+            withColumn(new Column(VALUE_KEY, SqlType.Text).notNull()).
+            unique(new String[] {PARENT_ID_KEY, VALUE_KEY}).
+            withConflictResolution(CreateTableCommand.ConflictResolution.REPLACE);
 
         CreateIndexCommand indexCommand = new CreateIndexCommand(getTableName(),
-                Collections.singletonList(VALUE_KEY)).ifNotExists();
+            Collections.singletonList(VALUE_KEY)).ifNotExists();
 
         sabres.beginTransaction();
         try {
@@ -60,19 +70,12 @@ final class SabresList {
         }
     }
 
-    static SabresList get(Sabres sabres, String parent, String parentKey)
-            throws SabresException{
-        SabresList collection = new SabresList(parent, parentKey);
-        collection.create(sabres);
-        return collection;
-    }
-
     <T> List<T> select(Sabres sabres, long parentId, SabresDescriptor descriptor) {
         List<Object> list = new ArrayList<>();
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(getTableName(),
-                    Arrays.asList(selectKeys)).where(Where.equalTo(PARENT_ID_KEY, parentId));
+                Arrays.asList(selectKeys)).where(Where.equalTo(PARENT_ID_KEY, parentId));
             c = sabres.select(command.toSql());
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                 switch (descriptor.getOfType()) {
@@ -105,7 +108,7 @@ final class SabresList {
                         break;
                     case Pointer:
                         list.add(SabresObject.createWithoutData(descriptor.getName(),
-                                CursorHelper.getLong(c, VALUE_KEY)));
+                            CursorHelper.getLong(c, VALUE_KEY)));
                         break;
                 }
             }
@@ -120,7 +123,7 @@ final class SabresList {
     }
 
     void insert(Sabres sabres, long parentId, List<?> list)
-            throws SabresException {
+        throws SabresException {
         Iterator it = list.iterator();
         sabres.beginTransaction();
         try {
@@ -139,9 +142,5 @@ final class SabresList {
 
     private String getTableName() {
         return String.format("%s_%s_%s", LIST_PREFIX, parent, parentKey);
-    }
-
-    static String getPrefix() {
-        return LIST_PREFIX;
     }
 }

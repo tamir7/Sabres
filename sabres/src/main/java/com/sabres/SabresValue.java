@@ -26,16 +26,6 @@ abstract class SabresValue<T> {
         this.value = value;
     }
 
-    abstract String toSql();
-
-    @Override
-    public abstract String toString();
-    abstract SabresDescriptor getDescriptor();
-
-    T getValue() {
-        return value;
-    }
-
     static SabresValue create(List<?> list) {
         if (list.isEmpty()) {
             throw new IllegalArgumentException("Cannot create SabresValue from an empty List");
@@ -80,7 +70,7 @@ abstract class SabresValue<T> {
         }
 
         throw new IllegalArgumentException("Cannot create SabresListValue out of class " +
-                o.getClass().getSimpleName());
+            o.getClass().getSimpleName());
 
     }
 
@@ -130,6 +120,17 @@ abstract class SabresValue<T> {
         }
 
         throw new IllegalArgumentException("Cannot create SabresValue out of class " +
-                o.getClass().getSimpleName());
+            o.getClass().getSimpleName());
+    }
+
+    abstract String toSql();
+
+    @Override
+    public abstract String toString();
+
+    abstract SabresDescriptor getDescriptor();
+
+    T getValue() {
+        return value;
     }
 }

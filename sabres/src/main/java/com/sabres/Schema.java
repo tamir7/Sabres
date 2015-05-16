@@ -41,11 +41,12 @@ final class Schema {
     private static final String OF_TYPE_KEY = "_ofType";
     private static final String NAME_KEY = "_name";
     private static final String[] headers =
-            new String[]{COLUMN_KEY, TYPE_KEY, OF_TYPE_KEY, NAME_KEY};
+        new String[] {COLUMN_KEY, TYPE_KEY, OF_TYPE_KEY, NAME_KEY};
     private static final String[] selectKeys =
-            new String[]{TABLE_KEY, COLUMN_KEY, TYPE_KEY, OF_TYPE_KEY, NAME_KEY};
+        new String[] {TABLE_KEY, COLUMN_KEY, TYPE_KEY, OF_TYPE_KEY, NAME_KEY};
 
-    private Schema() {}
+    private Schema() {
+    }
 
     static void initialize(Sabres sabres) throws SabresException {
         if (SqliteMaster.tableExists(sabres, SCHEMA_TABLE_NAME)) {
@@ -54,16 +55,16 @@ final class Schema {
             if (!subClassNames.isEmpty()) {
                 try {
                     SelectCommand command = new SelectCommand(SCHEMA_TABLE_NAME,
-                            Arrays.asList(selectKeys));
+                        Arrays.asList(selectKeys));
                     boolean first = true;
                     Where where = null;
 
-                    for (String name: subClassNames) {
+                    for (String name : subClassNames) {
                         schemas.put(name, new HashMap<String, SabresDescriptor>());
                         if (first) {
                             where = Where.equalTo(TABLE_KEY, name);
                             first = false;
-                        }  else {
+                        } else {
                             where.or(Where.equalTo(TABLE_KEY, name));
                         }
                     }
@@ -73,20 +74,20 @@ final class Schema {
                         String table = CursorHelper.getString(c, TABLE_KEY);
                         String column = CursorHelper.getString(c, COLUMN_KEY);
                         SabresDescriptor.Type type =
-                                SabresDescriptor.Type.valueOf(CursorHelper.getString(c, TYPE_KEY));
+                            SabresDescriptor.Type.valueOf(CursorHelper.getString(c, TYPE_KEY));
                         SabresDescriptor.Type ofType = null;
                         String objectName = null;
                         if (type.equals(SabresDescriptor.Type.List)) {
                             ofType = SabresDescriptor.Type.valueOf(CursorHelper.getString(c,
-                                            OF_TYPE_KEY));
+                                OF_TYPE_KEY));
                         }
 
                         if (type.equals(SabresDescriptor.Type.Pointer) ||
-                                (ofType != null && ofType.equals(SabresDescriptor.Type.Pointer))) {
+                            (ofType != null && ofType.equals(SabresDescriptor.Type.Pointer))) {
                             objectName = CursorHelper.getString(c, NAME_KEY);
                         }
                         schemas.get(table).put(column, new SabresDescriptor(type, ofType,
-                                objectName));
+                            objectName));
                     }
                 } finally {
                     if (c != null) {
@@ -101,15 +102,15 @@ final class Schema {
 
     private static void create(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(SCHEMA_TABLE_NAME).
-                ifNotExists().
-                withColumn(new Column(TABLE_KEY, SqlType.Text).notNull()).
-                withColumn(new Column(COLUMN_KEY, SqlType.Text).notNull()).
-                withColumn(new Column(TYPE_KEY, SqlType.Text).notNull()).
-                withColumn(new Column(OF_TYPE_KEY, SqlType.Text)).
-                withColumn(new Column(NAME_KEY, SqlType.Text));
+            ifNotExists().
+            withColumn(new Column(TABLE_KEY, SqlType.Text).notNull()).
+            withColumn(new Column(COLUMN_KEY, SqlType.Text).notNull()).
+            withColumn(new Column(TYPE_KEY, SqlType.Text).notNull()).
+            withColumn(new Column(OF_TYPE_KEY, SqlType.Text)).
+            withColumn(new Column(NAME_KEY, SqlType.Text));
 
         CreateIndexCommand indexCommand = new CreateIndexCommand(SCHEMA_TABLE_NAME,
-                Collections.singletonList(TABLE_KEY)).ifNotExists();
+            Collections.singletonList(TABLE_KEY)).ifNotExists();
 
         sabres.beginTransaction();
         try {
@@ -135,7 +136,7 @@ final class Schema {
     }
 
     static void update(Sabres sabres, String name, Map<String, SabresDescriptor> schema)
-            throws SabresException {
+        throws SabresException {
         sabres.beginTransaction();
         try {
             for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
@@ -181,11 +182,11 @@ final class Schema {
 
         String[][] data = new String[schema.size()][headers.length];
         int i = 0;
-        for (Map.Entry<String, SabresDescriptor> entry: schema.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
             String[] row = new String[] {entry.getKey(), entry.getValue().getType().toString(),
-                    entry.getValue().getOfType() == null ? UNDEFINED :
-                            entry.getValue().getOfType().name(),
-                    entry.getValue().getName() == null ? UNDEFINED : entry.getValue().getName()};
+                entry.getValue().getOfType() == null ? UNDEFINED :
+                    entry.getValue().getOfType().name(),
+                entry.getValue().getName() == null ? UNDEFINED : entry.getValue().getName()};
             data[i++] = row;
         }
 

@@ -31,14 +31,24 @@ public class SabresQuery<T extends SabresObject> {
     private static final String TAG = SabresQuery.class.getSimpleName();
     private final String name;
     private final Class<T> clazz;
-    private Where where;
     private final List<String> keyIndices = new ArrayList<>();
     private final List<String> includes = new ArrayList<>();
     private final List<OrderBy> orderByList = new ArrayList<>();
+    private Where where;
 
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
         name = clazz.getSimpleName();
+    }
+
+    public static <T extends SabresObject> SabresQuery<T> getQuery(Class<T> clazz) {
+        return new SabresQuery<>(clazz);
+    }
+
+    static void createIndices(Sabres sabres, String name, List<String> keys)
+        throws SabresException {
+        CreateIndexCommand createIndexCommand = new CreateIndexCommand(name, keys).ifNotExists();
+        sabres.execSQL(createIndexCommand.toString());
     }
 
     SabresQuery<T> addAscendingOrder(String key) {
@@ -46,13 +56,9 @@ public class SabresQuery<T extends SabresObject> {
         return this;
     }
 
-    SabresQuery<T>	addDescendingOrder(String key) {
+    SabresQuery<T> addDescendingOrder(String key) {
         orderByList.add(new OrderBy(key, OrderBy.Direction.Descending));
         return this;
-    }
-
-    public static <T extends SabresObject> SabresQuery<T> getQuery(Class<T> clazz) {
-        return new SabresQuery<>(clazz);
     }
 
     public Task<T> getInBackground(final long objectId) {
@@ -78,20 +84,20 @@ public class SabresQuery<T extends SabresObject> {
         SabresDescriptor descriptor = Schema.getDescriptor(name, key);
         if (descriptor == null) {
             throw new IllegalArgumentException(String.format("Unrecognized key %s in Object %s",
-                    key, name));
+                key, name));
         }
 
         if (descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
             includes.add(key);
         } else {
             Log.w(TAG, String.format("keys of type %s are always included in query results",
-                    descriptor.getType().toString()));
+                descriptor.getType().toString()));
         }
 
         return this;
     }
 
-    private String stringifyObject(Object object)  {
+    private String stringifyObject(Object object) {
         if (object instanceof Number) {
             return String.valueOf(object);
         }
@@ -105,7 +111,7 @@ public class SabresQuery<T extends SabresObject> {
         }
 
         if (object instanceof Date) {
-            return String.valueOf(((Date) object).getTime());
+            return String.valueOf(((Date)object).getTime());
         }
 
         if (object instanceof SabresObject) {
@@ -113,7 +119,7 @@ public class SabresQuery<T extends SabresObject> {
         }
 
         throw new IllegalArgumentException(String.format("No rule to stringify Object of class %s",
-                object.getClass().getSimpleName()));
+            object.getClass().getSimpleName()));
     }
 
     public void whereEqualTo(String key, Object object) {
@@ -130,9 +136,9 @@ public class SabresQuery<T extends SabresObject> {
     }
 
     private void checkTableExists(Sabres sabres) throws SabresException {
-        if (!SqliteMaster.tableExists(sabres, name)){
+        if (!SqliteMaster.tableExists(sabres, name)) {
             throw new SabresException(SabresException.OBJECT_NOT_FOUND,
-                    String.format("table %s does not exist", name));
+                String.format("table %s does not exist", name));
         }
     }
 
@@ -153,12 +159,6 @@ public class SabresQuery<T extends SabresObject> {
                 return null;
             }
         }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    static void createIndices(Sabres sabres, String name, List<String> keys)
-            throws SabresException {
-        CreateIndexCommand createIndexCommand =  new CreateIndexCommand(name, keys).ifNotExists();
-        sabres.execSQL(createIndexCommand.toString());
     }
 
     public long count() throws SabresException {
@@ -199,16 +199,16 @@ public class SabresQuery<T extends SabresObject> {
             if (SqliteMaster.tableExists(sabres, name)) {
                 createIndices(sabres, name, keyIndices);
                 SelectCommand command = new SelectCommand(name, Schema.getKeys(name));
-                for (String include: includes) {
+                for (String include : includes) {
                     SabresDescriptor descriptor = Schema.getDescriptor(name, include);
                     if (descriptor != null &&
-                            descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
+                        descriptor.getType().equals(SabresDescriptor.Type.Pointer)) {
                         command.join(descriptor.getName(), include,
-                                Schema.getKeys(descriptor.getName()));
+                            Schema.getKeys(descriptor.getName()));
                     }
                 }
 
-                for (OrderBy orderBy: orderByList) {
+                for (OrderBy orderBy : orderByList) {
                     command.orderBy(orderBy);
                 }
 
@@ -216,7 +216,7 @@ public class SabresQuery<T extends SabresObject> {
                 for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                     T object = createObjectInstance();
                     object.populate(sabres, c);
-                    for (String include: includes) {
+                    for (String include : includes) {
                         object.populateChild(sabres, c, include);
                     }
 
@@ -239,7 +239,7 @@ public class SabresQuery<T extends SabresObject> {
             return clazz.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(String.format("Failed to instantiate class %s",
-                    clazz.getSimpleName()), e);
+                clazz.getSimpleName()), e);
         }
     }
 

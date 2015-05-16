@@ -33,10 +33,6 @@ public class SabresException extends Exception {
         this.code = code;
     }
 
-    public int getErrorCode() {
-        return code;
-    }
-
     static SabresException construct(Exception e) {
         if (e == null) {
             return null;
@@ -47,6 +43,10 @@ public class SabresException extends Exception {
         }
 
         return new SabresException(OTHER_CAUSE, e.getMessage(), e);
+    }
+
+    public int getErrorCode() {
+        return code;
     }
 
     @Override
