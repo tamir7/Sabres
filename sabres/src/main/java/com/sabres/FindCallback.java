@@ -18,6 +18,41 @@ package com.sabres;
 
 import java.util.List;
 
+/**
+ * A FindCallback is used to run code after a SabresQuery is used to find objects matching a
+ * query in a background thread.
+ * <p>
+ * The easiest way to use a FindCallback is through an anonymous inner class.
+ * Override the done function to specify what the callback should do after the find is complete.
+ * The done function will be run in the UI thread, while the find happens in a background thread.
+ * This ensures that the UI does not freeze while find happens.
+ * <p>
+ * For example, this sample code finds objects of class "MyClass".
+ *
+ * <pre>
+ * {@code
+ * SabresQuery<MyClass> query = SabresQuery.getQuery("MyClass.class);
+ * query.findInBackground(new FindCallback() {
+ *     public void done(List<MyClass> objects, SabresException e) {
+ *         if (e == null) {
+ *             if (objects.isEmpty()) {
+ *                 noObjectsWereFound();
+ *             } else {
+ *                 objectsWereFoundSuccessfully(objects);
+ *             }
+ *         } else {
+ *             objectsFindFailed();
+ *         }
+ *     }
+ * });
+ * }
+ * </pre>
+ */
 public interface FindCallback<T extends SabresObject> {
+    /**
+     * Override this function with the code you want to run after find is complete.
+     * @param objects   The objects that were retrieved, or null if it did not succeed.
+     * @param e         The exception raised by the find, or null if it succeeded.
+     */
     void done(List<T> objects, SabresException e);
 }
