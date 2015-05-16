@@ -23,7 +23,7 @@ package com.sabres;
  * Override the done function to specify what the callback should do after the fetch is complete.
  * The done function will be run in the UI thread, while the fetch happens in a background thread.
  * This ensures that the UI does not freeze while the fetch happens.
- *
+ * <p>
  * For example, this sample code fetches the object myObject.
  * <pre>
  * {@code
