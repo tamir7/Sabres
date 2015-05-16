@@ -16,7 +16,6 @@
 
 package com.sabres;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
@@ -118,7 +117,7 @@ abstract public class SabresObject {
     /**
      * Registers a custom subclass type with Sabres library.
      * <p>
-     * Needs to be called before {@link Sabres#initialize(Context)}.
+     * Needs to be called before {@link Sabres#initialize}.
      *
      * <pre>
      * {@code
