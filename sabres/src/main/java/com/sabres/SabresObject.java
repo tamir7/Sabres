@@ -99,11 +99,30 @@ abstract public class SabresObject {
         name = getClass().getSimpleName();
     }
 
-    private static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz,
+    /**
+     * Creates a reference to an existing SabresObject for use in creating associations between
+     * SabresObjects. Calling {@link #isDataAvailable()} on this object will return false until
+     * {@link #fetch()} has been called.
+     *
+     * @param clazz  The SabresObject subclass to create.
+     * @param id     The object id for the referenced object.
+     * @return       A SabresObject without data.
+     */
+    public static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz,
                                                                 long id) {
         T object = createObjectInstance(clazz);
         object.setObjectId(id);
         return object;
+    }
+
+    /**
+     * Creates a new SabresObject based upon a subclass type.
+     *
+     * @param clazz The class of object to create.
+     * @return A new SabresObject based upon the class name of the given subclass type.
+     */
+    public static <T extends SabresObject> T create(Class<T> clazz) {
+        return createObjectInstance(clazz);
     }
 
     static Set<String> getSubClassNames() {
@@ -224,6 +243,24 @@ abstract public class SabresObject {
     }
 
     /**
+     * Gets the createdAt key used to save the creation time of an object.
+     *
+     * @return The key used to save the creation time of an object.
+     */
+    public static String getCreatedAtKey() {
+        return CREATED_AT_KEY;
+    }
+
+    /**
+     * Gets the updatedAt key used to save the last update time of an object.
+     *
+     * @return The key used to save the last update time of an object.
+     */
+    public static String getUpdatedAtKey() {
+        return UPDATED_AT_KEY;
+    }
+
+    /**
      * Adds a value to a list with the given key.
      *
      * @param key   Key of list object.
@@ -291,7 +328,16 @@ abstract public class SabresObject {
         return id;
     }
 
-    void setObjectId(long objectId) {
+    /**
+     * Setter for the object id.
+     * In general you do not need to use this.
+     * However, in some cases this can be convenient.
+     * For example, if you are serializing a SabresObject yourself and wish to recreate it,
+     * you can use this to recreate the SabresObject exactly.
+     *
+     * @param objectId The unique id of the object.
+     */
+    public void setObjectId(long objectId) {
         this.id = objectId;
     }
 
@@ -929,5 +975,23 @@ abstract public class SabresObject {
                 return null;
             }
         });
+    }
+
+    /**
+     * Gets the time that this object was created in the Database.
+     *
+     * @return the time this object was created in the Database.
+     */
+    public Date getCreatedAt() {
+        return getDate(CREATED_AT_KEY);
+    }
+
+    /**
+     * Gets the time that this object was last saved in the Database.
+     *
+     * @return the time this object was last saved in the Database.
+     */
+    public Date getUpdatedAt() {
+        return getDate(UPDATED_AT_KEY);
     }
 }
