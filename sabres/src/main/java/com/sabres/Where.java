@@ -39,6 +39,10 @@ final class Where {
         return new Where(key, String.format("%%%s", suffix), Operator.NotLike);
     }
 
+    public static Where contains(String key, String substring) {
+        return new Where(key, String.format("%%%s%%", substring), Operator.Like);
+    }
+
     public static Where doesNotStartWith(String key, String prefix) {
         return new Where(key, String.format("%s%%", prefix), Operator.NotLike);
     }

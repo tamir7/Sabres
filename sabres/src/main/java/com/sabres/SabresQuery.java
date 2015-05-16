@@ -399,8 +399,8 @@ public class SabresQuery<T extends SabresObject> {
     /**
      * Add a constraint for finding string values that start with a provided string.
      *
-     * @param key The key that the string to match is stored in.
-     * @param prefix  The substring that the value must start with.
+     * @param key    The key that the string to match is stored in.
+     * @param prefix The substring that the value must start with.
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereStartsWith(String key, String prefix) {
@@ -412,13 +412,24 @@ public class SabresQuery<T extends SabresObject> {
     /**
      * Add a constraint for finding string values that end with a provided string.
      *
-     * @param key The key that the string to match is stored in.
+     * @param key    The key that the string to match is stored in.
      * @param suffix The substring that the value must end with.
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEndsWith(String key, String suffix) {
         keyIndices.add(key);
         addWhere(Where.endsWith(key, suffix));
+        return this;
+    }
+
+    /**
+     * @param key       The key that the string to match is stored in.
+     * @param substring The substring that the value must contain.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereContains(String key, String substring) {
+        keyIndices.add(key);
+        addWhere(Where.contains(key, substring));
         return this;
     }
 
