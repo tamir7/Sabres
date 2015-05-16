@@ -31,6 +31,14 @@ final class Where {
         return new Where(key, String.format("%s%%", prefix), Operator.Like);
     }
 
+    public static Where endsWith(String key, String suffix) {
+        return new Where(key, String.format("%%%s", suffix), Operator.Like);
+    }
+
+    public static Where doesNotEndWith(String key, String suffix) {
+        return new Where(key, String.format("%%%s", suffix), Operator.NotLike);
+    }
+
     public static Where doesNotStartWith(String key, String prefix) {
         return new Where(key, String.format("%s%%", prefix), Operator.NotLike);
     }
