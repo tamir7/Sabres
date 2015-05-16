@@ -770,7 +770,7 @@ abstract public class SabresObject {
         sabres.execSQL(command.toSql());
     }
 
-    void fetch(Sabres sabres) throws SabresException {
+    void fetchInTransaction(Sabres sabres) throws SabresException {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(name, Schema.getKeys(name)).
@@ -800,10 +800,52 @@ abstract public class SabresObject {
         Sabres sabres = Sabres.self();
         sabres.open();
         try {
-            fetch(sabres);
+            fetchInTransaction(sabres);
         } finally {
             sabres.close();
         }
+    }
+
+    /**
+     * If this SabresObject has not been fetched ({@link #isDataAvailable()} returns false),
+     * fetches the data of this object from the database.
+     *
+     * @throws SabresException Throws an exseption if there was a problem with the operation.
+     */
+    public void fetchIfNeeded() throws SabresException {
+        if (!isDataAvailable()) {
+            fetch();
+        }
+    }
+
+    /**
+     * If this SabresObject has not been fetched ({@link #isDataAvailable()} returns false),
+     * fetches the data of this object from the database in a background thread.
+     *
+     * @return A Task that is resolved when fetch completes.
+     */
+    public Task<Void> fetchIfNeededInBackground() {
+        if (isDataAvailable()) {
+            return Task.forResult(null);
+        }
+
+        return fetchInBackground();
+    }
+
+    /**
+     * If this SabresObject has not been fetched ({@link #isDataAvailable()} returns false),
+     * fetches the data of this object from the database in a background thread.
+     *
+     * @param callback callback.done(object, e) is called when the fetch completes.
+     */
+    public void fetchIfNeededInBackground(final FetchCallback callback) {
+        fetchIfNeededInBackground().continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     /**
