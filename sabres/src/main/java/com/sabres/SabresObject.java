@@ -648,6 +648,64 @@ abstract public class SabresObject {
         }
     }
 
+    /**
+     * Saves each object in the provided list.
+     *
+     * @param objects The objects to save.
+     * @throws SabresException Throws a SabresException in case of error in one of the save
+     * operations.
+     */
+    public static <T extends SabresObject> void saveAll(List<T> objects) throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        sabres.beginTransaction();
+        try {
+            for (SabresObject o : objects) {
+                o.saveInTransaction(sabres);
+            }
+            sabres.setTransactionSuccessful();
+        }finally {
+            sabres.endTransaction();
+        }
+        sabres.close();
+    }
+
+    /**
+     * Saves each object in the provided list to the database in a background thread.
+     * This is preferable to using saveAll, unless your code is already running from a background
+     * thread.
+     *
+     * @param objects The objects to save.
+     * @return A Task that is resolved when saveAll completes.
+     */
+    public static <T extends SabresObject> Task<Void> saveAllInBackground(final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                saveAll(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Saves each object in the provided list to the database in a background thread.
+     * This is preferable to using saveAll, unless your code is already running from a background
+     * thread.
+     * @param objects The objects to save.
+     * @param callback callback.done(e) is called when the save completes.
+     */
+    public static <T extends SabresObject> void saveAllInBackground(final  List<T> objects,
+                                                                    final SaveCallback callback) {
+        saveAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
     private void updateSchema(Sabres sabres) throws SabresException {
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
         Schema.update(sabres, name, schemaChanges);
