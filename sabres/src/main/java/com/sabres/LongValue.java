@@ -23,6 +23,11 @@ final class LongValue extends NumberValue<Long> {
     }
 
     @Override
+    void increment(Number amount) {
+        setValue(getValue() + amount.longValue());
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.Long);
     }

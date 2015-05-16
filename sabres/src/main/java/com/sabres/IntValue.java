@@ -23,6 +23,11 @@ final class IntValue extends NumberValue<Integer> {
     }
 
     @Override
+    void increment(Number amount) {
+        setValue(getValue() + amount.intValue());
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.Integer);
     }

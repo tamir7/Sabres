@@ -23,6 +23,11 @@ final class ShortValue extends NumberValue<Short> {
     }
 
     @Override
+    void increment(Number amount) {
+        setValue((short)(getValue() + amount.shortValue()));
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.Short);
     }

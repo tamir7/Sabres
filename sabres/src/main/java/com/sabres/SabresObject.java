@@ -37,7 +37,7 @@ import bolts.Task;
 /**
  * The SabresObject is a base class that allows custom objects to be saved and retrieved with the
  * Sabres library.
- * <p>
+ * <p/>
  * To start working with SabresObject and the Sabres library, first a model class needs to be
  * created. Getters ans Setters for custom data can also be provided.
  * <pre>
@@ -64,12 +64,12 @@ import bolts.Task;
  * }
  * }
  * </pre>
- *
+ * <p/>
  * Before the object can be used, it needs to be registered with the SabresLibrary.
  * See {@link #registerSubclass(Class)}
- *
+ * <p/>
  * Now, MyObject can be created, and saved to the database.
- *
+ * <p/>
  * <pre>
  * {@code
  * MyObject myObject = new MyObject();
@@ -78,7 +78,7 @@ import bolts.Task;
  * myObject.saveInBackground();
  * }
  * </pre>
- *
+ * <p/>
  * To get objects from the database, the {@link SabresQuery} object is used.
  */
 abstract public class SabresObject {
@@ -104,12 +104,12 @@ abstract public class SabresObject {
      * SabresObjects. Calling {@link #isDataAvailable()} on this object will return false until
      * {@link #fetch()} has been called.
      *
-     * @param clazz  The SabresObject subclass to create.
-     * @param id     The object id for the referenced object.
-     * @return       A SabresObject without data.
+     * @param clazz The SabresObject subclass to create.
+     * @param id    The object id for the referenced object.
+     * @return A SabresObject without data.
      */
     public static <T extends SabresObject> T createWithoutData(Class<? extends SabresObject> clazz,
-                                                                long id) {
+        long id) {
         T object = createObjectInstance(clazz);
         object.setObjectId(id);
         return object;
@@ -135,9 +135,9 @@ abstract public class SabresObject {
 
     /**
      * Registers a custom subclass type with Sabres library.
-     * <p>
+     * <p/>
      * Needs to be called before {@link Sabres#initialize}.
-     *
+     * <p/>
      * <pre>
      * {@code
      * public class MyApplication extends Application {
@@ -184,7 +184,7 @@ abstract public class SabresObject {
     }
 
     private static <T extends SabresObject> T createObjectInstance(Class<? extends SabresObject>
-                                                                       clazz) {
+        clazz) {
         try {
             //noinspection unchecked
             return (T)clazz.newInstance();
@@ -258,6 +258,225 @@ abstract public class SabresObject {
      */
     public static String getUpdatedAtKey() {
         return UPDATED_AT_KEY;
+    }
+
+    /**
+     * Saves each object in the provided list.
+     *
+     * @param objects The objects to save.
+     * @throws SabresException Throws a SabresException in case of error in one of the save
+     *                         operations.
+     */
+    public static <T extends SabresObject> void saveAll(List<T> objects) throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        sabres.beginTransaction();
+        try {
+            for (SabresObject o : objects) {
+                o.saveInTransaction(sabres);
+            }
+            sabres.setTransactionSuccessful();
+        } finally {
+            sabres.endTransaction();
+            sabres.close();
+        }
+    }
+
+    /**
+     * Saves each object in the provided list to the database in a background thread.
+     * This is preferable to using saveAll, unless your code is already running from a background
+     * thread.
+     *
+     * @param objects The objects to save.
+     * @return A Task that is resolved when saveAll completes.
+     */
+    public static <T extends SabresObject> Task<Void> saveAllInBackground(final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                saveAll(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Saves each object in the provided list to the database in a background thread.
+     * This is preferable to using saveAll, unless your code is already running from a background
+     * thread.
+     *
+     * @param objects  The objects to save.
+     * @param callback callback.done(e) is called when the save completes.
+     */
+    public static <T extends SabresObject> void saveAllInBackground(final List<T> objects,
+        final SaveCallback callback) {
+        saveAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    /**
+     * Fetches all the objects that don't have data in the provided list.
+     *
+     * @param objects The list of objects to fetch.
+     * @throws SabresException Throws an exception if there was a problem with the operation.
+     */
+    public static <T extends SabresObject> void fetchAllIfNeeded(List<T> objects)
+        throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        try {
+            for (T o : objects) {
+                if (!o.isDataAvailable()) {
+                    o.fetch(sabres);
+                }
+            }
+        } finally {
+            sabres.close();
+        }
+    }
+
+    /**
+     * Fetches all the objects that don't have data in the provided list in a background thread.
+     *
+     * @param objects The list of objects to fetch.
+     * @return A Task that is resolved when fetch completes.
+     */
+    public static <T extends SabresObject> Task<Void> fetchAllIfNeededInBackground(
+        final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                fetchAllIfNeeded(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Fetches all the objects that don't have data in the provided list in a background thread.
+     *
+     * @param objects  The list of objects to fetch.
+     * @param callback callback.done(e) is called when the fetch completes.
+     */
+    public static <T extends SabresObject> void fetchAllIfNeededInBackground(List<T> objects,
+        final FetchCallback callback) {
+        fetchAllIfNeededInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    /**
+     * Fetches all the objects in the provided list.
+     *
+     * @param objects The list of objects to fetch.
+     * @throws SabresException Throws an exception if there was a problem with the operation.
+     */
+    public static <T extends SabresObject> void fetchAll(List<T> objects) throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        try {
+            for (T o : objects) {
+                o.fetch(sabres);
+            }
+        } finally {
+            sabres.close();
+        }
+    }
+
+    /**
+     * Fetches all the objects in the provided list in a background thread.
+     *
+     * @param objects The list of objects to fetch.
+     * @return A Task that is resolved when fetch completes.
+     */
+    public static <T extends SabresObject> Task<Void> fetchAllInBackground(final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                fetchAll(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Fetches all the objects in the provided list in a background thread.
+     *
+     * @param objects  The list of objects to fetch.
+     * @param callback callback.done(e) is called when the fetch completes.
+     */
+    public static <T extends SabresObject> void fetchAllInBackground(List<T> objects,
+        final FetchCallback callback) {
+        fetchAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    /**
+     * Deletes each object in the provided list.
+     *
+     * @param objects The objects to delete.
+     * @throws SabresException Throws an exception if one of the deletes fails.
+     */
+    public static <T extends SabresObject> void deleteAll(List<T> objects) throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        sabres.beginTransaction();
+        try {
+            for (T o : objects) {
+                o.deleteInTransaction(sabres);
+            }
+            sabres.setTransactionSuccessful();
+        } finally {
+            sabres.endTransaction();
+            sabres.close();
+        }
+    }
+
+    /**
+     * Deletes each object in the provided list in a background thread.
+     *
+     * @param objects The objects to delete.
+     * @return A Task that is resolved when deleteAll completes.
+     */
+    public static <T extends SabresObject> Task<Void> deleteAllInBackground(final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                deleteAll(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Deletes each object in the provided list in a background thread.
+     *
+     * @param objects  The objects to delete.
+     * @param callback The callback method to execute when completed.
+     */
+    public static <T extends SabresObject> void deleteAllInBackground(final List<T> objects,
+        final DeleteCallback callback) {
+        deleteAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     /**
@@ -565,7 +784,7 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database in a background thread.
-     * <p>
+     * <p/>
      * This is preferable to using {@link #save()} ,
      * unless your code is already running from a background thread.
      *
@@ -583,7 +802,7 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database in a background thread.
-     * <p>
+     * <p/>
      * This is preferable to using {@link #save()} ,
      * unless your code is already running from a background thread.
      *
@@ -628,7 +847,7 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database.
-     * <p>
+     * <p/>
      * Typically, you should use {@link #saveInBackground()} instead of this,
      * unless you are managing your own threading.
      *
@@ -645,64 +864,6 @@ abstract public class SabresObject {
             sabres.endTransaction();
             sabres.close();
         }
-    }
-
-    /**
-     * Saves each object in the provided list.
-     *
-     * @param objects The objects to save.
-     * @throws SabresException Throws a SabresException in case of error in one of the save
-     * operations.
-     */
-    public static <T extends SabresObject> void saveAll(List<T> objects) throws SabresException {
-        final Sabres sabres = Sabres.self();
-        sabres.open();
-        sabres.beginTransaction();
-        try {
-            for (SabresObject o : objects) {
-                o.saveInTransaction(sabres);
-            }
-            sabres.setTransactionSuccessful();
-        }finally {
-            sabres.endTransaction();
-            sabres.close();
-        }
-    }
-
-    /**
-     * Saves each object in the provided list to the database in a background thread.
-     * This is preferable to using saveAll, unless your code is already running from a background
-     * thread.
-     *
-     * @param objects The objects to save.
-     * @return A Task that is resolved when saveAll completes.
-     */
-    public static <T extends SabresObject> Task<Void> saveAllInBackground(final List<T> objects) {
-        return Task.callInBackground(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                saveAll(objects);
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Saves each object in the provided list to the database in a background thread.
-     * This is preferable to using saveAll, unless your code is already running from a background
-     * thread.
-     * @param objects The objects to save.
-     * @param callback callback.done(e) is called when the save completes.
-     */
-    public static <T extends SabresObject> void saveAllInBackground(final  List<T> objects,
-                                                                    final SaveCallback callback) {
-        saveAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
-            @Override
-            public Void then(Task<Void> task) throws Exception {
-                callback.done(SabresException.construct(task.getError()));
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
     }
 
     private void updateSchema(Sabres sabres) throws SabresException {
@@ -790,7 +951,7 @@ abstract public class SabresObject {
 
     /**
      * Fetches the data of this object from the database.
-     * <p>
+     * <p/>
      * Typically, you should use {@link #fetchInBackground()} instead of this,
      * unless you are managing your own threading.
      *
@@ -833,112 +994,6 @@ abstract public class SabresObject {
     }
 
     /**
-     * Fetches all the objects that don't have data in the provided list.
-     *
-     * @param objects  The list of objects to fetch.
-     * @throws SabresException Throws an exception if there was a problem with the operation.
-     */
-    public static <T extends SabresObject> void fetchAllIfNeeded(List<T> objects)
-        throws SabresException {
-        final Sabres sabres = Sabres.self();
-        sabres.open();
-        try {
-            for (T o : objects) {
-                if (!o.isDataAvailable()) {
-                    o.fetch(sabres);
-                }
-            }
-        } finally {
-            sabres.close();
-        }
-    }
-
-    /**
-     * Fetches all the objects that don't have data in the provided list in a background thread.
-     *
-     * @param objects  The list of objects to fetch.
-     * @return A Task that is resolved when fetch completes.
-     */
-    public static <T extends SabresObject> Task<Void> fetchAllIfNeededInBackground(
-        final List<T> objects) {
-        return Task.callInBackground(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                fetchAllIfNeeded(objects);
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Fetches all the objects that don't have data in the provided list in a background thread.
-     *
-     * @param objects  The list of objects to fetch.
-     * @param callback callback.done(e) is called when the fetch completes.
-     */
-    public static <T extends SabresObject> void fetchAllIfNeededInBackground(List<T> objects,
-        final FetchCallback callback) {
-        fetchAllIfNeededInBackground(objects).continueWith(new Continuation<Void, Void>() {
-            @Override
-            public Void then(Task<Void> task) throws Exception {
-                callback.done(SabresException.construct(task.getError()));
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    /**
-     * Fetches all the objects in the provided list.
-     *
-     * @param objects  The list of objects to fetch.
-     * @throws SabresException Throws an exception if there was a problem with the operation.
-     */
-    public static <T extends SabresObject> void fetchAll(List<T> objects)  throws SabresException {
-        final Sabres sabres = Sabres.self();
-        sabres.open();
-        try {
-            for (T o : objects) {
-                o.fetch(sabres);
-            }
-        } finally {
-            sabres.close();
-        }
-    }
-
-    /**
-     * Fetches all the objects in the provided list in a background thread.
-     *
-     * @param objects  The list of objects to fetch.
-     * @return A Task that is resolved when fetch completes.
-     */
-    public static <T extends SabresObject> Task<Void> fetchAllInBackground(final List<T> objects) {
-        return Task.callInBackground(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                fetchAll(objects);
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Fetches all the objects in the provided list in a background thread.
-     *
-     * @param objects  The list of objects to fetch.
-     * @param callback callback.done(e) is called when the fetch completes.
-     */
-    public static <T extends SabresObject> void fetchAllInBackground(List<T> objects,
-        final FetchCallback callback) {
-        fetchAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
-            @Override
-            public Void then(Task<Void> task) throws Exception {
-                callback.done(SabresException.construct(task.getError()));
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    /**
      * If this SabresObject has not been fetched ({@link #isDataAvailable()} returns false),
      * fetches the data of this object from the database in a background thread.
      *
@@ -956,7 +1011,7 @@ abstract public class SabresObject {
 
     /**
      * Fetches this object from the database in a background thread.
-     * <p>
+     * <p/>
      * This is preferable to using {@link #fetch()},
      * unless your code is already running from a background thread.
      *
@@ -974,6 +1029,7 @@ abstract public class SabresObject {
 
     /**
      * Checks if the passed SabresObject has the same Id as this.
+     *
      * @param other The other SabresObject
      * @return true ig the id's of the objects are the same, false otherwise.
      */
@@ -983,7 +1039,7 @@ abstract public class SabresObject {
 
     /**
      * Fetches this object from the database in a background thread.
-     * <p>
+     * <p/>
      * This is preferable to using {@link #fetch()} ,
      * unless your code is already running from a background thread.
      *
@@ -1037,6 +1093,37 @@ abstract public class SabresObject {
         }
 
         return String.format("%s_%s", prefix, key);
+    }
+
+    /**
+     * Increments the given key by 1.
+     *
+     * @param key The key to increment.
+     */
+    public void increment(String key) {
+        increment(key, 1);
+    }
+
+    /**
+     * Increments the given key by amount.
+     *
+     * @param key    The key to increment.
+     * @param amount The amount to increment the current value of the given key.
+     */
+    public void increment(String key, Number amount) {
+        if (values.containsKey(key)) {
+            SabresValue sabresValue = values.get(key);
+            if (sabresValue instanceof NumberValue) {
+                ((NumberValue)sabresValue).increment(amount);
+            } else {
+                throw new IllegalArgumentException(
+                    String.format("Key %s is not a number. Cannot increment", key));
+            }
+        } else {
+            throw new IllegalArgumentException(
+                String.format("Key %s does not exist. Cannot increment", key));
+
+        }
     }
 
     void populate(Sabres sabres, Cursor c, String prefix) throws SabresException {
@@ -1137,7 +1224,7 @@ abstract public class SabresObject {
      * Deletes this object from the database. This does not delete or destroy the object locally.
      *
      * @throws SabresException Throws an error if the object does not exist or if the operation
-     * fails.
+     *                         fails.
      */
     public void delete() throws SabresException {
         final Sabres sabres = Sabres.self();
@@ -1154,62 +1241,8 @@ abstract public class SabresObject {
     }
 
     /**
-     * Deletes each object in the provided list.
-     *
-     * @param objects The objects to delete.
-     * @throws SabresException Throws an exception if one of the deletes fails.
-     */
-    public static <T extends SabresObject> void deleteAll(List<T> objects) throws SabresException {
-        final Sabres sabres = Sabres.self();
-        sabres.open();
-        sabres.beginTransaction();
-        try {
-            for (T o : objects) {
-                o.deleteInTransaction(sabres);
-            }
-            sabres.setTransactionSuccessful();
-        } finally {
-            sabres.endTransaction();
-            sabres.close();
-        }
-    }
-
-    /**
-     * Deletes each object in the provided list in a background thread.
-     *
-     * @param objects The objects to delete.
-     * @return A Task that is resolved when deleteAll completes.
-     */
-    public static <T extends SabresObject> Task<Void> deleteAllInBackground(final List<T> objects) {
-        return Task.callInBackground(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                deleteAll(objects);
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Deletes each object in the provided list in a background thread.
-     *
-     * @param objects The objects to delete.
-     * @param callback  The callback method to execute when completed.
-     */
-    public static <T extends SabresObject> void deleteAllInBackground(final List<T> objects,
-        final DeleteCallback callback) {
-        deleteAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
-            @Override
-            public Void then(Task<Void> task) throws Exception {
-                callback.done(SabresException.construct(task.getError()));
-                return null;
-            }
-        }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    /**
      * Deletes this object on the server in a background thread.
-     * <p>
+     * <p/>
      * This is preferable to using {@link #delete()}, unless your code is already running from a
      * background thread.
      *
@@ -1227,7 +1260,7 @@ abstract public class SabresObject {
 
     /**
      * Deletes this object on the server in a background thread.
-     * <p>
+     * <p/>
      * This is preferable to using {@link #delete()}, unless your code is already running from a
      * background thread.
      *

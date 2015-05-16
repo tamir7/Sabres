@@ -23,6 +23,11 @@ final class FloatValue extends NumberValue<Float> {
     }
 
     @Override
+    void increment(Number amount) {
+        setValue(getValue() + amount.floatValue());
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.Float);
     }

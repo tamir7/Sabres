@@ -31,4 +31,6 @@ abstract class NumberValue<T extends Number> extends SabresValue<T> {
     public String toString() {
         return toSql();
     }
+
+    abstract void increment(Number amount);
 }

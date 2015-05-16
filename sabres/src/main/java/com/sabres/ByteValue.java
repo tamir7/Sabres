@@ -23,6 +23,11 @@ final class ByteValue extends NumberValue<Byte> {
     }
 
     @Override
+    void increment(Number amount) {
+        setValue((byte)(getValue() + amount.byteValue()));
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.Byte);
     }

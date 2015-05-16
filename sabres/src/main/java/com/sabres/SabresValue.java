@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 abstract class SabresValue<T> {
-    private final T value;
+    private T value;
 
     SabresValue(T value) {
         this.value = value;
@@ -133,5 +133,9 @@ abstract class SabresValue<T> {
 
     T getValue() {
         return value;
+    }
+
+    protected void setValue(T value) {
+        this.value = value;
     }
 }

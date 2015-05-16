@@ -23,6 +23,11 @@ final class DoubleValue extends NumberValue<Double> {
     }
 
     @Override
+    void increment(Number amount) {
+        setValue(getValue() + amount.doubleValue());
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.Double);
     }
