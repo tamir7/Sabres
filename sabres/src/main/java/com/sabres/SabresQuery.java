@@ -680,15 +680,7 @@ public class SabresQuery<T extends SabresObject> {
      * @see SabresException#OBJECT_NOT_FOUND
      */
     public T get(long objectId) throws SabresException {
-        Sabres sabres = Sabres.self();
-        sabres.open();
-        try {
-            checkTableExists(sabres);
-            T instance = SabresObject.createWithoutData(name, objectId);
-            instance.fetch(sabres);
-            return instance;
-        } finally {
-            sabres.close();
-        }
+        addWhere(Where.equalTo(SabresObject.getObjectIdKey(), objectId));
+        return getFirst();
     }
 }
