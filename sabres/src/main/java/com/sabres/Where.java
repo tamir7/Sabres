@@ -16,11 +16,31 @@
 
 package com.sabres;
 
+import java.util.List;
+
 final class Where {
     private String where;
 
     private Where(String key, Object value, Operator operator) {
         where = key + operator.toString() + String.format("'%s'", String.valueOf(value));
+    }
+
+    private Where(String key, List<Object> objects, Operator operator) {
+        StringBuilder sb = new StringBuilder(key).append(operator).append("(");
+        boolean first = true;
+        for (Object o : objects) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+            sb.append(String.valueOf(o));
+        }
+        where = sb.append(")").toString();
+    }
+
+    public static Where in(String key, List<Object> objects) {
+        return new Where(key, objects, Operator.In);
     }
 
     public static Where equalTo(String key, Object value) {
@@ -72,7 +92,7 @@ final class Where {
     }
 
     public static Where isNot(String key, Object value) {
-        return new Where (key, value, Operator.IsNot);
+        return new Where(key, value, Operator.IsNot);
     }
 
     public Where and(Where andWhere) {
@@ -104,7 +124,8 @@ final class Where {
         Like(" LIKE "),
         NotLike(" NOT LIKE "),
         Is(" IS "),
-        IsNot(" IS NOT ");
+        IsNot(" IS NOT "),
+        In(" IN ");
 
         private final String value;
 

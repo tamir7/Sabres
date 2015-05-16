@@ -433,6 +433,20 @@ public class SabresQuery<T extends SabresObject> {
         return this;
     }
 
+    /**
+     * Add a constraint to the query that requires a particular key's value to be contained in
+     * the provided list of values.
+     *
+     * @param key    The key to check.
+     * @param values The values that will match.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereContainedIn(String key, List<Object> values) {
+        keyIndices.add(key);
+        addWhere(Where.in(key, values));
+        return this;
+    }
+
     private void addWhere(Where where) {
         if (this.where == null) {
             this.where = where;
