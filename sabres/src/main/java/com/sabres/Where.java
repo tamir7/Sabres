@@ -39,11 +39,11 @@ final class Where {
         where = sb.append(")").toString();
     }
 
-    public static Where in(String key, List<Object> objects) {
+    public static Where in(String key, List<String> objects) {
         return new Where(key, objects, Operator.In);
     }
 
-    public static Where notIn(String key, List<Object> objects) {
+    public static Where notIn(String key, List<String> objects) {
         return new Where(key, objects, Operator.NotIn);
     }
 

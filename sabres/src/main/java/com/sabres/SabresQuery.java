@@ -95,6 +95,7 @@ public class SabresQuery<T extends SabresObject> {
     private final List<OrderBy> orderByList = new ArrayList<>();
     private List<String> selectKeys;
     private Where where;
+    private final List<SabresQuery<T>> innerQueries;
     private Integer limit;
     private Integer skip;
 
@@ -109,6 +110,18 @@ public class SabresQuery<T extends SabresObject> {
         this.clazz = clazz;
         name = clazz.getSimpleName();
         selectKeys = Schema.getKeys(name);
+        innerQueries = null;
+    }
+
+    private SabresQuery(List<SabresQuery<T>> queries) {
+        if (queries.isEmpty()) {
+            throw new IllegalArgumentException("The list of queries is empty");
+        }
+
+        SabresQuery<T> q = queries.get(0);
+        this.clazz = q.clazz;
+        this.name = q.name;
+        this.innerQueries = queries;
     }
 
     /**
@@ -122,10 +135,31 @@ public class SabresQuery<T extends SabresObject> {
         return new SabresQuery<>(clazz);
     }
 
-    private static void createIndices(Sabres sabres, String name, List<String> keys)
+    private void createIndices(Sabres sabres)
         throws SabresException {
-        CreateIndexCommand createIndexCommand = new CreateIndexCommand(name, keys).ifNotExists();
-        sabres.execSQL(createIndexCommand.toString());
+        if (innerQueries == null ) {
+            CreateIndexCommand createIndexCommand =
+                new CreateIndexCommand(name, keyIndices).ifNotExists();
+            sabres.execSQL(createIndexCommand.toString());
+        } else {
+            for (SabresQuery q : innerQueries) {
+                q.createIndices(sabres);
+            }
+        }
+    }
+
+    /**
+     * Constructs a query that is the or of the given queries.
+     * Previous calls to setLimit, setSkip, addAscendingOrder, addDescendingOrder or selectKeys
+     * are disregarded for the inner queries. Calling those functions on the returned query will
+     * have the desired effect.
+     * Calling where* functions on the return query is not permitted.
+     *
+     * @param queries The list of ParseQuerys to 'or' together.
+     * @return A ParseQuery that is the 'or' of the passed in queries.
+     */
+    public static <T extends SabresObject> SabresQuery<T> or(List<SabresQuery<T>> queries) {
+        return new SabresQuery<T>(queries);
     }
 
     /**
@@ -297,8 +331,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEqualTo(String key, Object value) {
-        keyIndices.add(key);
-        addWhere(Where.equalTo(key, stringifyObject(value)));
+        addWhere(key, Where.equalTo(key, stringifyObject(value)));
         return this;
     }
 
@@ -311,8 +344,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereNotEqualTo(String key, Object value) {
-        keyIndices.add(key);
-        addWhere(Where.notEqualTo(key, value));
+        addWhere(key, Where.notEqualTo(key, stringifyObject(value)));
         return this;
     }
 
@@ -323,8 +355,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereExists(String key) {
-        keyIndices.add(key);
-        addWhere(Where.isNot(key, "NULL"));
+        addWhere(key, Where.isNot(key, "NULL"));
         return this;
     }
 
@@ -335,8 +366,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereDoesNotExist(String key) {
-        keyIndices.add(key);
-        addWhere(Where.is(key, "NULL"));
+        addWhere(key, Where.is(key, "NULL"));
         return this;
     }
 
@@ -349,8 +379,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereLessThan(String key, Object value) {
-        keyIndices.add(key);
-        addWhere(Where.lessThan(key, value));
+        addWhere(key, Where.lessThan(key, stringifyObject(value)));
         return this;
     }
 
@@ -363,8 +392,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereLessThanOrEqual(String key, Object value) {
-        keyIndices.add(key);
-        addWhere(Where.lessThanOrEqual(key, value));
+        addWhere(key, Where.lessThanOrEqual(key, stringifyObject(value)));
         return this;
     }
 
@@ -377,8 +405,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereGraterThan(String key, Object value) {
-        keyIndices.add(key);
-        addWhere(Where.greaterThan(key, value));
+        addWhere(key, Where.greaterThan(key, stringifyObject(value)));
         return this;
     }
 
@@ -391,8 +418,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereGreaterThanOrEqual(String key, Object value) {
-        keyIndices.add(key);
-        addWhere(Where.greaterThanOrEqual(key, value));
+        addWhere(key, Where.greaterThanOrEqual(key, stringifyObject(value)));
         return this;
     }
 
@@ -404,8 +430,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereStartsWith(String key, String prefix) {
-        keyIndices.add(key);
-        addWhere(Where.startsWith(key, prefix));
+        addWhere(key, Where.startsWith(key, prefix));
         return this;
     }
 
@@ -417,8 +442,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEndsWith(String key, String suffix) {
-        keyIndices.add(key);
-        addWhere(Where.endsWith(key, suffix));
+        addWhere(key, Where.endsWith(key, suffix));
         return this;
     }
 
@@ -428,8 +452,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereContains(String key, String substring) {
-        keyIndices.add(key);
-        addWhere(Where.contains(key, substring));
+        addWhere(key, Where.contains(key, substring));
         return this;
     }
 
@@ -442,8 +465,11 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereContainedIn(String key, List<Object> values) {
-        keyIndices.add(key);
-        addWhere(Where.in(key, values));
+        List<String> stingValues = new ArrayList<>(values.size());
+        for (Object o : values) {
+            stingValues.add(stringifyObject(o));
+        }
+        addWhere(key, Where.in(key, stingValues));
         return this;
     }
 
@@ -456,17 +482,27 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereNotContainedIn(String key, List<Object> values) {
-        keyIndices.add(key);
-        addWhere(Where.notIn(key, values));
+        List<String> stingValues = new ArrayList<>(values.size());
+        for (Object o : values) {
+            stingValues.add(stringifyObject(o));
+        }
+
+        addWhere(key, Where.notIn(key, stingValues));
         return this;
     }
 
-    private void addWhere(Where where) {
+    private void addWhere(String key, Where where) {
+        if (innerQueries != null) {
+            throw new IllegalStateException("Cannot call Where* functions on a compound query.");
+        }
+
         if (this.where == null) {
             this.where = where;
         } else {
             this.where = this.where.and(where);
         }
+
+        keyIndices.add(key);
     }
 
     /**
@@ -616,7 +652,7 @@ public class SabresQuery<T extends SabresObject> {
         Cursor c = null;
         try {
             if (SqliteMaster.tableExists(sabres, name)) {
-                createIndices(sabres, name, keyIndices);
+                createIndices(sabres);
                 SelectCommand command = new SelectCommand(name, selectKeys);
                 for (String include : includes) {
                     SabresDescriptor descriptor = Schema.getDescriptor(name, include);
@@ -637,6 +673,16 @@ public class SabresQuery<T extends SabresObject> {
 
                 if (skip != null) {
                     command.withSkip(skip);
+                }
+
+                if (innerQueries != null) {
+                    for (SabresQuery q : innerQueries) {
+                        if (where == null) {
+                            where = q.where;
+                        } else {
+                            where.or(q.where);
+                        }
+                    }
                 }
 
                 c = sabres.select(command.where(where).toSql());
@@ -680,7 +726,7 @@ public class SabresQuery<T extends SabresObject> {
      * @see SabresException#OBJECT_NOT_FOUND
      */
     public T get(long objectId) throws SabresException {
-        addWhere(Where.equalTo(SabresObject.getObjectIdKey(), objectId));
+        whereEqualTo(SabresObject.getObjectIdKey(), objectId);
         return getFirst();
     }
 }
