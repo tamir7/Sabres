@@ -16,6 +16,34 @@
 
 package com.sabres;
 
+/**
+ * A FetchCallback is used to run code after fetching a SabresObject in a background thread.
+ * <p>
+ * The easiest way to use a FetchCallback is through an anonymous inner class.
+ * Override the done function to specify what the callback should do after the fetch is complete.
+ * The done function will be run in the UI thread, while the fetch happens in a background thread.
+ * This ensures that the UI does not freeze while the fetch happens.
+ *
+ * For example, this sample code fetches the object myObject.
+ * <pre>
+ * {@code
+ * myObject.fetchInBackground(new FetchCallback() {
+ *     public void done(SabresException e) {
+ *         if (e == null) {
+ *             myObjectWasFetchedSuccessfully();
+ *         } else {
+ *             myObjectFetchDidNotSucceed();
+ *         }
+ *     }
+ * });
+ * }
+ * </pre>
+ */
 public interface FetchCallback {
+    /**
+     * Override this function with the code you want to run after fetch is complete.
+     *
+     * @param e     The exception raised by fetch or null if successful.
+     */
     void done(SabresException e);
 }
