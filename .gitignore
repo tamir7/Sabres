@@ -2,4 +2,6 @@
 /local.properties
 /.idea
 /build
+*.iml
+*.pro
 
