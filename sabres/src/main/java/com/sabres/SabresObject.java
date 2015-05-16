@@ -770,7 +770,7 @@ abstract public class SabresObject {
         sabres.execSQL(command.toSql());
     }
 
-    void fetchInTransaction(Sabres sabres) throws SabresException {
+    void fetch(Sabres sabres) throws SabresException {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(name, Schema.getKeys(name)).
@@ -800,7 +800,7 @@ abstract public class SabresObject {
         Sabres sabres = Sabres.self();
         sabres.open();
         try {
-            fetchInTransaction(sabres);
+            fetch(sabres);
         } finally {
             sabres.close();
         }
@@ -810,7 +810,7 @@ abstract public class SabresObject {
      * If this SabresObject has not been fetched ({@link #isDataAvailable()} returns false),
      * fetches the data of this object from the database.
      *
-     * @throws SabresException Throws an exseption if there was a problem with the operation.
+     * @throws SabresException Throws an exception if there was a problem with the operation.
      */
     public void fetchIfNeeded() throws SabresException {
         if (!isDataAvailable()) {
@@ -833,10 +833,117 @@ abstract public class SabresObject {
     }
 
     /**
+     * Fetches all the objects that don't have data in the provided list.
+     *
+     * @param objects  The list of objects to fetch.
+     * @throws SabresException Throws an exception if there was a problem with the operation.
+     */
+    public static <T extends SabresObject> void fetchAllIfNeeded(List<T> objects)
+        throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        try {
+            for (T o : objects) {
+                if (!o.isDataAvailable()) {
+                    o.fetch(sabres);
+                }
+            }
+        } finally {
+            sabres.close();
+        }
+    }
+
+    /**
+     * Fetches all the objects that don't have data in the provided list in a backround thread.
+     *
+     * @param objects  The list of objects to fetch.
+     * @return A Task that is resolved when fetch completes.
+     */
+    public static <T extends SabresObject> Task<Void> fetchAllIfNeededInBackground(
+        final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                fetchAllIfNeeded(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Fetches all the objects that don't have data in the provided list in a backround thread.
+     *
+     * @param objects  The list of objects to fetch.
+     * @param callback callback.done(e) is called when the fetch completes.
+     * @param <T>
+     */
+    public static <T extends SabresObject> void fetchAllIfNeededInBackground(List<T> objects,
+        final FetchCallback callback) {
+        fetchAllIfNeededInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    /**
+     * Fetches all the objects in the provided list.
+     *
+     * @param objects  The list of objects to fetch.
+     * @throws SabresException Throws an exception if there was a problem with the operation.
+     */
+    public static <T extends SabresObject> void fetchAll(List<T> objects)  throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        try {
+            for (T o : objects) {
+                o.fetch(sabres);
+            }
+        } finally {
+            sabres.close();
+        }
+    }
+
+    /**
+     * Fetches all the objects in the provided list in a background thread.
+     *
+     * @param objects  The list of objects to fetch.
+     * @return A Task that is resolved when fetch completes.
+     */
+    public static <T extends SabresObject> Task<Void> fetchAllInBackground(final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                fetchAll(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Fetches all the objects in the provided list in a background thread.
+     *
+     * @param objects  The list of objects to fetch.
+     * @param callback callback.done(e) is called when the fetch completes.
+     */
+    public static <T extends SabresObject> void fetchAllInBackground(List<T> objects,
+        final FetchCallback callback) {
+        fetchAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    /**
      * If this SabresObject has not been fetched ({@link #isDataAvailable()} returns false),
      * fetches the data of this object from the database in a background thread.
      *
-     * @param callback callback.done(object, e) is called when the fetch completes.
+     * @param callback callback.done(e) is called when the fetch completes.
      */
     public void fetchIfNeededInBackground(final FetchCallback callback) {
         fetchIfNeededInBackground().continueWith(new Continuation<Void, Void>() {
@@ -1036,8 +1143,11 @@ abstract public class SabresObject {
     public void delete() throws SabresException {
         final Sabres sabres = Sabres.self();
         sabres.open();
-        deleteInTransaction(sabres);
-        sabres.close();
+        try {
+            deleteInTransaction(sabres);
+        } finally {
+            sabres.close();
+        }
     }
 
     void deleteInTransaction(Sabres sabres) throws SabresException {
