@@ -30,7 +30,7 @@ public class SabresController {
     }
 
     public void printSchema() {
-        Sabres.printSchemaTable(Movie.class);
+        Sabres.printSchema(Movie.class);
     }
 
     public void printMovies() {
