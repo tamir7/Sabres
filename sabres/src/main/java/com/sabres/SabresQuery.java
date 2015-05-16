@@ -302,6 +302,100 @@ public class SabresQuery<T extends SabresObject> {
         return this;
     }
 
+    /**
+     * Add a constraint to the query that requires a particular key's value to be not equal to
+     * the provided value.
+     *
+     * @param key   The key to check.
+     * @param value The value that must not be equalled.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereNotEqualTo(String key, Object value) {
+        keyIndices.add(key);
+        addWhere(Where.notEqualTo(key, value));
+        return this;
+    }
+
+    /**
+     * Add a constraint for finding objects that contain the given key.
+     *
+     * @param key The key that should exist.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereExists(String key) {
+        keyIndices.add(key);
+        addWhere(Where.isNot(key, "NULL"));
+        return this;
+    }
+
+    /**
+     * Add a constraint for finding objects that do not contain a given key.
+     *
+     * @param key The key that should not exist.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereDoesNotExist(String key) {
+        keyIndices.add(key);
+        addWhere(Where.is(key, "NULL"));
+        return this;
+    }
+
+    /**
+     * Add a constraint to the query that requires a particular key's value to be less than
+     * the provided value.
+     *
+     * @param key   The key to check.
+     * @param value The value that provides an upper bound.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereLessThan(String key, Object value) {
+        keyIndices.add(key);
+        addWhere(Where.lessThan(key, value));
+        return this;
+    }
+
+    /**
+     * Add a constraint to the query that requires a particular key's value to be less than or
+     * equal to the provided value.
+     *
+     * @param key   The key to check.
+     * @param value The value that provides an upper bound.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereLessThanOrEqual(String key, Object value) {
+        keyIndices.add(key);
+        addWhere(Where.lessThanOrEqual(key, value));
+        return this;
+    }
+
+    /**
+     * Add a constraint to the query that requires a particular key's value to be greater than
+     * the provided value.
+     *
+     * @param key   The key to check.
+     * @param value The value that provides an lower bound.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereGraterThan(String key, Object value) {
+        keyIndices.add(key);
+        addWhere(Where.greaterThan(key, value));
+        return this;
+    }
+
+    /**
+     * Add a constraint to the query that requires a particular key's value to be greater than
+     * or equal to the provided value.
+     *
+     * @param key   key The key to check.
+     * @param value The value that provides an lower bound.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereGreaterThanOrEqual(String key, Object value) {
+        keyIndices.add(key);
+        addWhere(Where.greaterThanOrEqual(key, value));
+        return this;
+    }
+
     private void addWhere(Where where) {
         if (this.where == null) {
             this.where = where;

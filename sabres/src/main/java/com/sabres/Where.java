@@ -39,20 +39,28 @@ final class Where {
         return new Where(key, value, Operator.NotEqual);
     }
 
-    public static Where greaterThen(String key, Object value) {
-        return new Where(key, value, Operator.GreaterThen);
+    public static Where greaterThan(String key, Object value) {
+        return new Where(key, value, Operator.GreaterThan);
     }
 
-    public static Where greaterThenOrEqual(String key, Object value) {
-        return new Where(key, value, Operator.GreaterThenOrEqual);
+    public static Where greaterThanOrEqual(String key, Object value) {
+        return new Where(key, value, Operator.GreaterThanOrEqual);
     }
 
-    public static Where lessThen(String key, Object value) {
-        return new Where(key, value, Operator.LessThen);
+    public static Where lessThan(String key, Object value) {
+        return new Where(key, value, Operator.LessThan);
     }
 
-    public static Where lessThenOrEqual(String key, Object value) {
-        return new Where(key, value, Operator.LessThenOrEqual);
+    public static Where lessThanOrEqual(String key, Object value) {
+        return new Where(key, value, Operator.LessThanOrEqual);
+    }
+
+    public static Where is(String key, Object value) {
+        return new Where(key, value, Operator.Is);
+    }
+
+    public static Where isNot(String key, Object value) {
+        return new Where (key, value, Operator.IsNot);
     }
 
     public Where and(Where andWhere) {
@@ -77,12 +85,14 @@ final class Where {
     private enum Operator {
         Equal("="),
         NotEqual("!="),
-        GreaterThen(">"),
-        GreaterThenOrEqual(">="),
-        LessThen("<"),
-        LessThenOrEqual("<="),
+        GreaterThan(">"),
+        GreaterThanOrEqual(">="),
+        LessThan("<"),
+        LessThanOrEqual("<="),
         Like(" LIKE "),
-        NotLike(" NOT LIKE ");
+        NotLike(" NOT LIKE "),
+        Is(" IS "),
+        IsNot(" IS NOT ");
 
         private final String value;
 
