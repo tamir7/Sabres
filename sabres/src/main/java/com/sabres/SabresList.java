@@ -62,8 +62,8 @@ final class SabresList {
 
         sabres.beginTransaction();
         try {
-            sabres.execSQL(createCommand.toString());
-            sabres.execSQL(indexCommand.toString());
+            sabres.execSQL(createCommand.toSql());
+            sabres.execSQL(indexCommand.toSql());
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();

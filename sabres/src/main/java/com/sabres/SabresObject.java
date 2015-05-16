@@ -854,7 +854,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Fetches all the objects that don't have data in the provided list in a backround thread.
+     * Fetches all the objects that don't have data in the provided list in a background thread.
      *
      * @param objects  The list of objects to fetch.
      * @return A Task that is resolved when fetch completes.
@@ -871,11 +871,10 @@ abstract public class SabresObject {
     }
 
     /**
-     * Fetches all the objects that don't have data in the provided list in a backround thread.
+     * Fetches all the objects that don't have data in the provided list in a background thread.
      *
      * @param objects  The list of objects to fetch.
      * @param callback callback.done(e) is called when the fetch completes.
-     * @param <T>
      */
     public static <T extends SabresObject> void fetchAllIfNeededInBackground(List<T> objects,
         final FetchCallback callback) {
@@ -976,7 +975,7 @@ abstract public class SabresObject {
     /**
      * Checks if the passed SabresObject has the same Id as this.
      * @param other The other SabresObject
-     * @return thue ig the id's of the objects are the same, false otherwise.
+     * @return true ig the id's of the objects are the same, false otherwise.
      */
     public boolean hasSameId(SabresObject other) {
         return id == other.id;
@@ -1040,7 +1039,7 @@ abstract public class SabresObject {
         return String.format("%s_%s", prefix, key);
     }
 
-    void populate(Sabres sabres, Cursor c, String prefix) throws SabresException {
+    private void populate(Sabres sabres, Cursor c, String prefix) throws SabresException {
         id = CursorHelper.getLong(c, OBJECT_ID_KEY);
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
 

@@ -122,7 +122,7 @@ public class SabresQuery<T extends SabresObject> {
         return new SabresQuery<>(clazz);
     }
 
-    static void createIndices(Sabres sabres, String name, List<String> keys)
+    private static void createIndices(Sabres sabres, String name, List<String> keys)
         throws SabresException {
         CreateIndexCommand createIndexCommand = new CreateIndexCommand(name, keys).ifNotExists();
         sabres.execSQL(createIndexCommand.toString());
@@ -673,7 +673,7 @@ public class SabresQuery<T extends SabresObject> {
     /**
      * Constructs a SabresObject whose id is already known by fetching data from the database.
      *
-     * @param objectId
+     * @param objectId The id of the object to get.
      * @return Object id of the ParseObject to fetch.
      * @throws SabresException Throws an exception when there is no such object or if there's a
      *                         database error.

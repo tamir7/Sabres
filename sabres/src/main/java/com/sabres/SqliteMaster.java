@@ -40,7 +40,7 @@ final class SqliteMaster {
         return sabres.count(command.toSql()) != 0;
     }
 
-    static String getTables(Sabres sabres) throws SabresException {
+    static String getTables(Sabres sabres) {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
@@ -65,7 +65,7 @@ final class SqliteMaster {
         }
     }
 
-    static String getIndices(Sabres sabres) throws SabresException {
+    static String getIndices(Sabres sabres) {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
@@ -91,7 +91,7 @@ final class SqliteMaster {
         Table("table"),
         Index("index");
 
-        private String name;
+        private final String name;
 
         Type(String name) {
             this.name = name;

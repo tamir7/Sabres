@@ -72,7 +72,7 @@ final class CreateTableCommand {
                 sb.append(", ");
             }
 
-            sb.append(column.toString());
+            sb.append(column.toSql());
         }
 
         if (!uniqueColumns.isEmpty()) {

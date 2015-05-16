@@ -20,7 +20,7 @@ import java.util.List;
 
 final class IntListValue extends ListValue<Integer> {
 
-    protected IntListValue(List<Integer> list) {
+    IntListValue(List<Integer> list) {
         super(list);
     }
 

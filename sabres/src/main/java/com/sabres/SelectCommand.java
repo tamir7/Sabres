@@ -24,7 +24,7 @@ final class SelectCommand {
     private final String table;
     private final List<String> keys = new ArrayList<>();
     private final List<Join> joins = new ArrayList<>();
-    private List<OrderBy> orderByList = new ArrayList<>();
+    private final List<OrderBy> orderByList = new ArrayList<>();
     private Integer limit;
     private Integer skip;
 

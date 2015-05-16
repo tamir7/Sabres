@@ -170,7 +170,7 @@ final class SabresDescriptor {
             }
         };
 
-        private String text;
+        private final String text;
 
         Type(String text) {
             this.text = text;

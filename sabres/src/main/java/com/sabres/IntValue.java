@@ -18,7 +18,7 @@ package com.sabres;
 
 final class IntValue extends NumberValue<Integer> {
 
-    protected IntValue(Integer value) {
+    IntValue(Integer value) {
         super(value);
     }
 
