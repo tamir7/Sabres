@@ -16,6 +16,7 @@
 
 package com.sabres;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
@@ -34,6 +35,53 @@ import java.util.concurrent.Callable;
 import bolts.Continuation;
 import bolts.Task;
 
+/**
+ * The SabresObject is a base class that allows custom objects to be saved and retrieved with the
+ * Sabres library.
+ * <p>
+ * To start working with SabresObject and the Sabres library, first a model class needs to be
+ * created. Getters ans Setters for custom data can also be provided.
+ * <pre>
+ * {@code
+ * public class MyObject extends SabresObject {
+ *     private static final String MY_INT_KEY = "myInt";
+ *     private static final String MY_STRING_KEY = "myString";
+ *
+ *     public void setMyInt(int myInt) {
+ *         put(MY_INT_KEY, myInt);
+ *     }
+ *
+ *     public void setMyString(String myString) {
+ *         put(MY_STRING_KEY, myString);
+ *     }
+ *
+ *     public Integer getMyInt() {
+ *         return getInt(MY_INT_KEY);
+ *     }
+ *
+ *     public String getMyString() {
+ *         return getString(MY_STRING_KEY);
+ *     }
+ * }
+ * }
+ * </pre>
+ *
+ * Before the object can be used, it needs to be registered with the SabresLibrary.
+ * See {@link #registerSubclass(Class)}
+ *
+ * Now, MyObject can be created, and saved to the database.
+ *
+ * <pre>
+ * {@code
+ * MyObject myObject = new MyObject();
+ * myObject.setMyInt(7);
+ * myObject.setMyString("someFunString");
+ * myObject.saveInBackground();
+ * }
+ * </pre>
+ *
+ * To get objects from the database, the {@link SabresQuery} object is used.
+ */
 abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
     private static final String UNDEFINED = "(undefined)";
@@ -68,7 +116,22 @@ abstract public class SabresObject {
     }
 
     /**
-     * Register a custom subclass type with Sabres lib.
+     * Registers a custom subclass type with Sabres library.
+     * <p>
+     * Needs to be called before {@link Sabres#initialize(Context)}.
+     *
+     * <pre>
+     * {@code
+     * public class MyApplication extends Application {
+     *     public void onCreate() {
+     *         super.onCreate();
+     *         SabresObject.registerSubclass(MyObject1.class);
+     *         SabresObject.registerSubclass(MyObject2.class);
+     *         Sabres.initialize(this);
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param subClass The subclass type to register.
      */
@@ -113,6 +176,11 @@ abstract public class SabresObject {
         }
     }
 
+    /**
+     * Prints all objects of a specific class
+     *
+     * @param clazz the class to print.
+     */
     public static <T extends SabresObject> void printAll(final Class<T> clazz) {
         Task.callInBackground(new Callable<String>() {
             @Override
@@ -157,7 +225,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Add a value to a list with the given key.
+     * Adds a value to a list with the given key.
      *
      * @param key   Key of list object.
      * @param value Value to add. Can be of Type Byte, Short, Integer, Long,
@@ -172,7 +240,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Add objects to a list with the given key.
+     * Adds objects to a list with the given key.
      *
      * @param key     Key of list object.
      * @param objects List of Objects to add. List can be of Type Byte, Short, Integer, Long,
@@ -183,7 +251,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Add a key-value pair to the object.
+     * Adds a key-value pair to the object.
      *
      * @param key   Key in object.
      * @param value Can be of type Boolean, Byte, Short, Integer, Long,
@@ -216,7 +284,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get the unique id of the object. Assigned when object is first saved into the database.
+     * Gets the unique id of the object. Assigned when object is first saved into the database.
      *
      * @return objectId.
      */
@@ -229,9 +297,9 @@ abstract public class SabresObject {
     }
 
     /**
-     * Is the object been fetched from the database.
+     * Checks if the object has been fetched from the database.
      *
-     * @return true if the object been fatched from the database. false otherwise.
+     * @return true if the object has been fetched from the database. false otherwise.
      */
     public boolean isDataAvailable() {
         return dataAvailable;
@@ -245,7 +313,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Does the object has a specific key.
+     * Checks if the object has a specific key.
      *
      * @param key The key to check.
      * @return true if the object has data paired with the given key. false otherwise.
@@ -255,7 +323,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a String value for a given key.
+     * Gets a String value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a String.
@@ -273,7 +341,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Boolean value for a given key.
+     * Gets a Boolean value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Boolean.
@@ -291,7 +359,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get an Integer value for a given key.
+     * Gets an Integer value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not an Integer.
@@ -309,7 +377,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Byte value for a given key.
+     * Gets a Byte value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Byte.
@@ -327,7 +395,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Short value for a given key.
+     * Gets a Short value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Short.
@@ -345,7 +413,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Long value for a given key.
+     * Gets a Long value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Long.
@@ -363,7 +431,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Float value for a given key.
+     * Gets a Float value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Float.
@@ -380,7 +448,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Double value for a given key.
+     * Gets a Double value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Double.
@@ -397,7 +465,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a Date value for a given key.
+     * Gets a Date value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's not a Date.
@@ -414,7 +482,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a List value for a given key.
+     * Gets a List value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's cannot be converted to a list.
@@ -432,7 +500,7 @@ abstract public class SabresObject {
     }
 
     /**
-     * Get a custom subclass of SabresObject value for a given key.
+     * Gets a custom subclass of SabresObject value for a given key.
      *
      * @param key The key to access value for.
      * @return null is there is no such value or if it's cannot be converted to a
@@ -452,7 +520,8 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database in a background thread.
-     * This is preferable to using @link #save(),
+     * <p>
+     * This is preferable to using {@link #save()} ,
      * unless your code is already running from a background thread.
      *
      * @return A Task that is resolved when the save completes.
@@ -469,7 +538,8 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database in a background thread.
-     * This is preferable to using @link #save(),
+     * <p>
+     * This is preferable to using {@link #save()} ,
      * unless your code is already running from a background thread.
      *
      * @param callback callback.done(e) is called when the save completes.
@@ -511,6 +581,14 @@ abstract public class SabresObject {
         dataAvailable = true;
     }
 
+    /**
+     * Saves this object to the database.
+     * <p>
+     * Typically, you should use {@link #saveInBackground()} instead of this,
+     * unless you are managing your own threading.
+     *
+     * @throws SabresException in case of an error with the save operation.
+     */
     public void save() throws SabresException {
         final Sabres sabres = Sabres.self();
         sabres.open();
@@ -608,6 +686,14 @@ abstract public class SabresObject {
         }
     }
 
+    /**
+     * Fetches the data of this object from the database.
+     * <p>
+     * Typically, you should use {@link #fetchInBackground()} instead of this,
+     * unless you are managing your own threading.
+     *
+     * @throws SabresException in case of an error with the fetch operation.
+     */
     public void fetch() throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
@@ -618,6 +704,14 @@ abstract public class SabresObject {
         }
     }
 
+    /**
+     * Fetches this object from the database in a background thread.
+     * <p>
+     * This is preferable to using {@link #fetch()},
+     * unless your code is already running from a background thread.
+     *
+     * @return A Task that is resolved when the fetch completes.
+     */
     public Task<Void> fetchInBackground() {
         return Task.callInBackground(new Callable<Void>() {
             @Override
@@ -628,10 +722,23 @@ abstract public class SabresObject {
         });
     }
 
+    /**
+     * Checks if the passed SabresObject has the same Id as this.
+     * @param other The other SabresObject
+     * @return thue ig the id's of the objects are the same, false otherwise.
+     */
     public boolean hasSameId(SabresObject other) {
         return id == other.id;
     }
 
+    /**
+     * Fetches this object from the database in a background thread.
+     * <p>
+     * This is preferable to using {@link #fetch()} ,
+     * unless your code is already running from a background thread.
+     *
+     * @param callback callback.done(e) is called when the fetch completes.
+     */
     public void fetchInBackground(final FetchCallback callback) {
         fetchInBackground().continueWith(new Continuation<Void, Void>() {
             @Override
@@ -642,14 +749,30 @@ abstract public class SabresObject {
         });
     }
 
+    /**
+     * Checks if the Object has data that has not yet been saved to the Database.
+     *
+     * @return true if it has data that has not been saved, false otherwise.
+     */
     public boolean isDirty() {
         return !dirtyKeys.isEmpty();
     }
 
+    /**
+     * Checks if a specific key was changed and not yet saved to the database.
+     *
+     * @param key The key to check.
+     * @return true if the value of the passed key was not saved, false otherwise.
+     */
     public boolean isDirty(String key) {
         return dirtyKeys.contains(key);
     }
 
+    /**
+     * Returns a Set of all the keys in this object.
+     *
+     * @return a Set of all the keys in this object.
+     */
     public Set<String> keySet() {
         return Schema.getSchema(name).keySet();
     }
@@ -760,6 +883,12 @@ abstract public class SabresObject {
         return SabresObject.toString(name, Collections.singletonList(this));
     }
 
+    /**
+     * Deletes this object from the database. This does not delete or destroy the object locally.
+     *
+     * @throws SabresException Throws an error if the object does not exist or if the operation
+     * fails.
+     */
     public void delete() throws SabresException {
         Sabres sabres = Sabres.self();
         sabres.open();
@@ -767,6 +896,14 @@ abstract public class SabresObject {
         sabres.close();
     }
 
+    /**
+     * Deletes this object on the server in a background thread.
+     * <p>
+     * This is preferable to using {@link #delete()}, unless your code is already running from a
+     * background thread.
+     *
+     * @return A Task that is resolved when delete completes.
+     */
     public Task<Void> deleteInBackground() {
         return Task.callInBackground(new Callable<Void>() {
             @Override
@@ -777,6 +914,14 @@ abstract public class SabresObject {
         });
     }
 
+    /**
+     * Deletes this object on the server in a background thread.
+     * <p>
+     * This is preferable to using {@link #delete()}, unless your code is already running from a
+     * background thread.
+     *
+     * @param callback callback.done(e) is called when the delete operation completes.
+     */
     public void deleteInBackground(final DeleteCallback callback) {
         deleteInBackground().continueWith(new Continuation<Void, Void>() {
             @Override
