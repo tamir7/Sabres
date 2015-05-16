@@ -43,6 +43,10 @@ final class Where {
         return new Where(key, objects, Operator.In);
     }
 
+    public static Where notIn(String key, List<Object> objects) {
+        return new Where(key, objects, Operator.NotIn);
+    }
+
     public static Where equalTo(String key, Object value) {
         return new Where(key, value, Operator.Equal);
     }
@@ -125,7 +129,8 @@ final class Where {
         NotLike(" NOT LIKE "),
         Is(" IS "),
         IsNot(" IS NOT "),
-        In(" IN ");
+        In(" IN "),
+        NotIn(" NOT IN ");
 
         private final String value;
 

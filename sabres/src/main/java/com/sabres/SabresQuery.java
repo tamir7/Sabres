@@ -447,6 +447,20 @@ public class SabresQuery<T extends SabresObject> {
         return this;
     }
 
+    /**
+     * Add a constraint to the query that requires a particular key's value not be contained in
+     * the provided list of values.
+     *
+     * @param key    The key to check.
+     * @param values The values that will not match.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereNotContainedIn(String key, List<Object> values) {
+        keyIndices.add(key);
+        addWhere(Where.notIn(key, values));
+        return this;
+    }
+
     private void addWhere(Where where) {
         if (this.where == null) {
             this.where = where;
