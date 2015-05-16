@@ -124,12 +124,28 @@ public class SabresQuery<T extends SabresObject> {
         sabres.execSQL(createIndexCommand.toString());
     }
 
-    SabresQuery<T> addAscendingOrder(String key) {
+    /**
+     *  Sorts the results in ascending order by the given key.
+     *  Multiple calls with different keys can be made to this and
+     *  {@link #addDescendingOrder(String)} functions for a single query.
+     *
+     * @param key   The key to order by
+     * @return      this, so you can chain this call.
+     */
+    public SabresQuery<T> addAscendingOrder(String key) {
         orderByList.add(new OrderBy(key, OrderBy.Direction.Ascending));
         return this;
     }
 
-    SabresQuery<T> addDescendingOrder(String key) {
+    /**
+     *  Sorts the results in descending order by the given key.
+     *  Multiple calls with different keys can be made to this and
+     *  {@link #addAscendingOrder(String)} functions for a single query.
+     *
+     * @param key   The key to order by
+     * @return      this, so you can chain this call.
+     */
+    public SabresQuery<T> addDescendingOrder(String key) {
         orderByList.add(new OrderBy(key, OrderBy.Direction.Descending));
         return this;
     }
