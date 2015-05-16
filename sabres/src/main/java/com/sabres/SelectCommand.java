@@ -30,12 +30,12 @@ final class SelectCommand {
 
     private Where where;
 
-    SelectCommand(String table, Collection<String> selectKeys) {
+    SelectCommand(String table, List<String> selectKeys) {
         this.table = table;
         this.keys.addAll(selectKeys);
     }
 
-    SelectCommand join(String table, String column, Collection<String> selectKeys) {
+    SelectCommand join(String table, String column, List<String> selectKeys) {
         joins.add(new Join(table, column, selectKeys));
         return this;
     }

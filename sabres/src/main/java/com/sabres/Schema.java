@@ -23,7 +23,6 @@ import com.jakewharton.fliptables.FlipTable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +164,7 @@ final class Schema {
         }
     }
 
-    static Collection<String> getKeys(String name) {
+    static List<String> getKeys(String name) {
         List<String> keys = new ArrayList<>();
         keys.add(SabresObject.getObjectIdKey());
         keys.addAll(schemas.get(name).keySet());

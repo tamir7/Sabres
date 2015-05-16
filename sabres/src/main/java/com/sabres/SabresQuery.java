@@ -93,6 +93,7 @@ public class SabresQuery<T extends SabresObject> {
     private final List<String> keyIndices = new ArrayList<>();
     private final List<String> includes = new ArrayList<>();
     private final List<OrderBy> orderByList = new ArrayList<>();
+    private List<String> selectKeys;
     private Where where;
     private Integer limit;
     private Integer skip;
@@ -107,6 +108,7 @@ public class SabresQuery<T extends SabresObject> {
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
         name = clazz.getSimpleName();
+        selectKeys = Schema.getKeys(name);
     }
 
     /**
@@ -136,6 +138,17 @@ public class SabresQuery<T extends SabresObject> {
      */
     public SabresQuery<T> addAscendingOrder(String key) {
         orderByList.add(new OrderBy(key, OrderBy.Direction.Ascending));
+        return this;
+    }
+
+    /**
+     * Restrict the fields of returned SabresObjects to only include the provided keys.
+     *
+     * @param selectKeys The set of keys to include in the result.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> selectKeys(List<String> selectKeys) {
+        this.selectKeys = selectKeys;
         return this;
     }
 
@@ -445,7 +458,7 @@ public class SabresQuery<T extends SabresObject> {
         try {
             if (SqliteMaster.tableExists(sabres, name)) {
                 createIndices(sabres, name, keyIndices);
-                SelectCommand command = new SelectCommand(name, Schema.getKeys(name));
+                SelectCommand command = new SelectCommand(name, selectKeys);
                 for (String include : includes) {
                     SabresDescriptor descriptor = Schema.getDescriptor(name, include);
                     if (descriptor != null &&
