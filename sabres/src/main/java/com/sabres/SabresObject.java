@@ -1115,6 +1115,7 @@ abstract public class SabresObject {
             SabresValue sabresValue = values.get(key);
             if (sabresValue instanceof NumberValue) {
                 ((NumberValue)sabresValue).increment(amount);
+                dirtyKeys.add(key);
             } else {
                 throw new IllegalArgumentException(
                     String.format("Key %s is not a number. Cannot increment", key));
