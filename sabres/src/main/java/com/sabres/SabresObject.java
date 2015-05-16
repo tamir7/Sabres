@@ -638,7 +638,6 @@ abstract public class SabresObject {
         final Sabres sabres = Sabres.self();
         sabres.open();
         sabres.beginTransaction();
-
         try {
             saveInTransaction(sabres);
             sabres.setTransactionSuccessful();
@@ -666,8 +665,8 @@ abstract public class SabresObject {
             sabres.setTransactionSuccessful();
         }finally {
             sabres.endTransaction();
+            sabres.close();
         }
-        sabres.close();
     }
 
     /**
@@ -993,10 +992,68 @@ abstract public class SabresObject {
      * fails.
      */
     public void delete() throws SabresException {
-        Sabres sabres = Sabres.self();
+        final Sabres sabres = Sabres.self();
         sabres.open();
-        sabres.execSQL(new DeleteCommand(name).where(Where.equalTo(OBJECT_ID_KEY, id)).toSql());
+        deleteInTransaction(sabres);
         sabres.close();
+    }
+
+    void deleteInTransaction(Sabres sabres) throws SabresException {
+        sabres.execSQL(new DeleteCommand(name).where(Where.equalTo(OBJECT_ID_KEY, id)).toSql());
+    }
+
+    /**
+     * Deletes each object in the provided list.
+     *
+     * @param objects The objects to delete.
+     * @throws SabresException Throws an exception if one of the deletes fails.
+     */
+    public static <T extends SabresObject> void deleteAll(List<T> objects) throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        sabres.beginTransaction();
+        try {
+            for (T o : objects) {
+                o.deleteInTransaction(sabres);
+            }
+            sabres.setTransactionSuccessful();
+        } finally {
+            sabres.endTransaction();
+            sabres.close();
+        }
+    }
+
+    /**
+     * Deletes each object in the provided list in a background thread.
+     *
+     * @param objects The objects to delete.
+     * @return A Task that is resolved when deleteAll completes.
+     */
+    public static <T extends SabresObject> Task<Void> deleteAllInBackground(final List<T> objects) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                deleteAll(objects);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Deletes each object in the provided list in a background thread.
+     *
+     * @param objects The objects to delete.
+     * @param callback  The callback method to execute when completed.
+     */
+    public static <T extends SabresObject> void deleteAllInBackground(final List<T> objects,
+        final DeleteCallback callback) {
+        deleteAllInBackground(objects).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     /**
