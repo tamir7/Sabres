@@ -93,9 +93,9 @@ public class SabresQuery<T extends SabresObject> {
     private final List<String> keyIndices = new ArrayList<>();
     private final List<String> includes = new ArrayList<>();
     private final List<OrderBy> orderByList = new ArrayList<>();
+    private final List<SabresQuery<T>> innerQueries;
     private List<String> selectKeys;
     private Where where;
-    private final List<SabresQuery<T>> innerQueries;
     private Integer limit;
     private Integer skip;
 
@@ -135,19 +135,6 @@ public class SabresQuery<T extends SabresObject> {
         return new SabresQuery<>(clazz);
     }
 
-    private void createIndices(Sabres sabres)
-        throws SabresException {
-        if (innerQueries == null ) {
-            CreateIndexCommand createIndexCommand =
-                new CreateIndexCommand(name, keyIndices).ifNotExists();
-            sabres.execSQL(createIndexCommand.toString());
-        } else {
-            for (SabresQuery q : innerQueries) {
-                q.createIndices(sabres);
-            }
-        }
-    }
-
     /**
      * Constructs a query that is the or of the given queries.
      * Previous calls to setLimit, setSkip, addAscendingOrder, addDescendingOrder or selectKeys
@@ -160,6 +147,19 @@ public class SabresQuery<T extends SabresObject> {
      */
     public static <T extends SabresObject> SabresQuery<T> or(List<SabresQuery<T>> queries) {
         return new SabresQuery<T>(queries);
+    }
+
+    private void createIndices(Sabres sabres)
+        throws SabresException {
+        if (innerQueries == null) {
+            CreateIndexCommand createIndexCommand =
+                new CreateIndexCommand(name, keyIndices).ifNotExists();
+            sabres.execSQL(createIndexCommand.toString());
+        } else {
+            for (SabresQuery q : innerQueries) {
+                q.createIndices(sabres);
+            }
+        }
     }
 
     /**
