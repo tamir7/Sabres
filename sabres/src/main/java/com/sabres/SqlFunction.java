@@ -16,35 +16,31 @@
 
 package com.sabres;
 
-import java.util.List;
+class SqlFunction {
+    private final String operand;
+    private final Function function;
 
-abstract class ListValue<T> extends SabresValue<List<T>> {
-    private static final String UNUSED = "unused";
-
-    ListValue(List<T> value) {
-        super(value);
+    SqlFunction(String operand, Function function) {
+        this.operand = operand;
+        this.function = function;
     }
 
-    @Override
     String toSql() {
-        return String.format("'%s'", UNUSED);
+        return String.format("%s(%s)", function.toString(), operand);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("{");
-        boolean first = true;
+    enum Function {
+        Count("count");
 
-        for (Object value : getValue()) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append(", ");
-            }
+        private final String text;
 
-            sb.append(value.toString());
+        Function(String text) {
+            this.text = text;
         }
 
-        return sb.append("}").toString();
+        @Override
+        public String toString() {
+            return text;
+        }
     }
 }

@@ -18,15 +18,23 @@ package com.sabres;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 final class SelectCommand {
     private final String table;
     private final List<String> keys = new ArrayList<>();
     private final List<Join> joins = new ArrayList<>();
     private final List<OrderBy> orderByList = new ArrayList<>();
+    private final List<String> groupBy = new ArrayList<>();
+    private final Map<String, String> alias = new HashMap<>();
     private Integer limit;
     private Integer skip;
+    private Where having;
+    private SelectCommand innerSelect;
+    private String outerKey;
+    private boolean withSemicolon = true;
 
     private Where where;
 
@@ -35,13 +43,43 @@ final class SelectCommand {
         this.keys.addAll(selectKeys);
     }
 
+    SelectCommand as(String key, String alias) {
+        this.alias.put(key, alias);
+        return this;
+    }
+
+    SelectCommand withoutSemicolon() {
+        withSemicolon = false;
+        return this;
+    }
+
     SelectCommand join(String table, String column, List<String> selectKeys) {
         joins.add(new Join(table, column, selectKeys));
         return this;
     }
 
+    SelectCommand groupBy(String column) {
+        groupBy.add(column);
+        return this;
+    }
+
+    SelectCommand having(Where having) {
+        if (this.having == null) {
+            this.having = having;
+        } else {
+            this.having.and(having);
+        }
+        return this;
+    }
+
     SelectCommand orderBy(OrderBy orderBy) {
         orderByList.add(orderBy);
+        return this;
+    }
+
+    SelectCommand inInnerSelect(SelectCommand innerSelect, String key) {
+        this.innerSelect = innerSelect;
+        this.outerKey = key;
         return this;
     }
 
@@ -77,6 +115,10 @@ final class SelectCommand {
             }
 
             sb.append(String.format("%s.%s", table, key));
+
+            if (alias.containsKey(key)) {
+                sb.append(String.format(" AS %s", alias.get(key)));
+            }
         }
 
         StringBuilder joinSb = new StringBuilder();
@@ -93,8 +135,33 @@ final class SelectCommand {
 
         sb.append(joinSb);
 
+        if (innerSelect != null) {
+            Where where = Where.in(outerKey, String.format("(%s)", innerSelect.toSql()));
+            if (this.where == null) {
+                this.where = where;
+            } else {
+                this.where.and(where);
+            }
+        }
+
         if (where != null) {
-            sb.append(String.format(" WHERE %s", where.toString()));
+            sb.append(String.format(" WHERE %s", where.toSql()));
+        }
+
+        first = true;
+        for (String column : groupBy) {
+            if (first) {
+                sb.append(" GROUP BY ");
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+
+            sb.append(column);
+        }
+
+        if (having != null) {
+            sb.append(String.format(" HAVING %s", having.toSql()));
         }
 
         first = true;
@@ -116,7 +183,11 @@ final class SelectCommand {
             sb.append(String.format(" OFFSET %d", skip));
         }
 
-        return sb.append(";").toString();
+        if (withSemicolon) {
+            sb.append(";");
+        }
+
+        return sb.toString();
     }
 
     private static class Join {

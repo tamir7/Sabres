@@ -20,7 +20,6 @@ final class OrderBy {
     private final String key;
     private final Direction direction;
 
-
     OrderBy(String key, Direction direction) {
         this.key = key;
         this.direction = direction;

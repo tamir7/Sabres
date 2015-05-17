@@ -20,7 +20,7 @@ import android.database.Cursor;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -98,6 +98,7 @@ public class SabresQuery<T extends SabresObject> {
     private Where where;
     private Integer limit;
     private Integer skip;
+    private SelectCommand innerSelect;
 
     /**
      * Constructs a query for a SabresObject subclass type.
@@ -152,9 +153,11 @@ public class SabresQuery<T extends SabresObject> {
     private void createIndices(Sabres sabres)
         throws SabresException {
         if (innerQueries == null) {
-            CreateIndexCommand createIndexCommand =
-                new CreateIndexCommand(name, keyIndices).ifNotExists();
-            sabres.execSQL(createIndexCommand.toString());
+            if (!keyIndices.isEmpty()) {
+                CreateIndexCommand createIndexCommand =
+                    new CreateIndexCommand(name, keyIndices).ifNotExists();
+                sabres.execSQL(createIndexCommand.toString());
+            }
         } else {
             for (SabresQuery q : innerQueries) {
                 q.createIndices(sabres);
@@ -297,31 +300,6 @@ public class SabresQuery<T extends SabresObject> {
         return this;
     }
 
-    private String stringifyObject(Object object) {
-        if (object instanceof Number) {
-            return String.valueOf(object);
-        }
-
-        if (object instanceof String) {
-            return (String)object;
-        }
-
-        if (object instanceof Boolean) {
-            return (Boolean)object ? "1" : "0";
-        }
-
-        if (object instanceof Date) {
-            return String.valueOf(((Date)object).getTime());
-        }
-
-        if (object instanceof SabresObject) {
-            return String.valueOf(((SabresObject)object).getObjectId());
-        }
-
-        throw new IllegalArgumentException(String.format("No rule to stringify Object of class %s",
-            object.getClass().getSimpleName()));
-    }
-
     /**
      * Add a constraint to the query that requires a particular key's value to be equal to the
      * provided value.
@@ -331,7 +309,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEqualTo(String key, Object value) {
-        addWhere(key, Where.equalTo(key, stringifyObject(value)));
+        addWhere(key, Where.equalTo(key, SabresValue.create(value)));
         return this;
     }
 
@@ -344,7 +322,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereNotEqualTo(String key, Object value) {
-        addWhere(key, Where.notEqualTo(key, stringifyObject(value)));
+        addWhere(key, Where.notEqualTo(key, SabresValue.create(value)));
         return this;
     }
 
@@ -355,7 +333,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereExists(String key) {
-        addWhere(key, Where.isNot(key, "NULL"));
+        addWhere(key, Where.isNot(key, new StringValue("NULL")));
         return this;
     }
 
@@ -366,7 +344,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereDoesNotExist(String key) {
-        addWhere(key, Where.is(key, "NULL"));
+        addWhere(key, Where.is(key, new StringValue("NULL")));
         return this;
     }
 
@@ -379,7 +357,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereLessThan(String key, Object value) {
-        addWhere(key, Where.lessThan(key, stringifyObject(value)));
+        addWhere(key, Where.lessThan(key, SabresValue.create(value)));
         return this;
     }
 
@@ -392,7 +370,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereLessThanOrEqual(String key, Object value) {
-        addWhere(key, Where.lessThanOrEqual(key, stringifyObject(value)));
+        addWhere(key, Where.lessThanOrEqual(key, SabresValue.create(value)));
         return this;
     }
 
@@ -405,7 +383,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereGraterThan(String key, Object value) {
-        addWhere(key, Where.greaterThan(key, stringifyObject(value)));
+        addWhere(key, Where.greaterThan(key, SabresValue.create(value)));
         return this;
     }
 
@@ -418,7 +396,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereGreaterThanOrEqual(String key, Object value) {
-        addWhere(key, Where.greaterThanOrEqual(key, stringifyObject(value)));
+        addWhere(key, Where.greaterThanOrEqual(key, SabresValue.create(value)));
         return this;
     }
 
@@ -464,11 +442,12 @@ public class SabresQuery<T extends SabresObject> {
      * @param values The values that will match.
      * @return this, so you can chain this call.
      */
-    public SabresQuery<T> whereContainedIn(String key, List<Object> values) {
+    public SabresQuery<T> whereContainedIn(String key, List<?> values) {
         List<String> stingValues = new ArrayList<>(values.size());
         for (Object o : values) {
-            stingValues.add(stringifyObject(o));
+            stingValues.add(SabresValue.create(o).toSql());
         }
+
         addWhere(key, Where.in(key, stingValues));
         return this;
     }
@@ -481,13 +460,52 @@ public class SabresQuery<T extends SabresObject> {
      * @param values The values that will not match.
      * @return this, so you can chain this call.
      */
-    public SabresQuery<T> whereNotContainedIn(String key, List<Object> values) {
+    public SabresQuery<T> whereNotContainedIn(String key, List<?> values) {
         List<String> stingValues = new ArrayList<>(values.size());
         for (Object o : values) {
-            stingValues.add(stringifyObject(o));
+            stingValues.add(SabresValue.create(o).toSql());
         }
 
         addWhere(key, Where.notIn(key, stingValues));
+        return this;
+    }
+
+    /**
+     * Add a constraint to the query that requires a particular key's value to contain every one
+     * of the provided list of values.
+     *
+     * @param key    The key to check. This key's value must be an array.
+     * @param values The values that will match.
+     * @return this, so you can chain this call.
+     */
+    public SabresQuery<T> whereContainsAll(String key, List<?> values) {
+        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
+        if (descriptor == null) {
+            throw new IllegalArgumentException(String.format("Key %s does not exist in object %s",
+                key, name));
+        }
+
+        if (!descriptor.getType().equals(SabresDescriptor.Type.List)) {
+            throw new IllegalArgumentException(String.format("Key %s in object %s is not a list",
+                key, name));
+        }
+
+        innerSelect = new SelectCommand(SabresList.getTableName(name, key),
+            Collections.singletonList(SabresList.getParentIdKey()));
+        innerSelect.as(SabresList.getParentIdKey(), SabresObject.getObjectIdKey());
+        Where where = null;
+        for (Object o : values) {
+            if (where == null) {
+                where = Where.equalTo(SabresList.getValueKey(), SabresValue.create(o));
+            } else {
+                where.or(Where.equalTo(SabresList.getValueKey(), SabresValue.create(o)));
+            }
+        }
+        innerSelect.where(where);
+        innerSelect.groupBy(SabresList.getParentIdKey());
+        innerSelect.having(Where.equalTo(new SqlFunction(SabresList.getParentIdKey(),
+            SqlFunction.Function.Count).toSql(), new IntValue(values.size())));
+        innerSelect.withoutSemicolon();
         return this;
     }
 
@@ -683,6 +701,10 @@ public class SabresQuery<T extends SabresObject> {
                             where.or(q.where);
                         }
                     }
+                }
+
+                if (innerSelect != null) {
+                    command.inInnerSelect(innerSelect, SabresObject.getObjectIdKey());
                 }
 
                 c = sabres.select(command.where(where).toSql());

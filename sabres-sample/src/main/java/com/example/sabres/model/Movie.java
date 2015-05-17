@@ -125,4 +125,10 @@ public class Movie extends SabresObject {
         q.whereEqualTo(TITLE_KEY, title);
         q.findInBackground(callback);
     }
+
+    public static Task<List<Movie>> findWithActorsInBackground(List<String> actors) {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+        q.whereContainsAll(STARRING_KEY, actors);
+        return q.findInBackground();
+    }
 }

@@ -19,98 +19,105 @@ package com.sabres;
 import java.util.List;
 
 final class Where {
-    private String where;
+    private StringBuilder where;
 
-    private Where(String key, Object value, Operator operator) {
-        where = key + operator.toString() + String.format("'%s'", String.valueOf(value));
+    private Where(String key, String value, Operator operator) {
+        where = new StringBuilder(key).append(operator.toString()).append(value);
     }
 
-    private Where(String key, List<Object> objects, Operator operator) {
-        StringBuilder sb = new StringBuilder(key).append(operator).append("(");
+    private Where(String key, List<?> objects, Operator operator) {
+        where = new StringBuilder(key).append(operator).append("(");
         boolean first = true;
         for (Object o : objects) {
             if (first) {
                 first = false;
             } else {
-                sb.append(", ");
+                where.append(", ");
             }
-            sb.append(String.valueOf(o));
+            where.append(SabresValue.create(o).toSql());
         }
-        where = sb.append(")").toString();
+
+        where.append(")");
     }
 
-    public static Where in(String key, List<String> objects) {
+    public static Where in(String key, List<?> objects) {
         return new Where(key, objects, Operator.In);
     }
 
-    public static Where notIn(String key, List<String> objects) {
+    public static Where in(String key, String statement) {
+        return new Where(key, statement, Operator.In);
+    }
+
+    public static Where notIn(String key, List<?> objects) {
         return new Where(key, objects, Operator.NotIn);
     }
 
-    public static Where equalTo(String key, Object value) {
-        return new Where(key, value, Operator.Equal);
+    public static Where equalTo(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.Equal);
     }
 
     public static Where startsWith(String key, String prefix) {
-        return new Where(key, String.format("%s%%", prefix), Operator.Like);
+        return new Where(key, String.format("'%s%%'", prefix), Operator.Like);
     }
 
     public static Where endsWith(String key, String suffix) {
-        return new Where(key, String.format("%%%s", suffix), Operator.Like);
+        return new Where(key, String.format("'%%%s'", suffix), Operator.Like);
     }
 
     public static Where doesNotEndWith(String key, String suffix) {
-        return new Where(key, String.format("%%%s", suffix), Operator.NotLike);
+        return new Where(key, String.format("'%%%s'", suffix), Operator.NotLike);
     }
 
     public static Where contains(String key, String substring) {
-        return new Where(key, String.format("%%%s%%", substring), Operator.Like);
+        return new Where(key, String.format("'%%%s%%'", substring), Operator.Like);
     }
 
     public static Where doesNotStartWith(String key, String prefix) {
-        return new Where(key, String.format("%s%%", prefix), Operator.NotLike);
+        return new Where(key, String.format("'%s%%'", prefix), Operator.NotLike);
     }
 
-    public static Where notEqualTo(String key, Object value) {
-        return new Where(key, value, Operator.NotEqual);
+    public static Where notEqualTo(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.NotEqual);
     }
 
-    public static Where greaterThan(String key, Object value) {
-        return new Where(key, value, Operator.GreaterThan);
+    public static Where greaterThan(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.GreaterThan);
     }
 
-    public static Where greaterThanOrEqual(String key, Object value) {
-        return new Where(key, value, Operator.GreaterThanOrEqual);
+    public static Where greaterThanOrEqual(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.GreaterThanOrEqual);
     }
 
-    public static Where lessThan(String key, Object value) {
-        return new Where(key, value, Operator.LessThan);
+    public static Where lessThan(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.LessThan);
     }
 
-    public static Where lessThanOrEqual(String key, Object value) {
-        return new Where(key, value, Operator.LessThanOrEqual);
+    public static Where lessThanOrEqual(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.LessThanOrEqual);
     }
 
-    public static Where is(String key, Object value) {
-        return new Where(key, value, Operator.Is);
+    public static Where is(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.Is);
     }
 
-    public static Where isNot(String key, Object value) {
-        return new Where(key, value, Operator.IsNot);
+    public static Where isNot(String key, SabresValue value) {
+        return new Where(key, value.toSql(), Operator.IsNot);
     }
 
     public Where and(Where andWhere) {
-        where = String.format("( %s AND %s )", where, andWhere.toString());
+        where = new StringBuilder(String.format("( %s AND %s )", where.toString(),
+            andWhere.toString()));
         return this;
     }
 
     public Where or(Where orWhere) {
-        where = String.format("( %s OR %s )", where, orWhere.toString());
+        where = new StringBuilder(String.format("( %s OR %s )", where.toString(),
+            orWhere.toString()));
         return this;
     }
 
     String toSql() {
-        return where;
+        return where.toString();
     }
 
     @Override

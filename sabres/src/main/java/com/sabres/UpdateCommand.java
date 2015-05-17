@@ -45,7 +45,7 @@ final class UpdateCommand {
                 sb.append(", ");
             }
 
-            sb.append(String.format("%s = '%s'", entry.getKey(), entry.getValue().toSql()));
+            sb.append(String.format("%s = %s", entry.getKey(), entry.getValue().toSql()));
         }
 
         if (where != null) {

@@ -24,12 +24,12 @@ final class StringValue extends SabresValue<String> {
 
     @Override
     String toSql() {
-        return getValue();
+        return String.format("'%s'", getValue());
     }
 
     @Override
     public String toString() {
-        return toSql();
+        return getValue();
     }
 
     @Override

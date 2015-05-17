@@ -50,6 +50,18 @@ final class SabresList {
         return LIST_PREFIX;
     }
 
+    static String getTableName(String parentName, String parentKey) {
+        return String.format("%s_%s_%s", LIST_PREFIX, parentName, parentKey);
+    }
+
+    static String getParentIdKey() {
+        return PARENT_ID_KEY;
+    }
+
+    static String getValueKey() {
+        return VALUE_KEY;
+    }
+
     private void create(Sabres sabres) throws SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(getTableName()).ifNotExists().
             withColumn(new Column(PARENT_ID_KEY, SqlType.Integer).foreignKeyIn(parent).notNull()).
@@ -75,7 +87,8 @@ final class SabresList {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(getTableName(),
-                Arrays.asList(selectKeys)).where(Where.equalTo(PARENT_ID_KEY, parentId));
+                Arrays.asList(selectKeys)).where(Where.equalTo(PARENT_ID_KEY,
+                new LongValue(parentId)));
             c = sabres.select(command.toSql());
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
                 switch (descriptor.getOfType()) {
@@ -141,6 +154,6 @@ final class SabresList {
     }
 
     private String getTableName() {
-        return String.format("%s_%s_%s", LIST_PREFIX, parent, parentKey);
+        return getTableName(parent, parentKey);
     }
 }

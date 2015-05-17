@@ -61,10 +61,10 @@ final class Schema {
                     for (String name : subClassNames) {
                         schemas.put(name, new HashMap<String, SabresDescriptor>());
                         if (first) {
-                            where = Where.equalTo(TABLE_KEY, name);
+                            where = Where.equalTo(TABLE_KEY, new StringValue(name));
                             first = false;
                         } else {
-                            where.or(Where.equalTo(TABLE_KEY, name));
+                            where.or(Where.equalTo(TABLE_KEY, new StringValue(name)));
                         }
                     }
                     command.where(where);
@@ -167,7 +167,9 @@ final class Schema {
     static List<String> getKeys(String name) {
         List<String> keys = new ArrayList<>();
         keys.add(SabresObject.getObjectIdKey());
-        keys.addAll(schemas.get(name).keySet());
+        if (schemas.containsKey(name)) {
+            keys.addAll(schemas.get(name).keySet());
+        }
         return keys;
     }
 

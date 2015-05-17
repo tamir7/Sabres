@@ -43,7 +43,7 @@ final class InsertCommand {
             }
 
             keys.append(entry.getKey());
-            values.append(String.format("'%s'", entry.getValue().toSql()));
+            values.append(entry.getValue().toSql());
         }
 
         return sb.append(String.format("(%s) VALUES (%s);", keys.toString(),

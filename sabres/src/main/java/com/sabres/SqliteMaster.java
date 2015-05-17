@@ -35,8 +35,8 @@ final class SqliteMaster {
 
     static boolean tableExists(Sabres sabres, String table) {
         CountCommand command = new CountCommand(TABLE_NAME);
-        command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
-            and(Where.equalTo(NAME_KEY, table)));
+        command.where(Where.equalTo(TYPE_KEY, new StringValue(Type.Table.toString())).
+            and(Where.equalTo(NAME_KEY, new StringValue(table))));
         return sabres.count(command.toSql()) != 0;
     }
 
@@ -44,10 +44,10 @@ final class SqliteMaster {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
-            command.where(Where.equalTo(TYPE_KEY, Type.Table.toString()).
-                and(Where.notEqualTo(NAME_KEY, ANDROID_METADATA_TABLE).
-                    and(Where.notEqualTo(NAME_KEY, SCHEMA_TABLE)).
-                    and(Where.doesNotStartWith(NAME_KEY, SabresList.getPrefix()))));
+            command.where(Where.equalTo(TYPE_KEY, new StringValue(Type.Table.toString())).
+                and(Where.notEqualTo(NAME_KEY, new StringValue(ANDROID_METADATA_TABLE)).
+                    and(Where.notEqualTo(NAME_KEY, new StringValue(SCHEMA_TABLE)).
+                        and(Where.doesNotStartWith(NAME_KEY, SabresList.getPrefix())))));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][tableHeaders.length];
             int i = 0;
@@ -69,8 +69,8 @@ final class SqliteMaster {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(TABLE_NAME, Arrays.asList(selectKeys));
-            command.where(Where.equalTo(TYPE_KEY, Type.Index.toString()).
-                and(Where.notEqualTo(TABLE_NAME_KEY, SCHEMA_TABLE)).
+            command.where(Where.equalTo(TYPE_KEY, new StringValue(Type.Index.toString())).
+                and(Where.notEqualTo(TABLE_NAME_KEY, new StringValue(SCHEMA_TABLE))).
                 and(Where.doesNotStartWith(TABLE_NAME_KEY, SabresList.getPrefix())));
             c = sabres.select(command.toSql());
             String[][] data = new String[c.getCount()][indexHeaders.length];

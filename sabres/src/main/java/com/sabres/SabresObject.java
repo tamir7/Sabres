@@ -927,7 +927,7 @@ abstract public class SabresObject {
         }
 
         UpdateCommand command = new UpdateCommand(name, dirtyValues);
-        command.where(Where.equalTo(OBJECT_ID_KEY, id));
+        command.where(Where.equalTo(OBJECT_ID_KEY, new LongValue(id)));
         sabres.execSQL(command.toSql());
     }
 
@@ -935,7 +935,7 @@ abstract public class SabresObject {
         Cursor c = null;
         try {
             SelectCommand command = new SelectCommand(name, Schema.getKeys(name)).
-                where(Where.equalTo(OBJECT_ID_KEY, id));
+                where(Where.equalTo(OBJECT_ID_KEY, new LongValue(id)));
             c = sabres.select(command.toSql());
             if (!c.moveToFirst()) {
                 throw new SabresException(SabresException.OBJECT_NOT_FOUND,
@@ -1123,7 +1123,6 @@ abstract public class SabresObject {
         } else {
             throw new IllegalArgumentException(
                 String.format("Key %s does not exist. Cannot increment", key));
-
         }
     }
 
@@ -1238,7 +1237,8 @@ abstract public class SabresObject {
     }
 
     void deleteInTransaction(Sabres sabres) throws SabresException {
-        sabres.execSQL(new DeleteCommand(name).where(Where.equalTo(OBJECT_ID_KEY, id)).toSql());
+        sabres.execSQL(new DeleteCommand(name).where(Where.equalTo(OBJECT_ID_KEY,
+            new LongValue(id))).toSql());
     }
 
     /**

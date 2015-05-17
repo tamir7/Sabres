@@ -129,4 +129,9 @@ public class SabresFragment extends Fragment {
     public void onClickGetStarringFromFightClub() {
         listsController.getStarringFromFightClub();
     }
+
+    @OnClick(R.id.button_find_by_actors)
+    public void onClickFindByActors() {
+        listsController.findByActors();
+    }
 }
