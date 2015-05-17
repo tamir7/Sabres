@@ -76,6 +76,10 @@ abstract class SabresValue<T> {
     }
 
     static SabresValue create(Object o) {
+        if (o == null) {
+            return new NullValue(null);
+        }
+
         if (o instanceof Integer) {
             return new IntValue((Integer)o);
         }

@@ -511,31 +511,47 @@ abstract public class SabresObject {
      * @param key   Key in object.
      * @param value Can be of type Boolean, Byte, Short, Integer, Long,
      *              Float, Double, Date or an extension of SabresObject.
+     *              Putting value to null will clear the key (same as {@link #remove(String)}).
      */
     public void put(String key, Object value) {
         if (key == null) {
             throw new IllegalArgumentException("Key cannot be null");
         }
 
-        if (value == null) {
-            throw new IllegalArgumentException("Value cannot be null");
+        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
+        if (value == null && (schema == null || !schema.containsKey(key))) {
+            // clearing a value that does not exist..
+            return;
         }
 
         SabresValue sabresValue = SabresValue.create(value);
 
-        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
-        if (schema != null && schema.containsKey(key)) {
-            if (!schema.get(key).equals(sabresValue.getDescriptor())) {
-                throw new IllegalArgumentException(String.format("Cannot set key %s to type %s. " +
-                        "Already set to type %s", key, sabresValue.getDescriptor().toString(),
-                    schema.get(key).toString()));
+        // type checks and schema changes are not relevant on null object.
+        if (!sabresValue.getDescriptor().getType().equals(SabresDescriptor.Type.Null)) {
+            if (schema != null && schema.containsKey(key)) {
+                if (!schema.get(key).equals(sabresValue.getDescriptor())) {
+                    throw new IllegalArgumentException(
+                        String.format("Cannot set key %s to type %s. " +
+                                "Already set to type %s", key,
+                            sabresValue.getDescriptor().toString(),
+                            schema.get(key).toString()));
+                }
+            } else {
+                schemaChanges.put(key, sabresValue.getDescriptor());
             }
-        } else {
-            schemaChanges.put(key, sabresValue.getDescriptor());
         }
 
         values.put(key, sabresValue);
         dirtyKeys.add(key);
+    }
+
+    /**
+     * Removes a key from this object's data if it exists.
+     *
+     * @param key The key to remove.
+     */
+    public void remove(String key) {
+        put(key, null);
     }
 
     /**

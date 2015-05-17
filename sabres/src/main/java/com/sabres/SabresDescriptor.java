@@ -168,6 +168,12 @@ final class SabresDescriptor {
             SqlType toSqlType() {
                 return SqlType.Text;
             }
+        },
+        Null("Null") {
+            @Override
+            SqlType toSqlType() {
+                return SqlType.Blob;
+            }
         };
 
         private final String text;
