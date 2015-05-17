@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -135,16 +134,29 @@ final class SabresList {
         return (List<T>)list;
     }
 
+    private void deleteOthers(Sabres sabres, long parentId, List<?> list) throws SabresException {
+        Where where = null;
+        for (Object o : list) {
+            if (where == null) {
+                where = Where.notEqualTo(VALUE_KEY, SabresValue.create(o));
+            } else {
+                where.or(Where.notEqualTo(VALUE_KEY, SabresValue.create(o)));
+            }
+        }
+
+        where = Where.equalTo(PARENT_ID_KEY, new LongValue(parentId)).and(where);
+        sabres.execSQL(new DeleteCommand(getTableName()).where(where).toSql());
+    }
+
     void insert(Sabres sabres, long parentId, List<?> list)
         throws SabresException {
-        Iterator it = list.iterator();
         sabres.beginTransaction();
+        deleteOthers(sabres, parentId, list);
         try {
-            while (it.hasNext()) {
+            for (Object o : list) {
                 Map<String, SabresValue> values = new HashMap<>();
                 values.put(PARENT_ID_KEY, new LongValue(parentId));
-                Object value = it.next();
-                values.put(VALUE_KEY, SabresValue.create(value));
+                values.put(VALUE_KEY, SabresValue.create(o));
                 sabres.insert(new InsertCommand(getTableName(), values).toSql());
             }
             sabres.setTransactionSuccessful();

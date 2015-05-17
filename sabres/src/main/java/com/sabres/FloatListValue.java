@@ -25,6 +25,24 @@ final class FloatListValue extends ListValue<Float> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof Float) {
+            getValue().add((Float)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof Float) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Float);
     }

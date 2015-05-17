@@ -502,7 +502,24 @@ abstract public class SabresObject {
      *                Float, Double, Date or an extension of SabresObject.
      */
     public void addAll(String key, List<?> objects) {
-        put(key, objects);
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
+
+        if (values.containsKey(key)) {
+            SabresValue sabresValue = values.get(key);
+            if (!(sabresValue instanceof ListValue)) {
+                throw new IllegalArgumentException(
+                    "Add operations are only permitted on list values");
+            }
+
+            ListValue listValue = (ListValue)sabresValue;
+            for (Object o : objects) {
+                listValue.add(o);
+            }
+        } else {
+            put(key, objects);
+        }
     }
 
     /**
@@ -552,6 +569,33 @@ abstract public class SabresObject {
      */
     public void remove(String key) {
         put(key, null);
+    }
+
+    /**
+     * Removes all instances of the objects contained in a List from the array associated with
+     * a given key. To remove one value you can call
+     * SabresObject.removeAll(key, Arrays.asList(value)).
+     *
+     * @param key     The key.
+     * @param objects The objects to remove.
+     */
+    public void removeAll(String key, List<?> objects) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
+
+        if (values.containsKey(key)) {
+            SabresValue sabresValue = values.get(key);
+            if (!(sabresValue instanceof ListValue)) {
+                throw new IllegalArgumentException(
+                    "removeAll operation is only permitted on list values");
+            }
+
+            ListValue listValue = (ListValue)sabresValue;
+            for (Object o : objects) {
+                listValue.remove(o);
+            }
+        }
     }
 
     /**

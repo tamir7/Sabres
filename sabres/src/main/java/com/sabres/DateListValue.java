@@ -26,6 +26,24 @@ final class DateListValue extends ListValue<Date> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof Date) {
+            getValue().add((Date)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof Date) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Date);
     }

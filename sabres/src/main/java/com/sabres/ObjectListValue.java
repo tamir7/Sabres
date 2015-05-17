@@ -18,10 +18,28 @@ package com.sabres;
 
 import java.util.List;
 
-final class ObjectListValue<T extends SabresObject> extends ListValue<T> {
+final class ObjectListValue extends ListValue<SabresObject> {
 
-    ObjectListValue(List<T> value) {
+    ObjectListValue(List<SabresObject> value) {
         super(value);
+    }
+
+    @Override
+    void add(Object value) {
+        if (value instanceof SabresObject) {
+            getValue().add(((SabresObject)value));
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof SabresObject) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
     }
 
     @Override

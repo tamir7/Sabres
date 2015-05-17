@@ -25,6 +25,24 @@ final class LongListValue extends ListValue<Long> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof Long) {
+            getValue().add((Long)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof Long) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Long);
     }

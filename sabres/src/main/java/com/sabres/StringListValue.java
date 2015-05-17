@@ -25,6 +25,24 @@ final class StringListValue extends ListValue<String> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof String) {
+            getValue().add((String)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof String) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.String);
     }

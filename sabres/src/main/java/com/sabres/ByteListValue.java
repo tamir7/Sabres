@@ -24,6 +24,24 @@ final class ByteListValue extends ListValue<Byte> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof Byte) {
+            getValue().add((Byte)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof Byte) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Byte);
     }

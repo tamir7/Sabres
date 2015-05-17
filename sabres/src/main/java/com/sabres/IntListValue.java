@@ -25,6 +25,24 @@ final class IntListValue extends ListValue<Integer> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof Integer) {
+            getValue().add((Integer)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof Integer) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List,
             SabresDescriptor.Type.Integer);

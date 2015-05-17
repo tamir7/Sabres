@@ -25,6 +25,24 @@ final class ShortListValue extends ListValue<Short> {
     }
 
     @Override
+    void add(Object value) {
+        if (value instanceof Short) {
+            getValue().add((Short)value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
+    void remove(Object value) {
+        if (value instanceof Short) {
+            getValue().remove(value);
+        } else {
+            throwCastException();
+        }
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Short);
     }

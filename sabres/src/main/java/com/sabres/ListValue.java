@@ -47,4 +47,13 @@ abstract class ListValue<T> extends SabresValue<List<T>> {
 
         return sb.append("}").toString();
     }
+
+    void throwCastException() {
+        throw new IllegalArgumentException(
+            "Trying to add or remove objects to list with different types");
+    }
+
+    abstract void add(Object value);
+
+    abstract void remove(Object value);
 }
