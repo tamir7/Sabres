@@ -134,4 +134,9 @@ public class SabresFragment extends Fragment {
     public void onClickFindByActors() {
         listsController.findByActors();
     }
+
+    @OnClick(R.id.button_find_by_one_actor)
+    public void onClickFindByOneActor() {
+        listsController.findByOneActor();
+    }
 }

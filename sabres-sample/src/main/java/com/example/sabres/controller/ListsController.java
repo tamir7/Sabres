@@ -94,4 +94,23 @@ public class ListsController {
                 }
             }, Task.UI_THREAD_EXECUTOR);
     }
+
+    public void findByOneActor() {
+        Movie.findWithActorInBackground("Brad Pitt")
+            .continueWith(new Continuation<List<Movie>, Void>() {
+                @Override
+                public Void then(Task<List<Movie>> task) throws Exception {
+                    if (task.isFaulted()) {
+                        Log.e(TAG, "Error while searching for movies with actor", task.getError());
+                    } else if (task.getResult().isEmpty()) {
+                        Log.w(TAG, "Failed to find movie with actor");
+                    } else {
+                        for (Movie movie : task.getResult()) {
+                            Log.i(TAG, String.format("Found movie: %s", movie.getTitle()));
+                        }
+                    }
+                    return null;
+                }
+            }, Task.UI_THREAD_EXECUTOR);
+    }
 }

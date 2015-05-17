@@ -309,7 +309,22 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEqualTo(String key, Object value) {
-        addWhere(key, Where.equalTo(key, SabresValue.create(value)));
+        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
+        if (descriptor == null) {
+            throw new IllegalArgumentException(String.format("key %s does not exist in object %s",
+                key, name));
+        }
+
+        SabresValue sabresValue = SabresValue.create(value);
+        if (descriptor.getType().equals(SabresDescriptor.Type.List)) {
+            innerSelect = new SelectCommand(SabresList.getTableName(name, key),
+                Collections.singletonList(SabresList.getParentIdKey()));
+            innerSelect.as(SabresList.getParentIdKey(), SabresObject.getObjectIdKey());
+            innerSelect.where(Where.equalTo(SabresList.getValueKey(), sabresValue));
+            innerSelect.withoutSemicolon();
+        } else {
+            addWhere(key, Where.equalTo(key, sabresValue));
+        }
         return this;
     }
 
