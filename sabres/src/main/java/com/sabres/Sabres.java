@@ -158,6 +158,22 @@ public final class Sabres {
     /**
      * Deletes the Sabres Database.
      *
+     * @param callback callback.done will be called when the operation completes
+     */
+
+    public static void deleteDatabase(final DeleteCallback callback) {
+        deleteDatabase().continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    /**
+     * Deletes the Sabres Database.
+     *
      * @return A task that resolves when the delete finish.
      */
     public static Task<Void> deleteDatabase() {

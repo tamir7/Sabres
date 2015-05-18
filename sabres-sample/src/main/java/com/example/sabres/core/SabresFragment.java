@@ -89,8 +89,13 @@ public class SabresFragment extends Fragment {
         SabresObject.printAll(Actor.class);
     }
 
-    @OnClick(R.id.button_basic_tests)
-    public void onClickBasicTests() {
-        BasicTestsController.begin();
+    @OnClick(R.id.button_basic_tests_tasks)
+    public void onClickBasicTestsWithTasks() {
+        BasicTestsController.beginWithTasks();
+    }
+
+    @OnClick(R.id.button_basic_tests_callbacks)
+    public void onClickBasicTestsWithCallbacks() {
+        BasicTestsController.beginWithCallbacks();
     }
 }

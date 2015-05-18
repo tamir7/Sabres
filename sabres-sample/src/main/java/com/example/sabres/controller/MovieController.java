@@ -18,25 +18,9 @@ package com.example.sabres.controller;
 
 import com.example.sabres.model.Movie;
 
-import bolts.Continuation;
-import bolts.Task;
-
 public class MovieController {
 
-    private static Task<Movie> create(final Movie movie) {
-        return movie.saveInBackground().continueWithTask(new Continuation<Void, Task<Movie>>() {
-            @Override
-            public Task<Movie> then(Task<Void> task) throws Exception {
-                if (task.isFaulted()) {
-                    return Task.forError(task.getError());
-                }
-
-                return Task.forResult(movie);
-            }
-        });
-    }
-
-    public static Task<Movie> createFightClub() {
+    public static Movie createFightClub() {
         Movie movie = new Movie();
         movie.setTitle(Movie.FightClub.TITLE);
         movie.setRating(Movie.FightClub.RATING);
@@ -46,10 +30,10 @@ public class MovieController {
         movie.setBudget(Movie.FightClub.BUDGET);
         movie.setGross(Movie.FightClub.GROSS);
         movie.setNominatedForOscar(Movie.FightClub.NOMINATED_FOR_OSCAR);
-        return create(movie);
+        return movie;
     }
 
-    public static Task<Movie> createReservoirDogs() {
+    public static Movie createReservoirDogs() {
         Movie movie = new Movie();
         movie.setTitle(Movie.ReservoirDogs.TITLE);
         movie.setRating(Movie.ReservoirDogs.RATING);
@@ -59,10 +43,10 @@ public class MovieController {
         movie.setBudget(Movie.ReservoirDogs.BUDGET);
         movie.setGross(Movie.ReservoirDogs.GROSS);
         movie.setNominatedForOscar(Movie.ReservoirDogs.NOMINATED_FOR_OSCAR);
-        return create(movie);
+        return movie;
     }
 
-    public static Task<Movie> createSnatch() {
+    public static Movie createSnatch() {
         Movie movie = new Movie();
         movie.setTitle(Movie.Snatch.TITLE);
         movie.setRating(Movie.Snatch.RATING);
@@ -72,6 +56,6 @@ public class MovieController {
         movie.setBudget(Movie.Snatch.BUDGET);
         movie.setGross(Movie.Snatch.GROSS);
         movie.setNominatedForOscar(Movie.Snatch.NOMINATED_FOR_OSCAR);
-        return create(movie);
+        return movie;
     }
 }

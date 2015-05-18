@@ -17,41 +17,25 @@ package com.example.sabres.controller;
 
 import com.example.sabres.model.Director;
 
-import bolts.Continuation;
-import bolts.Task;
-
 public class DirectorController {
-    private static Task<Director> create(final Director director) {
-        return director.saveInBackground().continueWithTask(new Continuation<Void, Task<Director>>() {
-            @Override
-            public Task<Director> then(Task<Void> task) throws Exception {
-                if (task.isFaulted()) {
-                    return Task.forError(task.getError());
-                }
-
-                return Task.forResult(director);
-            }
-        });
-    }
-
-    public static Task<Director> createQuentinTarantino() {
+    public static Director createQuentinTarantino() {
         Director director = new Director();
         director.setName(Director.QuentinTarantino.NAME);
         director.setDateOfBirth(Director.QuentinTarantino.DATE_OF_BIRTH);
-        return create(director);
+        return director;
     }
 
-    public static Task<Director> createDavidFincher() {
+    public static Director createDavidFincher() {
         Director director = new Director();
         director.setName(Director.DavidFincher.NAME);
         director.setDateOfBirth(Director.DavidFincher.DATE_OF_BIRTH);
-        return create(director);
+        return director;
     }
 
-    public static Task<Director> createGuyRitchie() {
+    public static Director createGuyRitchie() {
         Director director = new Director();
         director.setName(Director.GuyRitchie.NAME);
         director.setDateOfBirth(Director.GuyRitchie.DATE_OF_BIRTH);
-        return create(director);
+        return director;
     }
 }

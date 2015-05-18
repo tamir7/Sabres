@@ -13,5 +13,6 @@
     <string name="button_print_movie_schema">Print Movie Schema</string>
     <string name="button_print_director_schema">Print Director Schema</string>
     <string name="button_print_actor_schema">Print Actor Schema</string>
-    <string name="button_basic_tests">Basic Tests</string>
+    <string name="button_basic_tests_tasks">Basic Tests with Tasks</string>
+    <string name="button_basic_tests_callbacks">Basic Tests with Callbacks</string>
 </resources>
