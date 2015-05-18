@@ -183,6 +183,7 @@ final class Schema {
         Map<String, SabresDescriptor> schema = getSchema(table);
 
         if (schema == null || schema.isEmpty()) {
+            Log.w(TAG, String.format("Schema for object %s does not exist", table));
             return;
         }
 
