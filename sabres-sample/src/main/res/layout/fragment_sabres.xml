@@ -126,16 +126,16 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/button_basic_tests_tasks"
-                android:text="@string/button_basic_tests_tasks"
+                android:id="@+id/button_tests_tasks"
+                android:text="@string/button_tests_tasks"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
 
             <Button
-                android:id="@+id/button_basic_tests_callbacks"
-                android:text="@string/button_basic_tests_callbacks"
+                android:id="@+id/button_tests_callbacks"
+                android:text="@string/button_tests_callbacks"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 android:layout_width="0dp"

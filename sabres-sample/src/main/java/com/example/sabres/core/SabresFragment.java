@@ -8,7 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sabres.R;
-import com.example.sabres.controller.BasicTestsController;
+import com.example.sabres.controller.CallbacksTestController;
+import com.example.sabres.controller.TasksTestController;
 import com.example.sabres.model.Actor;
 import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
@@ -89,13 +90,13 @@ public class SabresFragment extends Fragment {
         SabresObject.printAll(Actor.class);
     }
 
-    @OnClick(R.id.button_basic_tests_tasks)
+    @OnClick(R.id.button_tests_tasks)
     public void onClickBasicTestsWithTasks() {
-        BasicTestsController.beginWithTasks();
+        TasksTestController.begin();
     }
 
-    @OnClick(R.id.button_basic_tests_callbacks)
+    @OnClick(R.id.button_tests_callbacks)
     public void onClickBasicTestsWithCallbacks() {
-        BasicTestsController.beginWithCallbacks();
+        CallbacksTestController.begin();
     }
 }
