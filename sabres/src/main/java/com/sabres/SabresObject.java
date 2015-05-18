@@ -890,7 +890,9 @@ abstract public class SabresObject {
             put(CREATED_AT_KEY, new Date());
         }
 
-        updateSchema(sabres);
+        Schema.update(sabres, name, schemaChanges);
+        updateTable(sabres);
+        schemaChanges.clear();
         updateChildren(sabres);
 
         if (id == 0) {
@@ -926,13 +928,11 @@ abstract public class SabresObject {
         }
     }
 
-    private void updateSchema(Sabres sabres) throws SabresException {
-        Map<String, SabresDescriptor> schema = Schema.getSchema(name);
-        Schema.update(sabres, name, schemaChanges);
-        if (schema == null) {
-            createTable(sabres);
-        } else {
+    public void updateTable(Sabres sabres) throws SabresException {
+        if (SqliteMaster.tableExists(sabres, name)) {
             alterTable(sabres);
+        } else {
+            createTable(sabres);
         }
     }
 

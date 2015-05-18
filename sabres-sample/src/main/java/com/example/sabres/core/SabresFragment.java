@@ -8,12 +8,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sabres.R;
+import com.example.sabres.controller.BasicTestsController;
 import com.example.sabres.model.Actor;
 import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
 import com.sabres.SabresObject;
 
+import bolts.Continuation;
+import bolts.Task;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -43,11 +46,17 @@ public class SabresFragment extends Fragment {
 
     @OnClick(R.id.button_delete_database)
     public void onClickDeleteDatabase() {
-        if (Sabres.deleteDatabase()) {
-            Log.i(TAG, "Database deleted");
-        } else {
-            Log.w(TAG, "Database delete failed");
-        }
+        Sabres.deleteDatabase().continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                if (task.isFaulted()) {
+                    Log.e(TAG, "Failed to delete database");
+                } else {
+                    Log.i(TAG, "Database deleted");
+                }
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     @OnClick(R.id.button_print_movie_schema)
@@ -82,5 +91,6 @@ public class SabresFragment extends Fragment {
 
     @OnClick(R.id.button_basic_tests)
     public void onClickBasicTests() {
+        BasicTestsController.begin();
     }
 }

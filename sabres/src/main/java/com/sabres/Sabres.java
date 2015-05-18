@@ -41,7 +41,7 @@ public final class Sabres {
     private static Sabres self;
     private static boolean debug = false;
     private final Context context;
-    private final Semaphore sem = new Semaphore(1, true);
+    private final Semaphore sem = new Semaphore(0, true);
     private SQLiteDatabase database;
 
     private Sabres(Context context) {
@@ -80,22 +80,7 @@ public final class Sabres {
     public static void initialize(Context context) {
         if (self == null) {
             self = new Sabres(context);
-            try {
-                self.sem.acquire();
-                Task.callInBackground(new Callable<Void>() {
-                    @Override
-                    public Void call() throws Exception {
-                        Sabres sabres = Sabres.self;
-                        sabres.openWithoutLock();
-                        Schema.initialize(sabres);
-                        sabres.closeWithoutLock();
-                        self.sem.release();
-                        return null;
-                    }
-                });
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Sabres Initialize failed", e);
-            }
+            self.initialize();
         }
     }
 
@@ -170,15 +155,46 @@ public final class Sabres {
         Schema.printSchema(clazz.getSimpleName());
     }
 
-    public static boolean deleteDatabase() {
-        try {
-            self.sem.acquire();
-            return self.context.deleteDatabase(DATABASE_NAME);
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Failed to delete Database", e);
-        } finally {
-            self.sem.release();
-        }
+    /**
+     * Deletes the Sabres Database.
+     *
+     * @return A task that resolves when the delete finish.
+     */
+    public static Task<Void> deleteDatabase() {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                try {
+                    self.sem.acquire();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Failed to delete Database", e);
+                }
+
+                self.context.deleteDatabase(DATABASE_NAME);
+                return null;
+            }
+        }).onSuccessTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Void> task) throws Exception {
+                return self.initialize();
+            }
+        });
+    }
+
+    private Task<Void> initialize() {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                try {
+                    openWithoutLock();
+                    Schema.initialize(Sabres.this);
+                    closeWithoutLock();
+                } finally {
+                    sem.release();
+                }
+                return null;
+            }
+        });
     }
 
     private void log(String sql) {

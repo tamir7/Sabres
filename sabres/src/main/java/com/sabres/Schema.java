@@ -48,6 +48,7 @@ final class Schema {
     }
 
     static void initialize(Sabres sabres) throws SabresException {
+        schemas.clear();
         if (SqliteMaster.tableExists(sabres, SCHEMA_TABLE_NAME)) {
             Cursor c = null;
             Set<String> subClassNames = SabresObject.getSubClassNames();
@@ -126,6 +127,11 @@ final class Schema {
     }
 
     static SabresDescriptor getDescriptor(String name, String key) {
+
+        if (key.equals(SabresObject.getObjectIdKey())) {
+            return new SabresDescriptor(SabresDescriptor.Type.Long);
+        }
+
         Map<String, SabresDescriptor> schema = getSchema(name);
         if (schema != null) {
             return schema.get(key);
@@ -154,10 +160,10 @@ final class Schema {
 
             Map<String, SabresDescriptor> currentSchema = getSchema(name);
             if (currentSchema == null) {
-                schemas.put(name, schema);
-            } else {
-                currentSchema.putAll(schema);
+                currentSchema = new HashMap<>(schema.size());
+                schemas.put(name, currentSchema);
             }
+            currentSchema.putAll(schema);
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();
@@ -177,7 +183,6 @@ final class Schema {
         Map<String, SabresDescriptor> schema = getSchema(table);
 
         if (schema == null || schema.isEmpty()) {
-            Log.w(TAG, String.format("Schema for object %s does not exist", table));
             return;
         }
 
