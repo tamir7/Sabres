@@ -24,6 +24,9 @@ import com.sabres.SabresQuery;
 
 import junit.framework.Assert;
 
+import java.util.Date;
+
+import bolts.Capture;
 import bolts.Continuation;
 import bolts.Task;
 
@@ -49,7 +52,7 @@ public class BasicTestsController {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
-    private static void checkFightClubMovieObject(Movie movie) {
+    private static void checkFightClubMovieObject(Movie movie, Date createdAt, Date updatedAt) {
         Assert.assertEquals(Movie.FightClub.TITLE, movie.getTitle());
         Assert.assertEquals(Movie.FightClub.RATING, movie.getRating());
         Assert.assertEquals(Movie.FightClub.META_SCORE, movie.getMetaScore());
@@ -58,9 +61,14 @@ public class BasicTestsController {
         Assert.assertEquals(Movie.FightClub.BUDGET, movie.getBudget());
         Assert.assertEquals(Movie.FightClub.GROSS, movie.getGross());
         Assert.assertEquals(Movie.FightClub.NOMINATED_FOR_OSCAR, movie.isNominatedForOscar());
+        Assert.assertEquals(createdAt, movie.getCreatedAt());
+        Assert.assertEquals(updatedAt, movie.getUpdatedAt());
     }
 
     private static Task<Void> checkDataConsistency() {
+        final Capture<Date> createdAtCapture = new Capture<>();
+        final Capture<Date> updatedAtCapture = new Capture<>();
+
         return Sabres.deleteDatabase().onSuccessTask(new Continuation<Void, Task<Movie>>() {
             @Override
             public Task<Movie> then(Task<Void> task) throws Exception {
@@ -69,13 +77,16 @@ public class BasicTestsController {
         }).onSuccessTask(new Continuation<Movie, Task<Movie>>() {
             @Override
             public Task<Movie> then(Task<Movie> task) throws Exception {
+                createdAtCapture.set(task.getResult().getCreatedAt());
+                updatedAtCapture.set(task.getResult().getUpdatedAt());
                 SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
                 return q.getInBackground(task.getResult().getObjectId());
             }
         }).onSuccessTask(new Continuation<Movie, Task<Void>>() {
             @Override
             public Task<Void> then(Task<Movie> task) throws Exception {
-                checkFightClubMovieObject(task.getResult());
+                checkFightClubMovieObject(task.getResult(), createdAtCapture.get(),
+                    updatedAtCapture.get());
                 return Task.forResult(null);
             }
         });
