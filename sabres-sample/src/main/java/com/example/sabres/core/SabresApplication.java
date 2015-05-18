@@ -18,6 +18,7 @@ package com.example.sabres.core;
 
 import android.app.Application;
 
+import com.example.sabres.model.Actor;
 import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
@@ -30,6 +31,7 @@ public class SabresApplication extends Application {
         super.onCreate();
         SabresObject.registerSubclass(Director.class);
         SabresObject.registerSubclass(Movie.class);
+        SabresObject.registerSubclass(Actor.class);
         Sabres.setDebug(true);
         Sabres.initialize(this);
 

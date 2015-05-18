@@ -67,7 +67,7 @@ abstract class SabresValue<T> {
         }
 
         if (o instanceof SabresObject) {
-            return new ObjectListValue<>((List<SabresObject>)list);
+            return new ObjectListValue((List<SabresObject>)list);
         }
 
         throw new IllegalArgumentException("Cannot create SabresListValue out of class " +

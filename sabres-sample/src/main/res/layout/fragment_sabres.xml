@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_generic_commands"/>
+            android:text="@string/label_sabres_commands"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -24,16 +24,31 @@
                 android:id="@+id/button_print_tables"
                 android:text="@string/button_print_tables"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
 
             <Button
                 android:id="@+id/button_print_indices"
                 android:text="@string/button_print_indices"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/button_delete_database"
+                android:text="@string/button_delete_database"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_print_schema_commands"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -41,83 +56,69 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/button_print_schema"
-                android:text="@string/button_print_schema"
+                android:id="@+id/button_print_movie_schema"
+                android:text="@string/button_print_movie_schema"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/button_print_director_schema"
+                android:text="@string/button_print_director_schema"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/button_print_actor_schema"
+                android:text="@string/button_print_actor_schema"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_print_object_commands"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/button_print_movies"
                 android:text="@string/button_print_movies"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/button_print_directors"
                 android:text="@string/button_print_directors"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/label_fight_club_object"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_create_fight_club_movie"
-                android:text="@string/button_create"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
 
             <Button
-                android:id="@+id/button_modify_fight_club_movie"
-                android:text="@string/button_modify"
+                android:id="@+id/button_print_actors"
+                android:text="@string/button_print_actors"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_delete_fight_club_movie"
-                android:text="@string/button_delete"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_set_director_to_fight_club_movie"
-                android:text="@string/button_set_director"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/label_reservoir_dogs_object"/>
+            android:text="@string/label_tests"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -125,125 +126,11 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/button_create_reservoir_dogs_movie"
-                android:text="@string/button_create"
+                android:id="@+id/button_basic_tests"
+                android:text="@string/button_basic_tests"
                 android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_modify_reservoir_dogs_movie"
-                android:text="@string/button_modify"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_delete_reservoir_dogs_movie"
-                android:text="@string/button_delete"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/label_quentin_director_object"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_create_quentin_director_object"
-                android:text="@string/button_create"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_quentin_set_director_to_movie_object"
-                android:text="@string/button_set_to_movie"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_delete_quentin_director_object"
-                android:text="@string/button_delete"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/label_queries"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_fetch_fight_club_director"
-                android:text="@string/button_fetch_fight_club_director"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_include_fight_club_director"
-                android:text="@string/button_include_fight_club_director"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/label_queries"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_set_starring_to_fight_club"
-                android:text="@string/button_set_starring_to_fight_club"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <Button
-                android:id="@+id/button_get_starring_from_fight_club"
-                android:text="@string/button_get_starring_from_fight_club"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_find_by_actors"
-                android:text="@string/button_find_by_actors"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <Button
-                android:id="@+id/button_find_by_one_actor"
-                android:text="@string/button_find_by_one_actor"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
     </LinearLayout>

@@ -2,141 +2,85 @@ package com.example.sabres.core;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.sabres.R;
-import com.example.sabres.controller.FightClubController;
-import com.example.sabres.controller.ListsController;
-import com.example.sabres.controller.QuentinController;
-import com.example.sabres.controller.QueryController;
-import com.example.sabres.controller.ReservoirDogsController;
-import com.example.sabres.controller.SabresController;
+import com.example.sabres.model.Actor;
+import com.example.sabres.model.Director;
+import com.example.sabres.model.Movie;
+import com.sabres.Sabres;
+import com.sabres.SabresObject;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SabresFragment extends Fragment {
-    private final SabresController sabresController = new SabresController();
-    private final FightClubController fightClubController = new FightClubController();
-    private final ReservoirDogsController reservoirDogsController = new ReservoirDogsController();
-    private final QuentinController quentinController = new QuentinController();
-    private final QueryController queryController = new QueryController();
-    private final ListsController listsController = new ListsController();
+    private final static String TAG = SabresFragment.class.getSimpleName();
 
-    public SabresFragment() {}
+    public SabresFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        final View v =  inflater.inflate(R.layout.fragment_sabres, container, false);
+        Bundle savedInstanceState) {
+        final View v = inflater.inflate(R.layout.fragment_sabres, container, false);
         ButterKnife.inject(this, v);
         return v;
     }
 
     @OnClick(R.id.button_print_tables)
     public void onClickPrintTables() {
-        sabresController.printTables();
+        Sabres.printTables();
     }
 
     @OnClick(R.id.button_print_indices)
     public void onClickPrintIndices() {
-        sabresController.printIndices();
+        Sabres.printIndices();
     }
 
-    @OnClick(R.id.button_print_schema)
-    public void onClickPrintSchema() {
-        sabresController.printSchema();
+    @OnClick(R.id.button_delete_database)
+    public void onClickDeleteDatabase() {
+        if (Sabres.deleteDatabase()) {
+            Log.i(TAG, "Database deleted");
+        } else {
+            Log.w(TAG, "Database delete failed");
+        }
+    }
+
+    @OnClick(R.id.button_print_movie_schema)
+    public void onClickPrintMovieSchema() {
+        Sabres.printSchema(Movie.class);
+    }
+
+    @OnClick(R.id.button_print_director_schema)
+    public void onClickPrintDirectorSchema() {
+        Sabres.printSchema(Director.class);
+    }
+
+    @OnClick(R.id.button_print_actor_schema)
+    public void onClickPrintActorSchema() {
+        Sabres.printSchema(Actor.class);
     }
 
     @OnClick(R.id.button_print_movies)
     public void onClickPrintMovies() {
-        sabresController.printMovies();
+        SabresObject.printAll(Movie.class);
     }
 
     @OnClick(R.id.button_print_directors)
     public void onClickPrintDirectors() {
-        sabresController.printDirectors();
+        SabresObject.printAll(Director.class);
     }
 
-    @OnClick(R.id.button_create_fight_club_movie)
-    public void onClickCreateFightClubMovie() {
-        fightClubController.createMovie();
+    @OnClick(R.id.button_print_actors)
+    public void onClickPrintActors() {
+        SabresObject.printAll(Actor.class);
     }
 
-    @OnClick(R.id.button_modify_fight_club_movie)
-    public void onClickModifyFightClubMovie() {
-        fightClubController.modifyMovie();
-    }
-
-    @OnClick(R.id.button_delete_fight_club_movie)
-    public void onClickDeleteFightClubMovie() {
-        fightClubController.deleteMovie();
-    }
-
-    @OnClick(R.id.button_set_director_to_fight_club_movie)
-    public void onClickSetDirectorToFightClub() {
-        fightClubController.setDirector();
-    }
-
-    @OnClick(R.id.button_create_reservoir_dogs_movie)
-    public void onClickCreateReservoirDogsMovie() {
-        reservoirDogsController.createMovie();
-    }
-
-    @OnClick(R.id.button_modify_reservoir_dogs_movie)
-    public void onClickModifyReservoirDogsMovie() {
-        reservoirDogsController.modifyMovie();
-    }
-
-    @OnClick(R.id.button_delete_reservoir_dogs_movie)
-    public void onClickDeleteReservoirDogsMovie() {
-        reservoirDogsController.deleteMovie();
-    }
-
-    @OnClick(R.id.button_create_quentin_director_object)
-    public void onClickCreateQuentinDirector() {
-        quentinController.createDirector();
-    }
-
-    @OnClick(R.id.button_delete_quentin_director_object)
-    public void onClickDeleteQuentinDirector() {
-        quentinController.deleteDirector();
-    }
-
-    @OnClick(R.id.button_quentin_set_director_to_movie_object)
-    public void onClickSetDirectorToMovie() {
-        quentinController.setToMovie();
-    }
-
-    @OnClick(R.id.button_fetch_fight_club_director)
-    public void onClickQueryFightClubWithoutInclude() {
-        queryController.queryFightClubFetchDirector();
-    }
-
-    @OnClick(R.id.button_include_fight_club_director)
-    public void onClickQueryFightClubWithInclude() {
-        queryController.queryFightClubIncludeDirector();
-    }
-
-    @OnClick(R.id.button_set_starring_to_fight_club)
-    public void onClickSetStarringToFightClub() {
-        listsController.setStaringToFightClub();
-    }
-
-    @OnClick(R.id.button_get_starring_from_fight_club)
-    public void onClickGetStarringFromFightClub() {
-        listsController.getStarringFromFightClub();
-    }
-
-    @OnClick(R.id.button_find_by_actors)
-    public void onClickFindByActors() {
-        listsController.findByActors();
-    }
-
-    @OnClick(R.id.button_find_by_one_actor)
-    public void onClickFindByOneActor() {
-        listsController.findByOneActor();
+    @OnClick(R.id.button_basic_tests)
+    public void onClickBasicTests() {
     }
 }

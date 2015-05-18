@@ -1,25 +1,17 @@
 <resources>
     <string name="app_name">Sabres</string>
-    <string name="button_print_tables">Print Tables</string>
+    <string name="button_delete_database">Delete Database</string>
     <string name="button_print_indices">Print Indices</string>
-    <string name="button_print_schema">Print Schema</string>
+    <string name="button_print_tables">Print Tables</string>
+    <string name="label_sabres_commands">Sabres commands</string>
+    <string name="label_tests">Tests</string>
+    <string name="label_print_schema_commands">Print Schema Commands</string>
+    <string name="label_print_object_commands">Print Object Commands</string>
     <string name="button_print_movies">Print Movies</string>
     <string name="button_print_directors">Print Directors</string>
-    <string name="label_generic_commands">Generic commands</string>
-    <string name="label_fight_club_object">Fight Club Movie Object</string>
-    <string name="label_reservoir_dogs_object">Reservoir Dogs Movie Object</string>
-    <string name="label_quentin_director_object">Quentin Director Object</string>
-    <string name="label_queries">Queries</string>
-    <string name="label_lists">Lists</string>
-    <string name="button_create">Create</string>
-    <string name="button_fetch_fight_club_director">Fetch Fight Club Director</string>
-    <string name="button_include_fight_club_director">Include Fight Club Director</string>
-    <string name="button_set_starring_to_fight_club">Set Starring to Fight Club</string>
-    <string name="button_find_by_actors">Find By Actors</string>
-    <string name="button_find_by_one_actor">Find By One Actor</string>
-    <string name="button_get_starring_from_fight_club">Get Starring from Fight Club</string>
-    <string name="button_set_director">Set Director</string>
-    <string name="button_modify">Modify</string>
-    <string name="button_delete">Delete</string>
-    <string name="button_set_to_movie">Set To Movie</string>
+    <string name="button_print_actors">Print Actors</string>
+    <string name="button_print_movie_schema">Print Movie Schema</string>
+    <string name="button_print_director_schema">Print Director Schema</string>
+    <string name="button_print_actor_schema">Print Actor Schema</string>
+    <string name="button_basic_tests">Basic Tests</string>
 </resources>

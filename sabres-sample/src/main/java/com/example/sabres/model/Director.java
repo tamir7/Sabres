@@ -19,6 +19,7 @@ package com.example.sabres.model;
 import com.sabres.SabresObject;
 import com.sabres.SabresQuery;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -28,25 +29,70 @@ public class Director extends SabresObject {
     private static final String NAME_KEY = "name";
     private static final String DATE_OF_BIRTH_KEY = "dateOfBirth";
 
-    public void setName(String name) {
-        put(NAME_KEY, name);
-    }
-
-    public void setDateOfBirth(Date dateOfBirth) {
-        put(DATE_OF_BIRTH_KEY, dateOfBirth);
+    public static Task<List<Director>> findWithNameInBackground(String name) {
+        SabresQuery<Director> q = SabresQuery.getQuery(Director.class);
+        q.whereEqualTo(NAME_KEY, name);
+        return q.findInBackground();
     }
 
     public String getName() {
         return getString(NAME_KEY);
     }
 
+    public void setName(String name) {
+        put(NAME_KEY, name);
+    }
+
     public Date getDateOfBirth() {
         return getDate(DATE_OF_BIRTH_KEY);
     }
 
-    public static Task<List<Director>> findWithNameInBackground(String name) {
-        SabresQuery<Director> q = SabresQuery.getQuery(Director.class);
-        q.whereEqualTo(NAME_KEY, name);
-        return q.findInBackground();
+    public void setDateOfBirth(Date dateOfBirth) {
+        put(DATE_OF_BIRTH_KEY, dateOfBirth);
+    }
+
+    public static class QuentinTarantino {
+        public static final String NAME = "Quentin Tarantino";
+        public static final Date DATE_OF_BIRTH;
+
+        static {
+            Calendar c = Calendar.getInstance();
+            c.clear();
+            c.set(1963, 3, 27);
+            DATE_OF_BIRTH = c.getTime();
+        }
+
+        private QuentinTarantino() {
+        }
+    }
+
+    public static class GuyRitchie {
+        public static final String NAME = "Guy Ritchie";
+        public static final Date DATE_OF_BIRTH;
+
+        static {
+            Calendar c = Calendar.getInstance();
+            c.clear();
+            c.set(1968, 9, 10);
+            DATE_OF_BIRTH = c.getTime();
+        }
+
+        private GuyRitchie() {
+        }
+    }
+
+    public static class DavidFincher {
+        public static final String NAME = "David Fincher";
+        public static final Date DATE_OF_BIRTH;
+
+        static {
+            Calendar c = Calendar.getInstance();
+            c.clear();
+            c.set(1962, 8, 28);
+            DATE_OF_BIRTH = c.getTime();
+        }
+
+        private DavidFincher() {
+        }
     }
 }
