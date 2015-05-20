@@ -35,6 +35,14 @@ public class Director extends SabresObject {
         return q.findInBackground();
     }
 
+    public static String getNameKey() {
+        return NAME_KEY;
+    }
+
+    public static String getDateOfBirthKey() {
+        return DATE_OF_BIRTH_KEY;
+    }
+
     public String getName() {
         return getString(NAME_KEY);
     }

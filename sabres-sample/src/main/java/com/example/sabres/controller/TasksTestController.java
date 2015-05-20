@@ -35,6 +35,7 @@ public class TasksTestController extends AbstractTestController {
         Sabres.deleteDatabase().onSuccessTask(new Continuation<Void, Task<Void>>() {
             @Override
             public Task<Void> then(Task<Void> task) throws Exception {
+                checkNonDatabaseApi();
                 return checkDataConsistency();
             }
         }).continueWith(new Continuation<Void, Void>() {

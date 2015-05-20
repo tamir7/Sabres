@@ -15,7 +15,9 @@
  */
 package com.example.sabres.controller;
 
+import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
+import com.sabres.SabresObject;
 
 import junit.framework.Assert;
 
@@ -34,5 +36,17 @@ abstract class AbstractTestController {
         Assert.assertEquals(Movie.FightClub.NOMINATED_FOR_OSCAR, movie.isNominatedForOscar());
         Assert.assertEquals(createdAt, movie.getCreatedAt());
         Assert.assertEquals(updatedAt, movie.getUpdatedAt());
+    }
+
+    protected static void checkNonDatabaseApi() {
+        Director director = SabresObject.create(Director.class);
+        Assert.assertEquals(false, director.isDataAvailable());
+        Assert.assertEquals(false, director.containsKey(Director.getNameKey()));
+        Assert.assertEquals(false, director.isDirty());
+        Assert.assertEquals(false, director.isDirty(Director.getNameKey()));
+        director.setName(Director.GuyRitchie.NAME);
+        Assert.assertEquals(true, director.containsKey(Director.getNameKey()));
+        Assert.assertEquals(true, director.isDirty());
+        Assert.assertEquals(false, director.isDirty(Director.getDateOfBirthKey()));
     }
 }

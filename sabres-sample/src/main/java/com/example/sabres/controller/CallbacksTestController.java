@@ -37,6 +37,7 @@ public class CallbacksTestController extends AbstractTestController {
                 if (e != null) {
                     Log.e(TAG, "Basic Tests failed: delete database failed", e);
                 } else {
+                    checkNonDatabaseApi();
                     createAndSaveFightClubMovie();
                 }
             }
@@ -69,9 +70,7 @@ public class CallbacksTestController extends AbstractTestController {
                         "movie object");
                 } else {
                     try {
-                        checkFightClubMovieObject(object,
-                            createdAt,
-                            updatedAt);
+                        checkFightClubMovieObject(object, createdAt, updatedAt);
                     } catch (Exception ex) {
                         Log.e(TAG, "Basic Tests failed", ex);
                         return;
