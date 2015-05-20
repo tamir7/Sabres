@@ -25,6 +25,8 @@ import com.sabres.SabresException;
 import com.sabres.SabresQuery;
 import com.sabres.SaveCallback;
 
+import java.util.Date;
+
 public class CallbacksTestController extends AbstractTestController {
     private static final String TAG = CallbacksTestController.class.getSimpleName();
 
@@ -35,41 +37,49 @@ public class CallbacksTestController extends AbstractTestController {
                 if (e != null) {
                     Log.e(TAG, "Basic Tests failed: delete database failed", e);
                 } else {
-                    final Movie fightClub = MovieController.createFightClub();
-                    fightClub.saveInBackground(new SaveCallback() {
-                        @Override
-                        public void done(SabresException e) {
-                            if (e != null) {
-                                Log.e(TAG, "Basic Tests failed: Failed to save movie object");
-                            } else {
-                                SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
-                                q.getInBackground(fightClub.getObjectId(),
-                                    new GetCallback<Movie>() {
-                                        @Override
-                                        public void done(Movie object, SabresException e) {
-                                            if (e != null) {
-                                                Log.e(TAG, "Basic Tests failed: Failed to get " +
-                                                    "movie object");
-                                            } else {
-                                                try {
-                                                    checkFightClubMovieObject(object,
-                                                        fightClub.getCreatedAt(),
-                                                        fightClub.getUpdatedAt());
-                                                } catch (Exception ex) {
-                                                    Log.e(TAG, "Basic Tests failed", ex);
-                                                    return;
-                                                }
-
-                                                Log.i(TAG, "Basic Tests passed");
-                                            }
-                                        }
-                                    });
-                            }
-                        }
-                    });
+                    createAndSaveFightClubMovie();
                 }
             }
         });
+    }
 
+    private static void createAndSaveFightClubMovie() {
+        final Movie fightClub = MovieController.createFightClub();
+        fightClub.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(SabresException e) {
+                if (e != null) {
+                    Log.e(TAG, "Basic Tests failed: Failed to save movie object");
+                } else {
+                    queryFightClubMovie(fightClub.getObjectId(), fightClub.getCreatedAt(),
+                        fightClub.getUpdatedAt());
+                }
+            }
+        });
+    }
+
+    private static void queryFightClubMovie(long objectId, final Date createdAt,
+        final Date updatedAt) {
+        SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
+        q.getInBackground(objectId, new GetCallback<Movie>() {
+            @Override
+            public void done(Movie object, SabresException e) {
+                if (e != null) {
+                    Log.e(TAG, "Basic Tests failed: Failed to get " +
+                        "movie object");
+                } else {
+                    try {
+                        checkFightClubMovieObject(object,
+                            createdAt,
+                            updatedAt);
+                    } catch (Exception ex) {
+                        Log.e(TAG, "Basic Tests failed", ex);
+                        return;
+                    }
+
+                    Log.i(TAG, "Basic Tests passed");
+                }
+            }
+        });
     }
 }
