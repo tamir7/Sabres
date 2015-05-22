@@ -185,7 +185,9 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> selectKeys(List<String> selectKeys) {
-        this.selectKeys = selectKeys;
+        this.selectKeys.clear();
+        this.selectKeys.add(SabresObject.getObjectIdKey());
+        this.selectKeys.addAll(selectKeys);
         return this;
     }
 

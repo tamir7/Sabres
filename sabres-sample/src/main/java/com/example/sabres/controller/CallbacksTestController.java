@@ -95,15 +95,7 @@ public class CallbacksTestController extends AbstractTestController {
     }
 
     private static void saveActors(final TestCallback callback) {
-        final List<Actor> actors = new ArrayList<>();
-        actors.add(ActorController.createBenicioDelToro());
-        actors.add(ActorController.createBradPitt());
-        actors.add(ActorController.createEdwardNorton());
-        actors.add(ActorController.createHarveyKeitel());
-        actors.add(ActorController.createHelenaBonhamCarter());
-        actors.add(ActorController.createJasonStatham());
-        actors.add(ActorController.createMichaelMadsen());
-        actors.add(ActorController.createTimRoth());
+        final List<Actor> actors = createActors();
         SabresObject.saveAllInBackground(actors, new SaveCallback() {
             @Override
             public void done(SabresException e) {

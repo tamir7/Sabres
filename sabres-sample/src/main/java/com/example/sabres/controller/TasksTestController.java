@@ -27,6 +27,7 @@ import com.sabres.SabresQuery;
 import junit.framework.Assert;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +45,11 @@ public class TasksTestController extends AbstractTestController {
             public Task<Void> then(Task<Void> task) throws Exception {
                 return checkBulkOperations();
             }
+        }).onSuccessTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Void> task) throws Exception {
+                return checkQueries();
+            }
         }).continueWith(new Continuation<Void, Void>() {
             @Override
             public Void then(Task<Void> task) throws Exception {
@@ -57,6 +63,58 @@ public class TasksTestController extends AbstractTestController {
         }, Task.UI_THREAD_EXECUTOR);
     }
 
+    private static Task<Void> checkQueries() {
+        Log.i(TAG, "checkQueries start");
+        final List<Actor> actors = new ArrayList<>();
+        return Sabres.deleteDatabase().onSuccessTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkQueries: deleteDatabase successful");
+                actors.addAll(createActors());
+                return SabresObject.saveAllInBackground(actors);
+            }
+        }).onSuccessTask(new Continuation<Void, Task<List<Actor>>>() {
+            @Override
+            public Task<List<Actor>> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkQueries: saveAllInBackground successful");
+                return SabresQuery.getQuery(Actor.class).
+                    addAscendingOrder(SabresObject.getCreatedAtKey()).
+                    selectKeys(Collections.singletonList(SabresObject.getCreatedAtKey())).
+                    findInBackground();
+            }
+        }).onSuccessTask(new Continuation<List<Actor>, Task<List<Actor>>>() {
+            @Override
+            public Task<List<Actor>> then(Task<List<Actor>> task) throws Exception {
+                Log.i(TAG, "checkQueries: findInBackground ascending order successful");
+                Actor previousActor = null;
+                Assert.assertEquals(actors.size(), task.getResult().size());
+                for (Actor actor : task.getResult()) {
+                    if (previousActor != null) {
+                        Assert.assertTrue(previousActor.getCreatedAt().before(actor.getCreatedAt()));
+                    }
+                    previousActor = actor;
+                }
+                return SabresQuery.getQuery(Actor.class).
+                    addDescendingOrder(SabresObject.getUpdatedAtKey()).
+                    selectKeys(Collections.singletonList(SabresObject.getUpdatedAtKey())).
+                    findInBackground();
+            }
+        }).onSuccessTask(new Continuation<List<Actor>, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<List<Actor>> task) throws Exception {
+                Actor previousActor = null;
+                Assert.assertEquals(actors.size(), task.getResult().size());
+                for (Actor actor : task.getResult()) {
+                    if (previousActor != null) {
+                        Assert.assertTrue(previousActor.getUpdatedAt().after(actor.getUpdatedAt()));
+                    }
+                    previousActor = actor;
+                }
+                return null;
+            }
+        });
+    }
+
     private static Task<Void> checkBulkOperations() {
         final Capture<Integer> actorCountCapture = new Capture<>();
         final List<Actor> actors = new ArrayList<>();
@@ -66,14 +124,7 @@ public class TasksTestController extends AbstractTestController {
             @Override
             public Task<Void> then(Task<Void> task) throws Exception {
                 Log.i(TAG, "checkBulkOperations: deleteDatabase successful");
-                actors.add(ActorController.createBenicioDelToro());
-                actors.add(ActorController.createBradPitt());
-                actors.add(ActorController.createEdwardNorton());
-                actors.add(ActorController.createHarveyKeitel());
-                actors.add(ActorController.createHelenaBonhamCarter());
-                actors.add(ActorController.createJasonStatham());
-                actors.add(ActorController.createMichaelMadsen());
-                actors.add(ActorController.createTimRoth());
+                actors.addAll(createActors());
                 actorCountCapture.set(actors.size());
                 return SabresObject.saveAllInBackground(actors);
             }

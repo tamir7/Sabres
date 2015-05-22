@@ -24,6 +24,7 @@ import com.sabres.SabresObject;
 
 import junit.framework.Assert;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -65,5 +66,18 @@ abstract class AbstractTestController {
         Assert.assertEquals(true, director.isDirty());
         Assert.assertEquals(false, director.isDirty(Director.getDateOfBirthKey()));
         Log.i(TAG, "checkNonDatabaseApi successful");
+    }
+
+    protected static List<Actor> createActors() {
+        List<Actor> actors = new ArrayList<>();
+        actors.add(ActorController.createBenicioDelToro());
+        actors.add(ActorController.createBradPitt());
+        actors.add(ActorController.createEdwardNorton());
+        actors.add(ActorController.createHarveyKeitel());
+        actors.add(ActorController.createHelenaBonhamCarter());
+        actors.add(ActorController.createJasonStatham());
+        actors.add(ActorController.createMichaelMadsen());
+        actors.add(ActorController.createTimRoth());
+        return actors;
     }
 }

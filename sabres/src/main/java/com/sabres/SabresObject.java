@@ -1197,7 +1197,8 @@ abstract public class SabresObject {
         Map<String, SabresDescriptor> schema = Schema.getSchema(name);
 
         for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
-            if (!c.isNull(c.getColumnIndex(getCursorKey(prefix, entry.getKey())))) {
+            if (c.getColumnIndex(getCursorKey(prefix, entry.getKey())) != -1 &&
+                !c.isNull(c.getColumnIndex(getCursorKey(prefix, entry.getKey())))) {
                 SabresValue value = null;
                 switch (entry.getValue().getType()) {
                     case Integer:
