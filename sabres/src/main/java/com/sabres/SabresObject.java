@@ -272,8 +272,10 @@ abstract public class SabresObject {
         sabres.open();
         sabres.beginTransaction();
         try {
+            boolean first = true;
             for (SabresObject o : objects) {
-                o.saveInTransaction(sabres);
+                o.saveInTransaction(sabres, first);
+                first = false;
             }
             sabres.setTransactionSuccessful();
         } finally {
@@ -878,22 +880,26 @@ abstract public class SabresObject {
         });
     }
 
-    private void saveIfNeededInTransaction(Sabres sabres) throws SabresException {
+    private void saveIfNeededInTransaction(Sabres sabres, boolean updateSchema)
+        throws SabresException {
         if (id == 0 || !dirtyKeys.isEmpty()) {
-            saveInTransaction(sabres);
+            saveInTransaction(sabres, updateSchema);
         }
     }
 
-    private void saveInTransaction(Sabres sabres) throws SabresException {
+    private void saveInTransaction(Sabres sabres, boolean updateSchema) throws SabresException {
         put(UPDATED_AT_KEY, new Date());
         if (id == 0) {
             put(CREATED_AT_KEY, new Date());
         }
 
-        Schema.update(sabres, name, schemaChanges);
-        updateTable(sabres);
+        if (updateSchema) {
+            Schema.update(sabres, name, schemaChanges);
+            updateTable(sabres);
+        }
+
         schemaChanges.clear();
-        updateChildren(sabres);
+        updateChildren(sabres, updateSchema);
 
         if (id == 0) {
             id = insert(sabres);
@@ -920,7 +926,7 @@ abstract public class SabresObject {
         sabres.open();
         sabres.beginTransaction();
         try {
-            saveInTransaction(sabres);
+            saveInTransaction(sabres, true);
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();
@@ -958,11 +964,11 @@ abstract public class SabresObject {
         }
     }
 
-    private void updateChildren(Sabres sabres) throws SabresException {
+    private void updateChildren(Sabres sabres, boolean updateSchema) throws SabresException {
         for (Map.Entry<String, SabresValue> entry : values.entrySet()) {
             if (entry.getValue() instanceof ObjectValue) {
                 SabresObject o = ((ObjectValue<?>)entry.getValue()).getValue();
-                o.saveIfNeededInTransaction(sabres);
+                o.saveIfNeededInTransaction(sabres, updateSchema);
             }
         }
     }

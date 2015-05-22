@@ -15,6 +15,9 @@
  */
 package com.example.sabres.controller;
 
+import android.util.Log;
+
+import com.example.sabres.model.Actor;
 import com.example.sabres.model.Director;
 import com.example.sabres.model.Movie;
 import com.sabres.SabresObject;
@@ -22,8 +25,10 @@ import com.sabres.SabresObject;
 import junit.framework.Assert;
 
 import java.util.Date;
+import java.util.List;
 
 abstract class AbstractTestController {
+    private static final String TAG = AbstractTestController.class.getSimpleName();
 
     protected static void checkFightClubMovieObject(Movie movie, Date createdAt, Date updatedAt) {
         Assert.assertEquals(Movie.FightClub.TITLE, movie.getTitle());
@@ -38,7 +43,18 @@ abstract class AbstractTestController {
         Assert.assertEquals(updatedAt, movie.getUpdatedAt());
     }
 
+    protected static boolean containsBenicio(List<Actor> actors) {
+        for (Actor actor : actors) {
+            if (Actor.BenicioDelToro.NAME.equals(actor.getName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     protected static void checkNonDatabaseApi() {
+        Log.i(TAG, "checkNonDatabaseApi start");
         Director director = SabresObject.create(Director.class);
         Assert.assertEquals(false, director.isDataAvailable());
         Assert.assertEquals(false, director.containsKey(Director.getNameKey()));
@@ -48,5 +64,6 @@ abstract class AbstractTestController {
         Assert.assertEquals(true, director.containsKey(Director.getNameKey()));
         Assert.assertEquals(true, director.isDirty());
         Assert.assertEquals(false, director.isDirty(Director.getDateOfBirthKey()));
+        Log.i(TAG, "checkNonDatabaseApi successful");
     }
 }

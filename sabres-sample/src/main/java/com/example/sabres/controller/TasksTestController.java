@@ -18,11 +18,17 @@ package com.example.sabres.controller;
 
 import android.util.Log;
 
+import com.example.sabres.model.Actor;
 import com.example.sabres.model.Movie;
 import com.sabres.Sabres;
+import com.sabres.SabresObject;
 import com.sabres.SabresQuery;
 
+import junit.framework.Assert;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import bolts.Capture;
 import bolts.Continuation;
@@ -32,23 +38,97 @@ public class TasksTestController extends AbstractTestController {
     private static final String TAG = TasksTestController.class.getSimpleName();
 
     public static void begin() {
-        Sabres.deleteDatabase().onSuccessTask(new Continuation<Void, Task<Void>>() {
+        checkNonDatabaseApi();
+        checkDataConsistency().onSuccessTask(new Continuation<Void, Task<Void>>() {
             @Override
             public Task<Void> then(Task<Void> task) throws Exception {
-                checkNonDatabaseApi();
-                return checkDataConsistency();
+                return checkBulkOperations();
             }
         }).continueWith(new Continuation<Void, Void>() {
             @Override
             public Void then(Task<Void> task) throws Exception {
                 if (task.isFaulted()) {
-                    Log.e(TAG, "Basic Tests failed", task.getError());
+                    Log.e(TAG, "Tests failed", task.getError());
                 } else {
-                    Log.i(TAG, "Basic Tests passed");
+                    Log.i(TAG, "Tests passed");
                 }
                 return null;
             }
         }, Task.UI_THREAD_EXECUTOR);
+    }
+
+    private static Task<Void> checkBulkOperations() {
+        final Capture<Integer> actorCountCapture = new Capture<>();
+        final List<Actor> actors = new ArrayList<>();
+        final List<Actor> actorsToFetch = new ArrayList<>();
+        Log.i(TAG, "checkBulkOperations start");
+        return Sabres.deleteDatabase().onSuccessTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkBulkOperations: deleteDatabase successful");
+                actors.add(ActorController.createBenicioDelToro());
+                actors.add(ActorController.createBradPitt());
+                actors.add(ActorController.createEdwardNorton());
+                actors.add(ActorController.createHarveyKeitel());
+                actors.add(ActorController.createHelenaBonhamCarter());
+                actors.add(ActorController.createJasonStatham());
+                actors.add(ActorController.createMichaelMadsen());
+                actors.add(ActorController.createTimRoth());
+                actorCountCapture.set(actors.size());
+                return SabresObject.saveAllInBackground(actors);
+            }
+        }).onSuccessTask(new Continuation<Void, Task<List<Actor>>>() {
+            @Override
+            public Task<List<Actor>> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkBulkOperations: saveAllInBackground successful");
+                return SabresQuery.getQuery(Actor.class).findInBackground();
+            }
+        }).onSuccessTask(new Continuation<List<Actor>, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<List<Actor>> task) throws Exception {
+                Log.i(TAG, "checkBulkOperations: findInBackground successful");
+                Assert.assertEquals(actorCountCapture.get(), Integer.valueOf(
+                    task.getResult().size()));
+                Assert.assertEquals(true, containsBenicio(task.getResult()));
+                for (Actor actor : actors) {
+                    Actor actorToFetch = SabresObject.createWithoutData(Actor.class,
+                        actor.getObjectId());
+                    actorsToFetch.add(actorToFetch);
+                }
+                return SabresObject.fetchAllIfNeededInBackground(actorsToFetch);
+            }
+        }).onSuccessTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkBulkOperations: fetchAllIfNeededInBackground successful");
+                int foundActors = 0;
+                for (Actor actor : actors) {
+                    for (Actor fetchedActor : actorsToFetch) {
+                        if (actor.hasSameId(fetchedActor)) {
+                            foundActors++;
+                            Assert.assertEquals(actor.getName(), fetchedActor.getName());
+                            break;
+                        }
+                    }
+                }
+                Assert.assertEquals(actors.size(), foundActors);
+                return SabresObject.deleteAllInBackground(actors);
+            }
+        }).onSuccessTask(new Continuation<Void, Task<Long>>() {
+            @Override
+            public Task<Long> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkBulkOperations: deleteAllInBackground successful");
+                return SabresQuery.getQuery(Actor.class).countInBackground();
+            }
+        }).onSuccess(new Continuation<Long, Void>() {
+            @Override
+            public Void then(Task<Long> task) throws Exception {
+                Log.i(TAG, "checkBulkOperations: countInBackground successful");
+                Assert.assertEquals((Long)0L, task.getResult());
+                Log.i(TAG, "checkBulkOperations successful");
+                return null;
+            }
+        });
     }
 
     private static Task<Void> checkDataConsistency() {
@@ -56,15 +136,19 @@ public class TasksTestController extends AbstractTestController {
         final Capture<Date> updatedAtCapture = new Capture<>();
         final Capture<Movie> fightClubCapture = new Capture<>(MovieController.createFightClub());
 
+        Log.i(TAG, "checkDataConsistency start");
+
         return Sabres.deleteDatabase().onSuccessTask(new Continuation<Void, Task<Void>>() {
 
             @Override
             public Task<Void> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: deleteDatabase successful");
                 return fightClubCapture.get().saveInBackground();
             }
         }).onSuccessTask(new Continuation<Void, Task<Movie>>() {
             @Override
             public Task<Movie> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: saveInBackground successful");
                 Movie fightClub = fightClubCapture.get();
                 createdAtCapture.set(fightClub.getCreatedAt());
                 updatedAtCapture.set(fightClub.getUpdatedAt());
@@ -74,8 +158,10 @@ public class TasksTestController extends AbstractTestController {
         }).onSuccessTask(new Continuation<Movie, Task<Void>>() {
             @Override
             public Task<Void> then(Task<Movie> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: getInBackground successful");
                 checkFightClubMovieObject(task.getResult(), createdAtCapture.get(),
                     updatedAtCapture.get());
+                Log.i(TAG, "checkDataConsistency successful");
                 return Task.forResult(null);
             }
         });
