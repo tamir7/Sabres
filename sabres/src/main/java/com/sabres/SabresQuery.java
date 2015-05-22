@@ -147,7 +147,7 @@ public class SabresQuery<T extends SabresObject> {
      * @return A ParseQuery that is the 'or' of the passed in queries.
      */
     public static <T extends SabresObject> SabresQuery<T> or(List<SabresQuery<T>> queries) {
-        return new SabresQuery<T>(queries);
+        return new SabresQuery<>(queries);
     }
 
     private void createIndices(Sabres sabres)
@@ -589,13 +589,6 @@ public class SabresQuery<T extends SabresObject> {
                 return null;
             }
         }, Task.UI_THREAD_EXECUTOR);
-    }
-
-    private void checkTableExists(Sabres sabres) throws SabresException {
-        if (!SqliteMaster.tableExists(sabres, name)) {
-            throw new SabresException(SabresException.OBJECT_NOT_FOUND,
-                String.format("table %s does not exist", name));
-        }
     }
 
     /**

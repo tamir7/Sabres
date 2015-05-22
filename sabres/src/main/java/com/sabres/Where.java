@@ -64,10 +64,6 @@ final class Where {
         return new Where(key, String.format("'%%%s'", suffix), Operator.Like);
     }
 
-    public static Where doesNotEndWith(String key, String suffix) {
-        return new Where(key, String.format("'%%%s'", suffix), Operator.NotLike);
-    }
-
     public static Where contains(String key, String substring) {
         return new Where(key, String.format("'%%%s%%'", substring), Operator.Like);
     }
