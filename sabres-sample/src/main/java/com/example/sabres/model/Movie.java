@@ -35,6 +35,7 @@ public class Movie extends SabresObject {
     private static final String DIRECTOR_KEY = "director";
     private static final String STARRING_KEY = "starring";
     private static final String NOMINATIONS_KEY = "nominations";
+    private static final String TIMES_WATCHED_KEY = "timesWatched";
 
     public static Task<List<Movie>> findWithTitleInBackground(String title) {
         SabresQuery<Movie> q = SabresQuery.getQuery(Movie.class);
@@ -73,6 +74,27 @@ public class Movie extends SabresObject {
 
     public void setTitle(String title) {
         put(TITLE_KEY, title);
+    }
+
+    // not using the generic function on purpose to check the single increment function.
+    public void watch() {
+        if (containsKey(TIMES_WATCHED_KEY)) {
+            increment(TIMES_WATCHED_KEY);
+        } else {
+            put(TIMES_WATCHED_KEY, 1);
+        }
+    }
+
+    public void watch(int times) {
+        if (containsKey(TIMES_WATCHED_KEY)) {
+            increment(TIMES_WATCHED_KEY, times);
+        } else {
+            put(TIMES_WATCHED_KEY, times);
+        }
+    }
+
+    public Integer getTimesWatched() {
+        return getInt(TIMES_WATCHED_KEY);
     }
 
     public Float getRating() {

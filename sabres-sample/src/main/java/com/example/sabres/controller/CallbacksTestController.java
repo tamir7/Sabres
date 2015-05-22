@@ -229,6 +229,19 @@ public class CallbacksTestController extends AbstractTestController {
                         return;
                     }
 
+                    deleteFightClubMovie(callback, object);
+                }
+            }
+        });
+    }
+
+    private static void deleteFightClubMovie(final TestCallback callback, Movie movie) {
+        movie.deleteInBackground(new DeleteCallback() {
+            @Override
+            public void done(SabresException e) {
+                if (e != null) {
+                    callback.done(e);
+                } else {
                     Log.i(TAG, "checkDataConsistency successful");
                     callback.done(null);
                 }

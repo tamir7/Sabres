@@ -162,7 +162,37 @@ public class TasksTestController extends AbstractTestController {
                 checkFightClubMovieObject(task.getResult(), createdAtCapture.get(),
                     updatedAtCapture.get());
                 Log.i(TAG, "checkDataConsistency successful");
-                return Task.forResult(null);
+                fightClubCapture.get().watch();
+                return fightClubCapture.get().saveInBackground();
+            }
+        }).onSuccessTask(new Continuation<Void, Task<Movie>>() {
+            @Override
+            public Task<Movie> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: saveInBackground after watch successful");
+                return SabresQuery.getQuery(Movie.class).whereEqualTo(SabresObject.getObjectIdKey(),
+                    fightClubCapture.get().getObjectId()).getFirstInBackground();
+            }
+        }).onSuccessTask(new Continuation<Movie, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Movie> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: getFirstInBackground successful");
+                Assert.assertEquals(Integer.valueOf(1), task.getResult().getTimesWatched());
+                task.getResult().watch(-5);
+                return task.getResult().saveInBackground();
+            }
+        }).onSuccessTask(new Continuation<Void, Task<Movie>>() {
+            @Override
+            public Task<Movie> then(Task<Void> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: saveInBackground after negative watch successful");
+                return SabresQuery.getQuery(Movie.class).
+                    getInBackground(fightClubCapture.get().getObjectId());
+            }
+        }).onSuccessTask(new Continuation<Movie, Task<Void>>() {
+            @Override
+            public Task<Void> then(Task<Movie> task) throws Exception {
+                Log.i(TAG, "checkDataConsistency: getInBackground after watch increment successful");
+                Assert.assertEquals(Integer.valueOf(-4), task.getResult().getTimesWatched());
+                return task.getResult().deleteInBackground();
             }
         });
     }

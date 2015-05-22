@@ -157,7 +157,7 @@ abstract public class SabresObject {
         subClasses.put(subClass.getSimpleName(), subClass);
     }
 
-    static String getObjectIdKey() {
+    public static String getObjectIdKey() {
         return OBJECT_ID_KEY;
     }
 
