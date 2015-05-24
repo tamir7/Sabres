@@ -31,8 +31,10 @@ install {
         pom {
             //noinspection GroovyAssignabilityCheck
             project {
+                packaging 'aar'
                 //noinspection GroovyAssignabilityCheck
                 name 'Sabres'
+                //noinspection GroovyAssignabilityCheck
                 description = 'ORM for Android with Parse-like API'
                 url siteUrl
 
