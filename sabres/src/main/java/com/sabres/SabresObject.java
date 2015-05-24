@@ -37,7 +37,7 @@ import bolts.Task;
 /**
  * The SabresObject is a base class that allows custom objects to be saved and retrieved with the
  * Sabres library.
- * <p/>
+ * <p>
  * To start working with SabresObject and the Sabres library, first a model class needs to be
  * created. Getters ans Setters for custom data can also be provided.
  * <pre>
@@ -64,12 +64,12 @@ import bolts.Task;
  * }
  * }
  * </pre>
- * <p/>
+ * <p>
  * Before the object can be used, it needs to be registered with the SabresLibrary.
  * See {@link #registerSubclass(Class)}
- * <p/>
+ * <p>
  * Now, MyObject can be created, and saved to the database.
- * <p/>
+ * <p>
  * <pre>
  * {@code
  * MyObject myObject = new MyObject();
@@ -78,7 +78,7 @@ import bolts.Task;
  * myObject.saveInBackground();
  * }
  * </pre>
- * <p/>
+ * <p>
  * To get objects from the database, the {@link SabresQuery} object is used.
  */
 abstract public class SabresObject {
@@ -135,9 +135,9 @@ abstract public class SabresObject {
 
     /**
      * Registers a custom subclass type with Sabres library.
-     * <p/>
+     * <p>
      * Needs to be called before {@link Sabres#initialize}.
-     * <p/>
+     * <p>
      * <pre>
      * {@code
      * public class MyApplication extends Application {
@@ -846,7 +846,7 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database in a background thread.
-     * <p/>
+     * <p>
      * This is preferable to using {@link #save()} ,
      * unless your code is already running from a background thread.
      *
@@ -864,7 +864,7 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database in a background thread.
-     * <p/>
+     * <p>
      * This is preferable to using {@link #save()} ,
      * unless your code is already running from a background thread.
      *
@@ -915,7 +915,7 @@ abstract public class SabresObject {
 
     /**
      * Saves this object to the database.
-     * <p/>
+     * <p>
      * Typically, you should use {@link #saveInBackground()} instead of this,
      * unless you are managing your own threading.
      *
@@ -1017,7 +1017,7 @@ abstract public class SabresObject {
 
     /**
      * Fetches the data of this object from the database.
-     * <p/>
+     * <p>
      * Typically, you should use {@link #fetchInBackground()} instead of this,
      * unless you are managing your own threading.
      *
@@ -1077,7 +1077,7 @@ abstract public class SabresObject {
 
     /**
      * Fetches this object from the database in a background thread.
-     * <p/>
+     * <p>
      * This is preferable to using {@link #fetch()},
      * unless your code is already running from a background thread.
      *
@@ -1105,7 +1105,7 @@ abstract public class SabresObject {
 
     /**
      * Fetches this object from the database in a background thread.
-     * <p/>
+     * <p>
      * This is preferable to using {@link #fetch()} ,
      * unless your code is already running from a background thread.
      *
@@ -1310,7 +1310,7 @@ abstract public class SabresObject {
 
     /**
      * Deletes this object on the server in a background thread.
-     * <p/>
+     * <p>
      * This is preferable to using {@link #delete()}, unless your code is already running from a
      * background thread.
      *
@@ -1328,7 +1328,7 @@ abstract public class SabresObject {
 
     /**
      * Deletes this object on the server in a background thread.
-     * <p/>
+     * <p>
      * This is preferable to using {@link #delete()}, unless your code is already running from a
      * background thread.
      *

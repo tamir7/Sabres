@@ -1,4 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+version = "0.9.0"
 
 android {
     compileSdkVersion 22
@@ -8,13 +12,95 @@ android {
         minSdkVersion 9
         targetSdkVersion 22
         versionCode 1
-        versionName "1.0"
+        versionName version
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+}
+
+def siteUrl = 'https://github.com/tamir7/Sabres'
+def gitUrl = 'https://github.com/tamir7/Sabres.git'
+group = "com.sabres"
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            //noinspection GroovyAssignabilityCheck
+            project {
+                //noinspection GroovyAssignabilityCheck
+                name 'Sabres'
+                description = 'ORM for Android with Parse-like API'
+                url siteUrl
+
+                licenses {
+                    license {
+                        //noinspection GroovyAssignabilityCheck
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'tamir7'
+                        //noinspection GroovyAssignabilityCheck
+                        name 'Tamir Shomer'
+                        email 'tamir7@gmail.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    //noinspection GroovyAssignabilityCheck
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    //noinspection GroovyAssignabilityCheck
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty('bintray.user')
+    key = properties.getProperty('bintray.apikey')
+
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = 'Sabres'
+        desc = 'ORM for Android with Parse-like API'
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        issueTrackerUrl = 'https://github.com/tamir7/Sabres/issues'
+        licenses = ["Apache-2.0"]
+        labels = ['Android', 'ORM', 'Sqlite']
+        publicDownloadNumbers = true
+        publish = true
     }
 }
 

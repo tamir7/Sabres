@@ -60,7 +60,7 @@ public final class Sabres {
 
     /**
      * Configures and initializes Sabres library.
-     * <p/>
+     * <p>
      * This must be called before your application can use the Sabres library.
      * The recommended way is to put a call to Sabres.initialize in your Application's
      * onCreate method:
