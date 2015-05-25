@@ -2,7 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
 
-version = "0.9.0"
+version = VERSION_NAME
+group = GROUP
 
 android {
     compileSdkVersion 22
@@ -12,7 +13,8 @@ android {
         minSdkVersion 9
         targetSdkVersion 22
         versionCode 1
-        versionName version
+        //noinspection GroovyAssignabilityCheck
+        versionName VERSION_NAME
     }
     buildTypes {
         release {
@@ -22,10 +24,6 @@ android {
     }
 }
 
-def siteUrl = 'https://github.com/tamir7/Sabres'
-def gitUrl = 'https://github.com/tamir7/Sabres.git'
-group = "com.sabres"
-
 install {
     repositories.mavenInstaller {
         pom {
@@ -33,30 +31,30 @@ install {
             project {
                 packaging 'aar'
                 //noinspection GroovyAssignabilityCheck
-                name 'Sabres'
+                name NAME
                 //noinspection GroovyAssignabilityCheck
-                description = 'ORM for Android with Parse-like API'
-                url siteUrl
+                description DESCRIPTION
+                url SITE_URL
 
                 licenses {
                     license {
                         //noinspection GroovyAssignabilityCheck
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        name LICENCE_NAME
+                        url LICENCE_URL
                     }
                 }
                 developers {
                     developer {
-                        id 'tamir7'
+                        id DEVELOPER_ID
                         //noinspection GroovyAssignabilityCheck
-                        name 'Tamir Shomer'
-                        email 'tamir7@gmail.com'
+                        name DEVELOPER_NAME
+                        email DEVELOPER_EMAIL
                     }
                 }
                 scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
+                    connection GIT_URL
+                    developerConnection GIT_URL
+                    url SITE_URL
                 }
             }
         }
@@ -84,22 +82,19 @@ artifacts {
     archives sourcesJar
 }
 
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
 bintray {
-    user = properties.getProperty('bintray.user')
-    key = properties.getProperty('bintray.apikey')
+    user = BINTRAY_USER
+    key = BINTRAY_API_KEY
 
     configurations = ['archives']
     pkg {
         repo = 'maven'
-        name = 'Sabres'
-        desc = 'ORM for Android with Parse-like API'
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        issueTrackerUrl = 'https://github.com/tamir7/Sabres/issues'
-        licenses = ["Apache-2.0"]
+        name = NAME
+        desc = DESCRIPTION
+        websiteUrl = SITE_URL
+        vcsUrl = GIT_URL
+        issueTrackerUrl = ISSUE_TRACKER_URL
+        licenses = ['Apache-2.0']
         labels = ['Android', 'ORM', 'Sqlite']
         publicDownloadNumbers = true
         publish = true
