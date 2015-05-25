@@ -13,7 +13,6 @@ android {
         minSdkVersion 9
         targetSdkVersion 22
         versionCode 1
-        //noinspection GroovyAssignabilityCheck
         versionName VERSION_NAME
     }
     buildTypes {
@@ -27,18 +26,14 @@ android {
 install {
     repositories.mavenInstaller {
         pom {
-            //noinspection GroovyAssignabilityCheck
             project {
                 packaging 'aar'
-                //noinspection GroovyAssignabilityCheck
                 name NAME
-                //noinspection GroovyAssignabilityCheck
                 description DESCRIPTION
                 url SITE_URL
 
                 licenses {
                     license {
-                        //noinspection GroovyAssignabilityCheck
                         name LICENCE_NAME
                         url LICENCE_URL
                     }
@@ -46,7 +41,6 @@ install {
                 developers {
                     developer {
                         id DEVELOPER_ID
-                        //noinspection GroovyAssignabilityCheck
                         name DEVELOPER_NAME
                         email DEVELOPER_EMAIL
                     }
@@ -62,14 +56,12 @@ install {
 }
 
 task sourcesJar(type: Jar) {
-    //noinspection GroovyAssignabilityCheck
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    //noinspection GroovyAssignabilityCheck
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 
