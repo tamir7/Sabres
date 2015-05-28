@@ -91,7 +91,7 @@ Query the Sabres Database with the [SabresQuery] object:
 });
 ```
 
-For a full documentation please see [Wiki].
+Please see [Wiki] for full documentation or [Javadoc] for... well.. for Javadoc.
 
 ## Installation
 
@@ -113,6 +113,7 @@ TODO: add gradle link, and a direct jar link.
     See the License for the specific language governing permissions and
     limitations under the License.
 
+[Javadoc]: http://tamir7.github.io/Sabres/
 [Wiki]: https://github.com/tamir7/Sabres/wiki
 [Parse]: http://www.parse.com
 [SabresObject]: https://github.com/tamir7/Sabres/blob/master/sabres/src/main/java/com/sabres/SabresObject.java
