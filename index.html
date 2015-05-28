@@ -1,552 +1,71 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <title>Sabres by tamir7</title>
-  </head>
-
-  <body>
-    <header>
-      <div class="inner">
-        <h1>Sabres</h1>
-        <h2>Android ORM with Parse-like API</h2>
-        <a href="https://github.com/tamir7/Sabres" class="button"><small>View project on</small> GitHub</a>
-      </div>
-    </header>
-
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <p><strong>Sabres</strong> is an Android ORM library that exposes a <a href="http://parse.com">Parse</a>-like API.</p>
-
-<p>Like <a href="http://parse.com">Parse</a> is has dual API: a callback based API and a <a href="https://github.com/BoltsFramework/Bolts-Android">Bolts Tasks</a> based API.</p>
-
-<p>The documentation covers only the callbacks API. But the Sample App covers both API's extensively.</p>
-
-<h1>
-<a id="objects" class="anchor" href="#objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Objects</h1>
-
-<h2>
-<a id="the-sabresobject" class="anchor" href="#the-sabresobject" aria-hidden="true"><span class="octicon octicon-link"></span></a>The SabresObject</h2>
-
-<p>Storing data in Sabres is built around the <code>SabresObject</code>. Each <code>SabresObject</code> contains key-value pairs of Sabres compatible data. This data is schemaless, which means that you don't need to specify ahead of time what keys exist on each <code>SabresObject</code>. You simply set whatever key-value pairs you want, and Sabres will store it.</p>
-
-<p>For example, let's say you're building a movie database. A single <code>SabresObject</code> could contain:</p>
-
-<p><code>Title: "Fight Club", Rating: 8.9, ViewCount: 6</code></p>
-
-<p>Keys must be alphanumeric strings. Values can be strings, numbers, booleans, or even arrays and objects. A Full list is supported types is found [here][www.fill_it_later.com].</p>
-
-<p><code>SabresObject</code> is an abstract class and should be extended by custom classes.</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-en">Movie</span> <span class="pl-k">extends</span> <span class="pl-e">SabresObject</span> {
-}</pre></div>
-
-<h2>
-<a id="saving-objects" class="anchor" href="#saving-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Saving Objects</h2>
-
-<p>Let's say you want to save the <code>Movie</code> described above to <code>Sabres</code>. The interface is similar to a <code>Map</code>, plus the <code>saveInBackground</code> method:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-smi">Movie</span> movie <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Movie</span>();
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Fight Club<span class="pl-pds">"</span></span>);
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8.9</span>);
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>viewCount<span class="pl-pds">"</span></span>, <span class="pl-c1">6</span>);
-movie<span class="pl-k">.</span>saveInBackground();</pre></div>
-
-<p>There are a few fields you don't need to specify that are provided as a convenience. <code>objectId</code> is a unique identifier for each saved object. <code>createdAt</code> and <code>updatedAt</code> represent the time that each object was created and last modified in the database. Each of these fields is filled in by <code>Sabres</code>, so they don't exist on a <code>SabresObject</code> until a save operation has completed.</p>
-
-<h2>
-<a id="retrieving-objects" class="anchor" href="#retrieving-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Retrieving Objects</h2>
-
-<p>Saving data to <code>Sabres</code> is fun, but it's even more fun to get that data out again. If you have the objectId, you can retrieve the whole <code>SabresObject</code> using a <code>SabresQuery</code>:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>getInBackground(<span class="pl-c1">3</span> <span class="pl-c">/* this is the objectId */</span>, <span class="pl-k">new</span> <span class="pl-k">GetCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">@Override</span>
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-smi">Movie</span> <span class="pl-v">movie</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-c">// got movie.</span>
-        } <span class="pl-k">else</span> {
-            <span class="pl-c">// something went wrong.</span>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
+<!-- NewPage -->
+<html lang="en">
+<head>
+<!-- Generated by javadoc (1.8.0_25) on Thu May 28 21:35:49 IDT 2015 -->
+<title>Generated Documentation (Untitled)</title>
+<script type="text/javascript">
+    targetPage = "" + window.location.search;
+    if (targetPage != "" && targetPage != "undefined")
+        targetPage = targetPage.substring(1);
+    if (targetPage.indexOf(":") != -1 || (targetPage != "" && !validURL(targetPage)))
+        targetPage = "undefined";
+    function validURL(url) {
+        try {
+            url = decodeURIComponent(url);
         }
-    }
-});</pre></div>
-
-<p>To get the values out of the <code>SabresObject</code>, there's a <code>getX</code> method for each data type:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-smi">String</span> title <span class="pl-k">=</span> movie<span class="pl-k">.</span>getString(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>);
-<span class="pl-smi">Double</span> rating <span class="pl-k">=</span> movie<span class="pl-k">.</span>getDouble(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>);
-<span class="pl-smi">Integer</span> viewCount<span class="pl-k">=</span> movie<span class="pl-k">.</span>getInt(<span class="pl-s"><span class="pl-pds">"</span>viewCount<span class="pl-pds">"</span></span>);</pre></div>
-
-<p>The three special values have their own accessors:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-smi">Long</span> objectId <span class="pl-k">=</span> movie<span class="pl-k">.</span>getObjectId();
-<span class="pl-smi">Date</span> updatedAt <span class="pl-k">=</span> movie<span class="pl-k">.</span>getUpdatedAt();
-<span class="pl-smi">Date</span> createdAt <span class="pl-k">=</span> movie<span class="pl-k">.</span>getCreatedAt();</pre></div>
-
-<p>If you need to refresh an object you already have with the latest data that is in <code>Sabres</code>, you can call the <code>fetchInBackground</code> method like so:</p>
-
-<div class="highlight highlight-java"><pre>movie<span class="pl-k">.</span>fetchInBackground(<span class="pl-k">new</span> <span class="pl-smi">FetchCallback</span>() {
-    <span class="pl-k">@Override</span>
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-c">// object fetched.</span>
-        } <span class="pl-k">else</span> {
-            <span class="pl-c">// something went wrong.</span>
+        catch (error) {
+            return false;
         }
-    }
-});</pre></div>
-
-<p>The code in the <code>FetchCallback</code> will be run on the main thread.</p>
-
-<h2>
-<a id="updating-objects" class="anchor" href="#updating-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Updating Objects</h2>
-
-<p>Updating an object is simple. Just set some new data on it and call one of the save methods. Assuming you have saved the object and have the objectId, you can retrieve the <code>SabresObject</code> using a <code>SabresQuery</code> and update its data:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-
-<span class="pl-c">// Retrieve the object by id</span>
-query<span class="pl-k">.</span>getInBackground(<span class="pl-c1">3</span>, <span class="pl-k">new</span> <span class="pl-k">GetCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-smi">Movie</span> <span class="pl-v">movie</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">9.1</span>)
-            movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>viewCount<span class="pl-pds">"</span></span> , <span class="pl-c1">7</span>);
-            movie<span class="pl-k">.</span>saveInBackground();
-        }
-    }
-});</pre></div>
-
-<p>Sabres automatically figures out which data has changed so only "dirty" fields will be saved.</p>
-
-<h2>
-<a id="counters" class="anchor" href="#counters" aria-hidden="true"><span class="octicon octicon-link"></span></a>Counters</h2>
-
-<p>The above example contains a common use case. The "viewCount" field is a counter that we'll need to continually update with the number of times the movie was watched. Using the above method works but it's cumbersome and can lead to problems if you have multiple threads trying to update the same counter.</p>
-
-<p>To help with storing counter-type data, Sabres provides methods that increment (or decrement) any number field. So, the same update can be rewritten as: </p>
-
-<div class="highlight highlight-java"><pre>movie<span class="pl-k">.</span>increment(<span class="pl-s"><span class="pl-pds">"</span>viewCount<span class="pl-pds">"</span></span>);
-movie<span class="pl-k">.</span>saveInBackground();</pre></div>
-
-<p>You can also increment (or decrement) by any amount using <code>increment(key, amount)</code>.</p>
-
-<h2>
-<a id="arrays" class="anchor" href="#arrays" aria-hidden="true"><span class="octicon octicon-link"></span></a>Arrays</h2>
-
-<p>To help with storing array data, there are two operations that can be used to atomically change an array field:</p>
-
-<ul>
-<li><p><code>add</code> and <code>addAll</code> append the given objects to the array. Only Unique object or values will be saved.</p></li>
-<li><p><code>removeAll</code> removes all instances of the given objects from an array field.</p></li>
-</ul>
-
-<p>For example, we can add items to the set-like "actors" field like so:</p>
-
-<div class="highlight highlight-java"><pre>movie<span class="pl-k">.</span>addAll(<span class="pl-s"><span class="pl-pds">"</span>actors<span class="pl-pds">"</span></span>, <span class="pl-smi">Arrays</span><span class="pl-k">.</span>asList(<span class="pl-s"><span class="pl-pds">"</span>Brad Pitt<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Edward Norton<span class="pl-pds">"</span></span>));
-movie<span class="pl-k">.</span>saveInBackground();</pre></div>
-
-<h2>
-<a id="deleting-objects" class="anchor" href="#deleting-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Deleting Objects</h2>
-
-<p>To delete an object from Sabres:</p>
-
-<div class="highlight highlight-java"><pre>movie<span class="pl-k">.</span>deleteInBackground();</pre></div>
-
-<p>If you want to run a callback when the delete is confirmed, you can provide a <code>DeleteCallback</code> to the <code>deleteInBackground</code> method. If you want to block the calling thread, you can use the <code>delete</code> method.</p>
-
-<p>You can delete a single field from an object with the <code>remove</code> method:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// After this, the rating field will be empty</span>
-movie<span class="pl-k">.</span>remove(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>);
-
-<span class="pl-c">// Saves the field deletion to Sabres</span>
-movie<span class="pl-k">.</span>saveInBackground();</pre></div>
-
-<h2>
-<a id="relational-data" class="anchor" href="#relational-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relational Data</h2>
-
-<p>Objects can have relationships with other objects. To model this behavior, any <code>SabresObject</code> can be used as a value in any other <code>SabresObject</code>.</p>
-
-<p>For example, each <code>Movie</code> in a movie ratings app might correspond to one <code>Director</code>. To create a new <code>Movie</code> with a single <code>Director</code>, you could write:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Create the movie</span>
-<span class="pl-smi">Movie</span> movie <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Movie</span>();
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Fight Club<span class="pl-pds">"</span></span>);
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8.9</span>);
-
-<span class="pl-c">// Create the director</span>
-<span class="pl-smi">Director</span> director <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Director</span>();
-director<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>David Fincher<span class="pl-pds">"</span></span>);
-
-<span class="pl-c">// Add a relation between the Movie and Director</span>
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>director<span class="pl-pds">"</span></span>, director);
-
-<span class="pl-c">// This will save both movie and director</span>
-movie<span class="pl-k">.</span>saveInBackground();</pre></div>
-
-<p>You can also link objects using just their objectIds like so:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Add a relation between the Director with objectId "5" and the Movie</span>
-movie<span class="pl-k">.</span>put(<span class="pl-s"><span class="pl-pds">"</span>director<span class="pl-pds">"</span></span>, <span class="pl-smi">Director</span><span class="pl-k">.</span>createWithoutData(<span class="pl-c1">5</span>));</pre></div>
-
-<p>By default, when fetching an object, related SabresObjects are not fetched. These objects values cannot be retrieved until they have been fetched like so:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">final</span> <span class="pl-smi">Director</span> director <span class="pl-k">=</span> fetchedMovie<span class="pl-k">.</span>getSabresObject(<span class="pl-s"><span class="pl-pds">"</span>director<span class="pl-pds">"</span></span>);
-director<span class="pl-k">.</span>fetchIfNeededInBackground(<span class="pl-k">new</span> <span class="pl-smi">FetchCallback</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">!=</span> <span class="pl-c1">null</span>) {
-            <span class="pl-smi">String</span> name <span class="pl-k">=</span> director<span class="pl-k">.</span>getString(<span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>);
-            <span class="pl-c">// Do something with your new title variable</span>
-        }
-    }
-});</pre></div>
-
-<h2>
-<a id="data-types" class="anchor" href="#data-types" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Types</h2>
-
-<p>SabresObjects can contain any of the following types:</p>
-
-<ul>
-<li><p><code>String</code></p></li>
-<li><p><code>Number</code></p></li>
-<li><p><code>Boolean</code></p></li>
-<li><p><code>Date</code></p></li>
-<li><p>object that extends <code>SabresObject</code></p></li>
-<li><p><code>List</code> of any of the above</p></li>
-</ul>
-
-<h2>
-<a id="data-type-lock-in" class="anchor" href="#data-type-lock-in" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Type Lock-in</h2>
-
-<p>When a class is initially created, it doesn't have an inherent schema defined. This means that for the first object, it could have any types of fields you want.</p>
-
-<p>However, after a field has been set at least once, that field is locked into the particular type that was saved. For example, if a Movie object is saved with field title of type <code>String</code>, that field will be restricted to the <code>String</code> type only (<code>Sabres</code> will throw an error if you try to save anything else).</p>
-
-<h2>
-<a id="subclasses" class="anchor" href="#subclasses" aria-hidden="true"><span class="octicon octicon-link"></span></a>Subclasses</h2>
-
-<h3>
-<a id="subclassing-sabresobject" class="anchor" href="#subclassing-sabresobject" aria-hidden="true"><span class="octicon octicon-link"></span></a>Subclassing <code>SabresObject</code>
-</h3>
-
-<p>To create a <code>SabresObject</code> subclass:</p>
-
-<ol>
-<li><p>Declare a subclass which extends <code>SabresObject</code>.</p></li>
-<li><p>Call SabresObject.registerSubclass(YourClass.class) in your Application <code>onCreate</code> before calling <code>Sabres.initialize()</code>. The following code successfully implements and registers the <code>Movie</code> subclass of <code>SabresObject</code>:</p></li>
-</ol>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Movie.java</span>
-<span class="pl-k">import</span> <span class="pl-smi">com.sabres.SabresObject</span>;
-
-<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-en">Movie</span> <span class="pl-k">extends</span> <span class="pl-e">SabresObject</span> {
-}
-
-<span class="pl-c">// MyApplication.java</span>
-<span class="pl-k">import</span> <span class="pl-smi">com.sabres.Sabres</span>;
-<span class="pl-k">import</span> <span class="pl-smi">android.app.Application</span>;
-
-<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-en">MyApplication</span> <span class="pl-k">extends</span> <span class="pl-e">Application</span> {
-    <span class="pl-k">@Override</span>
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">onCreate</span>() {
-        <span class="pl-v">super</span><span class="pl-k">.</span>onCreate();
-
-        <span class="pl-smi">SabresObject</span><span class="pl-k">.</span>registerSubclass(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-        <span class="pl-smi">Sabres</span><span class="pl-k">.</span>initialize(<span class="pl-v">this</span>);
-    }
-}</pre></div>
-
-<h3>
-<a id="accessors-mutators-and-methods" class="anchor" href="#accessors-mutators-and-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>Accessors, mutators, and methods</h3>
-
-<p>Adding methods to your <code>SabresObject</code> subclass helps encapsulate logic about the class. You can keep all your logic about a subject in one place rather than using separate classes for business logic and storage/transmission logic.</p>
-
-<p>You can add accessors and mutators for the fields of your <code>SabresObject</code> easily. Declare the getter and setter for the field as you normally would, but implement them in terms of <code>get()</code> and <code>put()</code>. The following example creates a title field in the <code>Movie</code> class:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Movie.java</span>
-<span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-en">Movie</span> <span class="pl-k">extends</span> <span class="pl-e">SabresObject</span> {
-    <span class="pl-k">public</span> <span class="pl-smi">String</span> <span class="pl-en">getTitle</span>() {
-        <span class="pl-k">return</span> getString(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>);
-    }
-
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">setTitle</span>(<span class="pl-smi">String</span> <span class="pl-v">value</span>) {
-        put(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>, value);
-    }
-}</pre></div>
-
-<p>You can now access the title field using <code>movie.getTitle()</code> and assign to it using <code>movie.setTitle("Fight Club")</code>. This allows your IDE to provide autocompletion as you develop your app and allows typos to be caught at compile-time.</p>
-
-<p>Accessors and mutators of various types can be easily defined in this manner using the various forms of <code>get()</code> such as <code>getInt()</code>, <code>getString()</code>, or <code>getList()</code>.</p>
-
-<h3>
-<a id="initializing-subclasses" class="anchor" href="#initializing-subclasses" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initializing subclasses</h3>
-
-<p>If you define your own constructors to your subclass, you have to also define a no argument constructor that does not modify fields in the object. <code>Sabres</code> uses it to create strongly typed instances of your subclass.</p>
-
-<h1>
-<a id="queries" class="anchor" href="#queries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Queries</h1>
-
-<h2>
-<a id="basic-queries" class="anchor" href="#basic-queries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Basic Queries</h2>
-
-<p>In many cases, <code>getInBackground</code> isn't powerful enough to specify which objects you want to retrieve. The <code>SabresQuery</code> offers different ways to retrieve a list of objects rather than just a single object.</p>
-
-<p>The general pattern is to create a SabresQuery, put conditions on it, and then retrieve a List of matching SabresObjects using the <code>findInBackground</code> method with a <code>FindCallback</code>. For example, to retrieve movies with a particular directorName, use the <code>whereEqualTo</code> method to constrain the value for a key:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>whereEqualTo(<span class="pl-s"><span class="pl-pds">"</span>directorName<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Quentin Tarantino<span class="pl-pds">"</span></span>);
-query<span class="pl-k">.</span>findInBackground(<span class="pl-k">new</span> <span class="pl-k">FindCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-k">List&lt;<span class="pl-smi">Movie</span>&gt;</span> <span class="pl-v">movies</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-smi">Log</span><span class="pl-k">.</span>d(<span class="pl-s"><span class="pl-pds">"</span>movies<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Retrieved <span class="pl-pds">"</span></span> <span class="pl-k">+</span> movies<span class="pl-k">.</span>size() <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span> movies<span class="pl-pds">"</span></span>);
-        } <span class="pl-k">else</span> {
-            <span class="pl-smi">Log</span><span class="pl-k">.</span>d(<span class="pl-s"><span class="pl-pds">"</span>movies<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Error: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> e<span class="pl-k">.</span>getMessage());
-        }
-    }
-});</pre></div>
-
-<p><code>findInBackground</code> works similarly to <code>getInBackground</code> in that it assures the database operations are done on a background thread, and runs its callback in the main thread.</p>
-
-<h2>
-<a id="query-constraints" class="anchor" href="#query-constraints" aria-hidden="true"><span class="octicon octicon-link"></span></a>Query Constraints</h2>
-
-<p>There are several ways to put constraints on the objects found by a <code>SabresQuery</code>. You can filter out objects with a particular key-value pair with whereNotEqualTo:</p>
-
-<div class="highlight highlight-java"><pre>query<span class="pl-k">.</span>whereNotEqualTo(<span class="pl-s"><span class="pl-pds">"</span>directorName<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Guy Ritchie<span class="pl-pds">"</span></span>);</pre></div>
-
-<p>You can give multiple constraints, and objects will only be in the results if they match all of the constraints. In other words, it's like an AND of constraints.</p>
-
-<div class="highlight highlight-java"><pre>query<span class="pl-k">.</span>whereNotEqualTo(<span class="pl-s"><span class="pl-pds">"</span>directorName<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Guy Ritchie<span class="pl-pds">"</span></span>);
-query<span class="pl-k">.</span>whereGreaterThan(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8</span>);</pre></div>
-
-<p>You can limit the number of results with <code>setLimit</code>. By default, results are not limited.</p>
-
-<div class="highlight highlight-java"><pre>query<span class="pl-k">.</span>setLimit(<span class="pl-c1">10</span>); <span class="pl-c">// limit to at most 10 results</span></pre></div>
-
-<p>If you want exactly one result, a more convenient alternative may be to use <code>getFirst</code> or <code>getFirstBackground</code> instead of using find.</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>whereEqualTo(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Fight Club<span class="pl-pds">"</span></span>);
-query<span class="pl-k">.</span>getFirstInBackground(<span class="pl-k">new</span> <span class="pl-k">GetCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-smi">Movie</span> <span class="pl-v">movie</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (object <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-smi">Log</span><span class="pl-k">.</span>d(<span class="pl-s"><span class="pl-pds">"</span>movie<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>The getFirst request failed.<span class="pl-pds">"</span></span>);
-        } <span class="pl-k">else</span> {
-            <span class="pl-smi">Log</span><span class="pl-k">.</span>d(<span class="pl-s"><span class="pl-pds">"</span>movie<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Retrieved the movie.<span class="pl-pds">"</span></span>);
-        }
-    }
-});</pre></div>
-
-<p>You can skip the first results with <code>setSkip</code>. This can be useful for pagination:</p>
-
-<div class="highlight highlight-java"><pre>query<span class="pl-k">.</span>setSkip(<span class="pl-c1">10</span>); <span class="pl-c">// skip the first 10 results</span></pre></div>
-
-<p>For sortable types like numbers and strings, you can control the order in which results are returned:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Sorts the results in ascending order by the rating field.</span>
-query<span class="pl-k">.</span>addAscendingOrder(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>);
-
-<span class="pl-c">// Sorts the results in descending order by the title field if the previous sort keys are equal.</span>
-query<span class="pl-k">.</span>addDescendingOrder(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>);</pre></div>
-
-<p>For sortable types, you can also use comparisons in queries:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Restricts to rating &lt; 8</span>
-query<span class="pl-k">.</span>whereLessThan(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8</span>);
-
-<span class="pl-c">// Restricts to rating &lt;= 8</span>
-query<span class="pl-k">.</span>whereLessThanOrEqualTo(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8</span>);
-
-<span class="pl-c">// Restricts to rating &gt; 8</span>
-query<span class="pl-k">.</span>whereGreaterThan(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8</span>);
-
-<span class="pl-c">// Restricts to rating &gt;= 8</span>
-query<span class="pl-k">.</span>whereGreaterThanOrEqualTo(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">8</span>);</pre></div>
-
-<p>If you want to retrieve objects matching several different values, you can use <code>whereContainedIn</code>, providing a collection of acceptable values. This is often useful to replace multiple queries with a single query. For example, if you want to retrieve movies made by any director in a particular list:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">String</span>[] names <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>Guy Ritchie<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>David Fincher<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Quentin Tarantino<span class="pl-pds">"</span></span>};
-query<span class="pl-k">.</span>whereContainedIn(<span class="pl-s"><span class="pl-pds">"</span>directorName<span class="pl-pds">"</span></span>, <span class="pl-smi">Arrays</span><span class="pl-k">.</span>asList(names));</pre></div>
-
-<p>If you want to retrieve objects that do not match any of several values you can use <code>whereNotContainedIn</code>, providing an array of acceptable values. For example, if you want to retrieve movies from directors besides those in a list:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">String</span>[] names <span class="pl-k">=</span> {<span class="pl-s"><span class="pl-pds">"</span>Guy Ritchie<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>David Fincher<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Quentin Tarantino<span class="pl-pds">"</span></span>};
-query<span class="pl-k">.</span>whereNotContainedIn(<span class="pl-s"><span class="pl-pds">"</span>directorName<span class="pl-pds">"</span></span>, <span class="pl-smi">Arrays</span><span class="pl-k">.</span>asList(names));</pre></div>
-
-<p>If you want to retrieve objects that have a particular key set, you can use <code>whereExists</code>. Conversely, if you want to retrieve objects without a particular key set, you can use <code>whereDoesNotExist</code>.</p>
-
-<p>// Finds objects that have the rating set
-query.whereExists("rating");</p>
-
-<p>// Finds objects that don't have the rating set
-query.whereDoesNotExist("rating");</p>
-
-<p>You can restrict the fields returned by calling <code>selectKeys</code> with a list of keys. To retrieve documents that contain only the <code>title</code> and <code>rating</code> fields (and also special built-in field  objectId):</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>selectKeys(<span class="pl-smi">Arrays</span><span class="pl-k">.</span>asList(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>));
-<span class="pl-k">List&lt;<span class="pl-smi">Movie</span>&gt;</span> results <span class="pl-k">=</span> query<span class="pl-k">.</span>find();</pre></div>
-
-<h2>
-<a id="queries-on-array-values" class="anchor" href="#queries-on-array-values" aria-hidden="true"><span class="octicon octicon-link"></span></a>Queries on Array Values</h2>
-
-<p>If a key contains an array value, you can search for objects where the key's array value contains a specific value by:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Find objects where the array in actors contains the string "Brad Pitt".</span>
-query<span class="pl-k">.</span>whereEqualTo(<span class="pl-s"><span class="pl-pds">"</span>actors<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Brad Pitt<span class="pl-pds">"</span></span>);</pre></div>
-
-<p>You can also search for objects where the key's array value contains each of the values provided in a list:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Find objects where the array in actors contains all of the strings: "Brad Pitt", "Edward Norton" and "Helena Bonham Carter"</span>
-<span class="pl-k">ArrayList&lt;<span class="pl-smi">String</span>&gt;</span> actors <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">ArrayList&lt;&gt;</span>();
-numbers<span class="pl-k">.</span>add(<span class="pl-s"><span class="pl-pds">"</span>Brad Pitt<span class="pl-pds">"</span></span>);
-numbers<span class="pl-k">.</span>add(<span class="pl-s"><span class="pl-pds">"</span>Edward Norton<span class="pl-pds">"</span></span>);
-numbers<span class="pl-k">.</span>add(<span class="pl-s"><span class="pl-pds">"</span>Helena Bonham Carter<span class="pl-pds">"</span></span>);
-query<span class="pl-k">.</span>whereContainsAll(<span class="pl-s"><span class="pl-pds">"</span>actors<span class="pl-pds">"</span></span>, actors);</pre></div>
-
-<h2>
-<a id="queries-on-string-values" class="anchor" href="#queries-on-string-values" aria-hidden="true"><span class="octicon octicon-link"></span></a>Queries on String Values</h2>
-
-<p>Use whereStartsWith to restrict to string values that start with a particular string. Internally it uses the LIKE sqlite operator, this is indexed so it is efficient for large datasets:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Finds movies that start with "Fight".</span>
-<span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>whereStartsWith(<span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Fight<span class="pl-pds">"</span></span>);</pre></div>
-
-<h2>
-<a id="relational-queries" class="anchor" href="#relational-queries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relational Queries</h2>
-
-<p>If you want to retrieve objects where a field matches a particular SabresObject, you can use whereEqualTo just like for other data types. For example, if each <code>Movie</code> has a <code>Director</code> object in its director field, you can fetch movies for a particular director:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-c">// Assume SabresObject director was previously created.</span>
-<span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>whereEqualTo(<span class="pl-s"><span class="pl-pds">"</span>director<span class="pl-pds">"</span></span>, director);
-
-query<span class="pl-k">.</span>findInBackground(<span class="pl-k">new</span> <span class="pl-k">FindCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-k">List&lt;<span class="pl-smi">Movie</span>&gt;</span> <span class="pl-v">movies</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-c">// movies list contains all movies with the given director.</span>
-        }
-    }
-});</pre></div>
-
-<p>In some situations, you want to return multiple types of related objects in one query. You can do this with the include method. For example, let's say you are retrieving the ten most rated movies, and you want to retrieve their directors at the same time:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-
-<span class="pl-c">// Order by rating</span>
-query<span class="pl-k">.</span>orderByDescending(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>);
-
-<span class="pl-c">// Only retrieve the first ten</span>
-query<span class="pl-k">.</span>setLimit(<span class="pl-c1">10</span>);
-
-<span class="pl-c">// Include the director data with each movie</span>
-query<span class="pl-k">.</span>include(<span class="pl-s"><span class="pl-pds">"</span>director<span class="pl-pds">"</span></span>);
-
-query<span class="pl-k">.</span>findInBackground(<span class="pl-k">new</span> <span class="pl-k">FindCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-k">List&lt;<span class="pl-smi">Movie</span>&gt;</span> <span class="pl-v">movies</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-c">// movies contain the 10 most highly rated films, and the "director" field is populated.</span>
-            <span class="pl-k">for</span> (<span class="pl-smi">Movie</span> movie <span class="pl-k">:</span> movies) {
-                <span class="pl-smi">Director</span> director <span class="pl-k">=</span> movie<span class="pl-k">.</span>getSabresObject(<span class="pl-s"><span class="pl-pds">"</span>director<span class="pl-pds">"</span></span>);
-                <span class="pl-smi">Log</span><span class="pl-k">.</span>e(<span class="pl-s"><span class="pl-pds">"</span>Best Director<span class="pl-pds">"</span></span>, director<span class="pl-k">.</span>getString(<span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>));
+        var pos = url.indexOf(".html");
+        if (pos == -1 || pos != url.length - 5)
+            return false;
+        var allowNumber = false;
+        var allowSep = false;
+        var seenDot = false;
+        for (var i = 0; i < url.length - 5; i++) {
+            var ch = url.charAt(i);
+            if ('a' <= ch && ch <= 'z' ||
+                    'A' <= ch && ch <= 'Z' ||
+                    ch == '$' ||
+                    ch == '_' ||
+                    ch.charCodeAt(0) > 127) {
+                allowNumber = true;
+                allowSep = true;
+            } else if ('0' <= ch && ch <= '9'
+                    || ch == '-') {
+                if (!allowNumber)
+                     return false;
+            } else if (ch == '/' || ch == '.') {
+                if (!allowSep)
+                    return false;
+                allowNumber = false;
+                allowSep = false;
+                if (ch == '.')
+                     seenDot = true;
+                if (ch == '/' && seenDot)
+                     return false;
+            } else {
+                return false;
             }
         }
+        return true;
     }
-});</pre></div>
-
-<h2>
-<a id="counting-objects" class="anchor" href="#counting-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Counting Objects</h2>
-
-<p>If you just need to count how many objects match a query, but you do not need to retrieve all the objects that match, you can use count instead of find. For example, to count how many movies a particular director directed:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> query <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-query<span class="pl-k">.</span>whereEqualTo(<span class="pl-s"><span class="pl-pds">"</span>directorName<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Guy Ritchie<span class="pl-pds">"</span></span>);
-query<span class="pl-k">.</span>countInBackground(<span class="pl-k">new</span> <span class="pl-smi">CountCallback</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-smi">Long</span> <span class="pl-v">count</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-c">// The count request succeeded. Log the count</span>
-            <span class="pl-smi">Log</span><span class="pl-k">.</span>d(<span class="pl-s"><span class="pl-pds">"</span>Director<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>Guy Ritchie has directed <span class="pl-pds">"</span></span> <span class="pl-k">+</span> count <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">"</span> movies<span class="pl-pds">"</span></span>);
-        } <span class="pl-k">else</span> {
-            <span class="pl-c">// The request failed</span>
-        }
+    function loadFrames() {
+        if (targetPage != "" && targetPage != "undefined")
+             top.classFrame.location = top.targetPage;
     }
-});</pre></div>
-
-<h2>
-<a id="compound-queries" class="anchor" href="#compound-queries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compound Queries</h2>
-
-<p>If you want to find objects that match one of several queries, you can use <code>SabresQuery.or</code> method to construct a query that is an or of the queries passed in. For instance if you want to find movies who either have a high rating or a low rating, you can do:</p>
-
-<div class="highlight highlight-java"><pre><span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> highRating <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-highRating<span class="pl-k">.</span>whereGreaterThan(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">9</span>);
-
-<span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> lowRating <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>getQuery(<span class="pl-smi">Movie</span><span class="pl-k">.</span>class);
-lowRating<span class="pl-k">.</span>whereLessThan(<span class="pl-s"><span class="pl-pds">"</span>rating<span class="pl-pds">"</span></span>, <span class="pl-c1">5</span>);
-
-<span class="pl-k">List&lt;<span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span>&gt;</span> queries <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-k">ArrayList&lt;&gt;</span>&gt;();
-queries<span class="pl-k">.</span>add(highRating);
-queries<span class="pl-k">.</span>add(lowRating);
-
-<span class="pl-k">SabresQuery&lt;<span class="pl-smi">Movie</span>&gt;</span> mainQuery <span class="pl-k">=</span> <span class="pl-smi">SabresQuery</span><span class="pl-k">.</span>or(queries);
-mainQuery<span class="pl-k">.</span>findInBackground(<span class="pl-k">new</span> <span class="pl-k">FindCallback&lt;<span class="pl-smi">Movie</span>&gt;</span>() {
-    <span class="pl-k">public</span> <span class="pl-k">void</span> <span class="pl-en">done</span>(<span class="pl-k">List&lt;<span class="pl-smi">Movie</span>&gt;</span> <span class="pl-v">movies</span>, <span class="pl-smi">SabresException</span> <span class="pl-v">e</span>) {
-        <span class="pl-k">if</span> (e <span class="pl-k">==</span> <span class="pl-c1">null</span>) {
-            <span class="pl-c">// your results.</span>
-        }
-    }
-});</pre></div>
-
-<p>Note that Sabres does not support non-filtering constraints (e.g. setLimit, skip, orderBy..., include) in the subqueries of the compound query.</p>
-
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
-
-<pre><code>Copyright 2015 Tamir Shomer
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-</code></pre>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/tamir7/Sabres/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/tamir7/Sabres/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/tamir7/Sabres"></a> is maintained by <a href="https://github.com/tamir7">tamir7</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
-    </div>
-
-  
-  </body>
+</script>
+</head>
+<frameset cols="20%,80%" title="Documentation frame" onload="top.loadFrames()">
+<frame src="allclasses-frame.html" name="packageFrame" title="All classes and interfaces (except non-static nested types)">
+<frame src="com/sabres/package-summary.html" name="classFrame" title="Package, class and interface descriptions" scrolling="yes">
+<noframes>
+<noscript>
+<div>JavaScript is disabled on your browser.</div>
+</noscript>
+<h2>Frame Alert</h2>
+<p>This document is designed to be viewed using the frames feature. If you see this message, you are using a non-frame-capable web client. Link to <a href="com/sabres/package-summary.html">Non-frame version</a>.</p>
+</noframes>
+</frameset>
 </html>
