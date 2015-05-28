@@ -632,7 +632,11 @@ public class SabresQuery<T extends SabresObject> {
         Sabres sabres = Sabres.self();
         sabres.open();
         try {
-            return sabres.count(new CountCommand(name).toSql());
+            CountCommand command = new CountCommand(name);
+            if (where != null) {
+                command.where(where);
+            }
+            return sabres.count(command.toSql());
         } finally {
             sabres.close();
         }
