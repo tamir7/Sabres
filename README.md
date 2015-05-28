@@ -4,7 +4,7 @@ Sabres is an ORM library that exposes a [Parse]-like API.
 
 ## Features
 
-+ **Schema-less**: No need to define a schema for your objects. `Sabres` will dynamicly update schema changes.   
++ **Schemaless**: No need to define a schema for your objects. `Sabres` will dynamicly update schema changes.   
 
 + **Auto indexing**: No need to define indices. `Sabres` will handle that for you.
 
@@ -12,7 +12,7 @@ Sabres is an ORM library that exposes a [Parse]-like API.
 
 + **No Sqlite**: the API fully abstracts all Sqlite interfaces, while still giving you most of the functionality.
 
-+ **Realy simple and powerfull API**: Well... everyone says that about their libraries, but don't take my word for it, just scroll down a bit.
++ **Simple and powerfull API**: Well... everyone says that about their libraries, but don't take my word for it, just scroll down a bit.
 
 ## Quick Start
 
