@@ -16,7 +16,7 @@
 
 package com.sabres;
 
-public class NullValue extends SabresValue<Void> {
+class NullValue extends SabresValue<Void> {
     private final static String NULL = "NULL";
 
     NullValue(Void value) {
