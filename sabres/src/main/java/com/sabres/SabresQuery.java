@@ -636,7 +636,12 @@ public class SabresQuery<T extends SabresObject> {
             if (where != null) {
                 command.where(where);
             }
-            return sabres.count(command.toSql());
+
+            if (SqliteMaster.tableExists(sabres, name)) {
+                return sabres.count(command.toSql());
+            }
+
+            return 0;
         } finally {
             sabres.close();
         }
