@@ -311,14 +311,9 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEqualTo(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            throw new IllegalArgumentException(String.format("key %s does not exist in object %s",
-                key, name));
-        }
-
         SabresValue sabresValue = SabresValue.create(value);
-        if (descriptor.getType().equals(SabresDescriptor.Type.List)) {
+        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
+        if (descriptor != null && descriptor.getType().equals(SabresDescriptor.Type.List)) {
             innerSelect = new SelectCommand(SabresList.getTableName(name, key),
                 Collections.singletonList(SabresList.getParentIdKey()));
             innerSelect.as(SabresList.getParentIdKey(), SabresObject.getObjectIdKey());
@@ -497,12 +492,7 @@ public class SabresQuery<T extends SabresObject> {
      */
     public SabresQuery<T> whereContainsAll(String key, List<?> values) {
         SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            throw new IllegalArgumentException(String.format("Key %s does not exist in object %s",
-                key, name));
-        }
-
-        if (!descriptor.getType().equals(SabresDescriptor.Type.List)) {
+        if (descriptor != null && !descriptor.getType().equals(SabresDescriptor.Type.List)) {
             throw new IllegalArgumentException(String.format("Key %s in object %s is not a list",
                 key, name));
         }
