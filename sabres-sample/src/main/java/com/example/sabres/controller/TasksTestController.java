@@ -90,7 +90,8 @@ public class TasksTestController extends AbstractTestController {
                 Assert.assertEquals(actors.size(), task.getResult().size());
                 for (Actor actor : task.getResult()) {
                     if (previousActor != null) {
-                        Assert.assertTrue(previousActor.getCreatedAt().before(actor.getCreatedAt()));
+                        Assert.assertTrue(previousActor.getCreatedAt().before(actor.getCreatedAt()) ||
+                            previousActor.getCreatedAt().equals(actor.getCreatedAt()));
                     }
                     previousActor = actor;
                 }
@@ -106,7 +107,8 @@ public class TasksTestController extends AbstractTestController {
                 Assert.assertEquals(actors.size(), task.getResult().size());
                 for (Actor actor : task.getResult()) {
                     if (previousActor != null) {
-                        Assert.assertTrue(previousActor.getUpdatedAt().after(actor.getUpdatedAt()));
+                        Assert.assertTrue(previousActor.getUpdatedAt().after(actor.getUpdatedAt()) ||
+                        previousActor.getUpdatedAt().equals(actor.getUpdatedAt()));
                     }
                     previousActor = actor;
                 }

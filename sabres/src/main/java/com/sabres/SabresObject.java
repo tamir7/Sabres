@@ -90,7 +90,8 @@ abstract public class SabresObject {
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
     private final Map<String, SabresValue> values = new HashMap<>();
-    private static final Map<String, SabresDescriptor> schemaChanges = new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, SabresDescriptor>> schemaChanges =
+        new ConcurrentHashMap<>();
     private final Set<String> dirtyKeys = new HashSet<>();
     private final String name;
     private boolean dataAvailable = false;
@@ -273,10 +274,8 @@ abstract public class SabresObject {
         sabres.open();
         sabres.beginTransaction();
         try {
-            boolean first = true;
             for (SabresObject o : objects) {
-                o.saveInTransaction(sabres, first);
-                first = false;
+                o.saveInTransaction(sabres);
             }
             sabres.setTransactionSuccessful();
         } finally {
@@ -557,7 +556,12 @@ abstract public class SabresObject {
                             schema.get(key).toString()));
                 }
             } else {
-                schemaChanges.put(key, sabresValue.getDescriptor());
+                Map<String, SabresDescriptor> currentSchema = schemaChanges.get(name);
+                if (currentSchema == null) {
+                    currentSchema = new ConcurrentHashMap<>();
+                }
+                currentSchema.put(key, sabresValue.getDescriptor());
+                schemaChanges.put(name, currentSchema);
             }
         }
 
@@ -881,26 +885,26 @@ abstract public class SabresObject {
         });
     }
 
-    private void saveIfNeededInTransaction(Sabres sabres, boolean updateSchema)
+    private void saveIfNeededInTransaction(Sabres sabres)
         throws SabresException {
         if (id == 0 || !dirtyKeys.isEmpty()) {
-            saveInTransaction(sabres, updateSchema);
+            saveInTransaction(sabres);
         }
     }
 
-    private void saveInTransaction(Sabres sabres, boolean updateSchema) throws SabresException {
+    private void saveInTransaction(Sabres sabres) throws SabresException {
         put(UPDATED_AT_KEY, new Date());
         if (id == 0) {
             put(CREATED_AT_KEY, new Date());
         }
 
-        if (updateSchema) {
-            Schema.update(sabres, name, schemaChanges);
-            updateTable(sabres);
+        Map<String, SabresDescriptor> schema = schemaChanges.remove(name);
+        if (schema != null && !schema.isEmpty()) {
+            Schema.update(sabres, name, schema);
+            updateTable(sabres, schema);
         }
 
-        schemaChanges.clear();
-        updateChildren(sabres, updateSchema);
+        updateChildren(sabres);
 
         if (id == 0) {
             id = insert(sabres);
@@ -927,7 +931,7 @@ abstract public class SabresObject {
         sabres.open();
         sabres.beginTransaction();
         try {
-            saveInTransaction(sabres, true);
+            saveInTransaction(sabres);
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();
@@ -935,18 +939,20 @@ abstract public class SabresObject {
         }
     }
 
-    public void updateTable(Sabres sabres) throws SabresException {
+    public void updateTable(Sabres sabres, Map<String, SabresDescriptor> schema) throws
+        SabresException {
         if (SqliteMaster.tableExists(sabres, name)) {
-            alterTable(sabres);
+            alterTable(sabres, schema);
         } else {
-            createTable(sabres);
+            createTable(sabres, schema);
         }
     }
 
-    private void createTable(Sabres sabres) throws SabresException {
+    private void createTable(Sabres sabres, Map<String, SabresDescriptor> schema) throws
+        SabresException {
         CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
-        for (Map.Entry<String, SabresDescriptor> entry : schemaChanges.entrySet()) {
+        for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
             Column column = new Column(entry.getKey(), entry.getValue().toSqlType());
             if (entry.getValue().getType().equals(SabresDescriptor.Type.Pointer)) {
                 column.foreignKeyIn(entry.getValue().getName());
@@ -958,18 +964,18 @@ abstract public class SabresObject {
         sabres.execSQL(createCommand.toSql());
     }
 
-    private void alterTable(Sabres sabres) throws SabresException {
-        for (Map.Entry<String, SabresDescriptor> entry : schemaChanges.entrySet()) {
+    private void alterTable(Sabres sabres, Map<String, SabresDescriptor> schema) throws SabresException {
+        for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
                 entry.getValue().toSqlType())).toSql());
         }
     }
 
-    private void updateChildren(Sabres sabres, boolean updateSchema) throws SabresException {
+    private void updateChildren(Sabres sabres) throws SabresException {
         for (Map.Entry<String, SabresValue> entry : values.entrySet()) {
             if (entry.getValue() instanceof ObjectValue) {
                 SabresObject o = ((ObjectValue<?>)entry.getValue()).getValue();
-                o.saveIfNeededInTransaction(sabres, updateSchema);
+                o.saveIfNeededInTransaction(sabres);
             }
         }
     }
