@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import bolts.Continuation;
 import bolts.Task;
@@ -89,7 +90,7 @@ abstract public class SabresObject {
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
     private final Map<String, SabresValue> values = new HashMap<>();
-    private final Map<String, SabresDescriptor> schemaChanges = new HashMap<>();
+    private static final Map<String, SabresDescriptor> schemaChanges = new ConcurrentHashMap<>();
     private final Set<String> dirtyKeys = new HashSet<>();
     private final String name;
     private boolean dataAvailable = false;
