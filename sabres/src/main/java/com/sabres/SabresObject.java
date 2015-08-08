@@ -983,6 +983,11 @@ abstract public class SabresObject {
     private void updateLists(Sabres sabres) throws SabresException {
         for (Map.Entry<String, SabresValue> entry : values.entrySet()) {
             if (entry.getValue() instanceof ListValue) {
+                if (entry.getValue() instanceof ObjectListValue) {
+                    for (SabresObject o : ((ObjectListValue)entry.getValue()).getValue()) {
+                        o.saveIfNeededInTransaction(sabres);
+                    }
+                }
                 SabresList list = SabresList.get(sabres, name, entry.getKey());
                 list.insert(sabres, id, ((ListValue<?>)entry.getValue()).getValue());
             }

@@ -45,6 +45,6 @@ final class ObjectListValue extends ListValue<SabresObject> {
     @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Pointer,
-            getValue().getClass().getSimpleName());
+            getValue().get(0).getClass().getSimpleName());
     }
 }
