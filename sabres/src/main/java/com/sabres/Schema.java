@@ -28,10 +28,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class Schema {
     private static final String TAG = Schema.class.getSimpleName();
-    private static final Map<String, Map<String, SabresDescriptor>> schemas = new HashMap<>();
+    private static final Map<String, Map<String, SabresDescriptor>> schemas = new ConcurrentHashMap<>();
     private static final String UNDEFINED = "(undefined)";
     private static final String SCHEMA_TABLE_NAME = "_schema_table";
     private static final String TABLE_KEY = "_table";

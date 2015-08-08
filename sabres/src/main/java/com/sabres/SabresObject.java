@@ -86,6 +86,7 @@ abstract public class SabresObject {
     private static final String TAG = SabresObject.class.getSimpleName();
     private static final String UNDEFINED = "(undefined)";
     private static final Map<String, Class<? extends SabresObject>> subClasses = new HashMap<>();
+    private static final Map<String, Object> locks = new HashMap<>();
     private static final String OBJECT_ID_KEY = "objectId";
     private static final String CREATED_AT_KEY = "createdAt";
     private static final String UPDATED_AT_KEY = "updatedAt";
@@ -157,6 +158,7 @@ abstract public class SabresObject {
      */
     public static void registerSubclass(Class<? extends SabresObject> subClass) {
         subClasses.put(subClass.getSimpleName(), subClass);
+        locks.put(subClass.getSimpleName(), new Object());
     }
 
     public static String getObjectIdKey() {
@@ -898,10 +900,14 @@ abstract public class SabresObject {
             put(CREATED_AT_KEY, new Date());
         }
 
-        Map<String, SabresDescriptor> schema = schemaChanges.remove(name);
-        if (schema != null && !schema.isEmpty()) {
-            Schema.update(sabres, name, schema);
-            updateTable(sabres, schema);
+        synchronized (locks.get(name)) {
+            Map<String, SabresDescriptor> schema = schemaChanges.get(name);
+
+            if (schema != null && !schema.isEmpty()) {
+                Schema.update(sabres, name, schema);
+                updateTable(sabres, schema);
+                schemaChanges.remove(name);
+            }
         }
 
         updateChildren(sabres);
