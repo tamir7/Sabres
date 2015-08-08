@@ -63,7 +63,7 @@ final class SabresDescriptor {
 
         if (type.equals(Type.List)) {
             if (ofType.equals(Type.Pointer)) {
-                return String.format("list of %s to %s", type.toString(), name);
+                return String.format("List of %s to %s", ofType.toString(), name);
             }
 
             return String.format("List of %s", ofType.toString());

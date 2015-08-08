@@ -43,6 +43,24 @@ final class ObjectListValue extends ListValue<SabresObject> {
     }
 
     @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
+
+        for (SabresObject value : getValue()) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+
+            sb.append(value.getObjectId());
+        }
+
+        return sb.append("}").toString();
+    }
+
+    @Override
     SabresDescriptor getDescriptor() {
         return new SabresDescriptor(SabresDescriptor.Type.List, SabresDescriptor.Type.Pointer,
             getValue().get(0).getClass().getSimpleName());
