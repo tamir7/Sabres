@@ -611,7 +611,8 @@ public class SabresQuery<T extends SabresObject> {
         List<T> results = find();
         if (results.isEmpty()) {
             throw new SabresException(SabresException.OBJECT_NOT_FOUND,
-                String.format("failed to get first object for query %s", where.toString()));
+                String.format("failed to get first %s for query %s", name, where == null ? "*"
+                    : where.toString()));
         }
 
         return results.get(0);
