@@ -102,7 +102,7 @@ repositories {
     maven { url 'http://dl.bintray.com/tamir7/maven' }
 }
 
- compile 'com.sabres:sabres:0.9.13@aar'
+ compile 'com.sabres:sabres:0.9.15@aar'
 ```
 
 ## License
