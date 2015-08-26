@@ -16,6 +16,8 @@
 
 package com.sabres;
 
+import android.database.DatabaseUtils;
+
 final class StringValue extends SabresValue<String> {
 
     StringValue(String value) {
@@ -24,7 +26,7 @@ final class StringValue extends SabresValue<String> {
 
     @Override
     String toSql() {
-        return String.format("'%s'", getValue());
+        return DatabaseUtils.sqlEscapeString(getValue());
     }
 
     @Override
