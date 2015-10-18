@@ -95,14 +95,10 @@ Please see [Wiki] for full documentation or [Javadoc] for... well.. for Javadoc.
 
 ## Installation
 
-Right now, the jar is hosted on my Bintray account. I'll upload it to jcenter when I deem it stable enough.
-
 ```java
-repositories {
-    maven { url 'http://dl.bintray.com/tamir7/maven' }
-}
-
- compile 'com.sabres:sabres:0.9.15@aar'
+ compile ('com.sabres:sabres:0.9.15@aar') {
+        transitive = true;
+ }
 ```
 
 ## License
