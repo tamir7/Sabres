@@ -94,12 +94,11 @@ public class SabresQuery<T extends SabresObject> {
     private final List<String> includes = new ArrayList<>();
     private final List<OrderBy> orderByList = new ArrayList<>();
     private final List<SabresQuery<T>> innerQueries;
-    private List<String> selectKeys;
+    private final List<String> selectKeys = new ArrayList<>();
     private Where where;
     private Integer limit;
     private Integer skip;
     private SelectCommand innerSelect;
-    private boolean illegalQuery = false;
 
     /**
      * Constructs a query for a SabresObject subclass type.
@@ -111,7 +110,6 @@ public class SabresQuery<T extends SabresObject> {
     public SabresQuery(Class<T> clazz) {
         this.clazz = clazz;
         name = clazz.getSimpleName();
-        selectKeys = Schema.getKeys(name);
         innerQueries = null;
     }
 
@@ -312,14 +310,8 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEqualTo(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
-
         SabresValue sabresValue = SabresValue.create(value);
-        if (descriptor.getType().equals(SabresDescriptor.Type.List)) {
+        if (sabresValue instanceof ListValue) {
             innerSelect = new SelectCommand(SabresList.getTableName(name, key),
                 Collections.singletonList(SabresList.getParentIdKey()));
             innerSelect.as(SabresList.getParentIdKey(), SabresObject.getObjectIdKey());
@@ -340,11 +332,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereNotEqualTo(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            // if key does not exist, then we're not equal to it.
-            return this;
-        }
         addWhere(key, Where.notEqualTo(key, SabresValue.create(value)));
         return this;
     }
@@ -356,11 +343,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereExists(String key) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.isNot(key, new StringValue("NULL")));
         return this;
     }
@@ -372,10 +354,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereDoesNotExist(String key) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            return this;
-        }
         addWhere(key, Where.is(key, new StringValue("NULL")));
         return this;
     }
@@ -389,11 +367,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereLessThan(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.lessThan(key, SabresValue.create(value)));
         return this;
     }
@@ -407,11 +380,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereLessThanOrEqual(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.lessThanOrEqual(key, SabresValue.create(value)));
         return this;
     }
@@ -425,11 +393,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereGraterThan(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.greaterThan(key, SabresValue.create(value)));
         return this;
     }
@@ -443,11 +406,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereGreaterThanOrEqual(String key, Object value) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.greaterThanOrEqual(key, SabresValue.create(value)));
         return this;
     }
@@ -460,11 +418,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereStartsWith(String key, String prefix) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.startsWith(key, prefix));
         return this;
     }
@@ -477,11 +430,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereEndsWith(String key, String suffix) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.endsWith(key, suffix));
         return this;
     }
@@ -492,11 +440,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereContains(String key, String substring) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         addWhere(key, Where.contains(key, substring));
         return this;
     }
@@ -510,11 +453,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereContainedIn(String key, List<?> values) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
         List<String> stingValues = new ArrayList<>(values.size());
         for (Object o : values) {
             stingValues.add(SabresValue.create(o).toSql());
@@ -533,10 +471,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereNotContainedIn(String key, List<?> values) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            return this;
-        }
         List<String> stingValues = new ArrayList<>(values.size());
         for (Object o : values) {
             stingValues.add(SabresValue.create(o).toSql());
@@ -555,16 +489,6 @@ public class SabresQuery<T extends SabresObject> {
      * @return this, so you can chain this call.
      */
     public SabresQuery<T> whereContainsAll(String key, List<?> values) {
-        SabresDescriptor descriptor = Schema.getDescriptor(name, key);
-        if (descriptor == null) {
-            illegalQuery = true;
-            return this;
-        }
-        if (!descriptor.getType().equals(SabresDescriptor.Type.List)) {
-            throw new IllegalArgumentException(String.format("Key %s in object %s is not a list",
-                key, name));
-        }
-
         innerSelect = new SelectCommand(SabresList.getTableName(name, key),
             Collections.singletonList(SabresList.getParentIdKey()));
         innerSelect.as(SabresList.getParentIdKey(), SabresObject.getObjectIdKey());
@@ -688,10 +612,6 @@ public class SabresQuery<T extends SabresObject> {
      * @throws SabresException Throws an exception when the query is invalid.
      */
     public long count() throws SabresException {
-        if (illegalQuery) {
-            return 0;
-        }
-
         Sabres sabres = Sabres.self();
         sabres.open();
         try {
@@ -748,17 +668,14 @@ public class SabresQuery<T extends SabresObject> {
     public List<T> find() throws SabresException {
         List<T> objects = new ArrayList<>();
 
-        if (illegalQuery) {
-            return objects;
-        }
-
         Sabres sabres = Sabres.self();
         sabres.open();
         Cursor c = null;
         try {
             if (SqliteMaster.tableExists(sabres, name)) {
                 createIndices(sabres);
-                SelectCommand command = new SelectCommand(name, selectKeys);
+                SelectCommand command = new SelectCommand(name, selectKeys.isEmpty() ?
+                Schema.getKeys(name) : selectKeys);
                 for (String include : includes) {
                     SabresDescriptor descriptor = Schema.getDescriptor(name, include);
                     if (descriptor != null &&
