@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+
+Version 0.9.16 *(1-11-2015)*
+------------------
+* Fixed a crash that happened when you tried to build a query before Sabres finished initializing. 
+* Reintroduced a crash: When trying to query on a key that does not exist. (Fix was crappy. Will think on it.)
+
 Version 0.9.13 *(8-8-2015)*
 ------------------
 
