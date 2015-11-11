@@ -430,6 +430,26 @@ abstract public class SabresObject {
     }
 
     /**
+     * Deletes all the objects in the table.
+     *
+     * @throws SabresException Throws an exception if one of the deletes fails.
+     */
+    public static <T extends SabresObject> void deleteAll(Class<T> clazz) throws SabresException {
+        final Sabres sabres = Sabres.self();
+        sabres.open();
+        sabres.beginTransaction();
+        try {
+            String table = clazz.getSimpleName();
+            dropTable(sabres, table);
+            createTable(sabres, Schema.getSchema(table), table);
+            sabres.setTransactionSuccessful();
+        } finally {
+            sabres.endTransaction();
+            sabres.close();
+        }
+    }
+
+    /**
      * Deletes each object in the provided list.
      *
      * @param objects The objects to delete.
@@ -448,6 +468,37 @@ abstract public class SabresObject {
             sabres.endTransaction();
             sabres.close();
         }
+    }
+
+    /**
+     * Deletes all objects in the table in a background thread.
+     *
+     * @return A Task that is resolved when deleteAll completes.
+     */
+    public static <T extends SabresObject> Task<Void> deleteAllInBackground(final Class<T> clazz) {
+        return Task.callInBackground(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                deleteAll(clazz);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Deletes all objects in the table in a background thread.
+     *
+     * @param callback The callback method to execute when completed.
+     */
+    public static <T extends SabresObject> void deleteAllInBackground(Class<T> clazz,
+                                                                      final DeleteCallback callback) {
+        deleteAllInBackground(clazz).continueWith(new Continuation<Void, Void>() {
+            @Override
+            public Void then(Task<Void> task) throws Exception {
+                callback.done(SabresException.construct(task.getError()));
+                return null;
+            }
+        }, Task.UI_THREAD_EXECUTOR);
     }
 
     /**
@@ -954,9 +1005,9 @@ abstract public class SabresObject {
         }
     }
 
-    private void createTable(Sabres sabres, Map<String, SabresDescriptor> schema) throws
-        SabresException {
-        CreateTableCommand createCommand = new CreateTableCommand(name).ifNotExists();
+    private static void createTable(Sabres sabres, Map<String, SabresDescriptor> schema,
+                                    String table) throws SabresException {
+        CreateTableCommand createCommand = new CreateTableCommand(table).ifNotExists();
         createCommand.withColumn(new Column(OBJECT_ID_KEY, SqlType.Integer).primaryKey().notNull());
         for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
             Column column = new Column(entry.getKey(), entry.getValue().toSqlType());
@@ -970,11 +1021,21 @@ abstract public class SabresObject {
         sabres.execSQL(createCommand.toSql());
     }
 
+    private void createTable(Sabres sabres, Map<String, SabresDescriptor> schema) throws
+        SabresException {
+        SabresObject.createTable(sabres, schema, name);
+    }
+
     private void alterTable(Sabres sabres, Map<String, SabresDescriptor> schema) throws SabresException {
         for (Map.Entry<String, SabresDescriptor> entry : schema.entrySet()) {
             sabres.execSQL(new AlterTableCommand(name, new Column(entry.getKey(),
-                entry.getValue().toSqlType())).toSql());
+                    entry.getValue().toSqlType())).toSql());
         }
+    }
+
+    private static void dropTable(Sabres sabres, String table) throws SabresException {
+        DropTableCommand dropTableCommand = new DropTableCommand(table).ifExists();
+        sabres.execSQL(dropTableCommand.toSql());
     }
 
     private void updateChildren(Sabres sabres) throws SabresException {
