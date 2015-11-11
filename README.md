@@ -96,7 +96,7 @@ Please see [Wiki] for full documentation or [Javadoc] for... well.. for Javadoc.
 ## Installation
 
 ```java
- compile ('com.sabres:sabres:0.9.16@aar') {
+ compile ('com.sabres:sabres:0.9.17@aar') {
         transitive = true;
  }
 ```

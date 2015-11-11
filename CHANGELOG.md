@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+Version 0.9.17 *(11-11-2015)*
+------------------
+* Added deleteAll() function to delete all objects of same type.
 
 Version 0.9.16 *(1-11-2015)*
 ------------------
