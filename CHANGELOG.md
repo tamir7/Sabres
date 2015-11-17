@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.9.18 *(17-11-2015)*
+------------------
+* Added a check to deleteAll() to not recreate the table if it didn't exist before.
+
 Version 0.9.17 *(11-11-2015)*
 ------------------
 * Added deleteAll() function to delete all objects of same type.
