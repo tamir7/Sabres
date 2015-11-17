@@ -440,8 +440,12 @@ abstract public class SabresObject {
         sabres.beginTransaction();
         try {
             String table = clazz.getSimpleName();
-            dropTable(sabres, table);
-            createTable(sabres, Schema.getSchema(table), table);
+
+            if (SqliteMaster.tableExists(sabres, table)) {
+                dropTable(sabres, table);
+                createTable(sabres, Schema.getSchema(table), table);
+            }
+
             sabres.setTransactionSuccessful();
         } finally {
             sabres.endTransaction();
